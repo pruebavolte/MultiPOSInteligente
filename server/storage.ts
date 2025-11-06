@@ -390,4 +390,156 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage (PostgreSQL with Drizzle ORM)
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { eq } from "drizzle-orm";
+import * as schema from "@shared/schema";
+import ws from "ws";
+
+// Configure WebSocket for Node.js environment
+neonConfig.webSocketConstructor = ws;
+
+export class DbStorage implements IStorage {
+  private db: ReturnType<typeof drizzle>;
+
+  constructor() {
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL environment variable is not set. Please provision a database.");
+    }
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    this.db = drizzle(pool, { schema });
+  }
+
+  // Products
+  async getProducts(): Promise<Product[]> {
+    return await this.db.select().from(schema.products);
+  }
+
+  async getProduct(id: string): Promise<Product | undefined> {
+    const result = await this.db.select().from(schema.products).where(eq(schema.products.id, id));
+    return result[0];
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const result = await this.db.insert(schema.products).values(insertProduct).returning();
+    return result[0];
+  }
+
+  async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product | undefined> {
+    const result = await this.db
+      .update(schema.products)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(schema.products.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteProduct(id: string): Promise<boolean> {
+    const result = await this.db.delete(schema.products).where(eq(schema.products.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Categories
+  async getCategories(): Promise<Category[]> {
+    return await this.db.select().from(schema.categories);
+  }
+
+  async getCategory(id: string): Promise<Category | undefined> {
+    const result = await this.db.select().from(schema.categories).where(eq(schema.categories.id, id));
+    return result[0];
+  }
+
+  async createCategory(insertCategory: InsertCategory): Promise<Category> {
+    const result = await this.db.insert(schema.categories).values(insertCategory).returning();
+    return result[0];
+  }
+
+  // Customers
+  async getCustomers(): Promise<Customer[]> {
+    return await this.db.select().from(schema.customers);
+  }
+
+  async getCustomer(id: string): Promise<Customer | undefined> {
+    const result = await this.db.select().from(schema.customers).where(eq(schema.customers.id, id));
+    return result[0];
+  }
+
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    const result = await this.db.insert(schema.customers).values(insertCustomer).returning();
+    return result[0];
+  }
+
+  async updateCustomer(id: string, updates: Partial<InsertCustomer>): Promise<Customer | undefined> {
+    const result = await this.db
+      .update(schema.customers)
+      .set(updates)
+      .where(eq(schema.customers.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Sales
+  async getSales(): Promise<Sale[]> {
+    return await this.db.select().from(schema.sales);
+  }
+
+  async getSale(id: string): Promise<Sale | undefined> {
+    const result = await this.db.select().from(schema.sales).where(eq(schema.sales.id, id));
+    return result[0];
+  }
+
+  async createSale(insertSale: InsertSale): Promise<Sale> {
+    const result = await this.db.insert(schema.sales).values(insertSale).returning();
+    return result[0];
+  }
+
+  async getSaleItems(saleId: string): Promise<SaleItem[]> {
+    return await this.db.select().from(schema.saleItems).where(eq(schema.saleItems.saleId, saleId));
+  }
+
+  async createSaleItem(insertItem: InsertSaleItem): Promise<SaleItem> {
+    const result = await this.db.insert(schema.saleItems).values(insertItem).returning();
+    return result[0];
+  }
+
+  // Tenant Config
+  async getConfig(): Promise<TenantConfig | undefined> {
+    const result = await this.db.select().from(schema.tenantConfig).limit(1);
+    return result[0];
+  }
+
+  async updateConfig(updates: Partial<InsertTenantConfig>): Promise<TenantConfig> {
+    // Check if config exists
+    const existing = await this.getConfig();
+    
+    if (!existing) {
+      // Create default config
+      const newConfig = {
+        businessName: updates.businessName || "Sistema POS",
+        domain: updates.domain || "pos.local",
+        logoUrl: updates.logoUrl || null,
+        primaryColor: updates.primaryColor || "#3b82f6",
+        secondaryColor: updates.secondaryColor || "#64748b",
+        accentColor: updates.accentColor || "#8b5cf6",
+        defaultLanguage: updates.defaultLanguage || "es",
+        defaultCurrency: updates.defaultCurrency || "MXN",
+        taxRate: updates.taxRate || "16.00",
+        active: true,
+      };
+      const result = await this.db.insert(schema.tenantConfig).values(newConfig).returning();
+      return result[0];
+    }
+
+    // Update existing config
+    const result = await this.db
+      .update(schema.tenantConfig)
+      .set(updates)
+      .where(eq(schema.tenantConfig.id, existing.id))
+      .returning();
+    return result[0];
+  }
+}
+
+// Use database storage instead of memory storage
+export const storage = new DbStorage();

@@ -59,9 +59,12 @@ Preferred communication style: Simple, everyday language.
 - TenantConfig: Multi-tenant business settings
 
 **Storage Strategy:**
-- In-memory storage implementation (MemStorage) for development
-- Interface-based design allows easy swapping to database storage
+- PostgreSQL database storage (DbStorage) using Drizzle ORM
+- Interface-based design (IStorage) for abstraction
 - All CRUD operations abstracted behind IStorage interface
+- Neon serverless PostgreSQL with WebSocket configuration for Node.js
+- Database migrations managed with drizzle-kit
+- Seed script (server/seed.ts) for initial data population
 
 ### API Design
 
