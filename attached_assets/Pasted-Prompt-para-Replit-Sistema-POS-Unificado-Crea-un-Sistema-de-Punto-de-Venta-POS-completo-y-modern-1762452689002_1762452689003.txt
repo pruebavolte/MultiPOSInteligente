@@ -1,0 +1,280 @@
+Prompt para Replit - Sistema POS Unificado
+Crea un Sistema de Punto de Venta (POS) completo y moderno con las siguientes especificaciones:
+
+## STACK TECNOLÓGICO
+- Frontend: Next.js 14+ con App Router
+- Lenguaje: TypeScript (tipado estricto)
+- UI: React 18+ con Tailwind CSS
+- Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- Hosting: Vercel
+- IA de Voz: ElevenLabs API para reconocimiento y síntesis de voz
+
+## FUNCIONALIDADES PRINCIPALES
+
+### 1. MÓDULO DE PUNTO DE VENTA
+- Interfaz táctil optimizada para tablets, móviles y desktop
+- Búsqueda inteligente de productos con autocompletado
+- **Sistema de órdenes por voz con IA:**
+  - Botón de "Ordenar por Voz" en la interfaz principal
+  - Integración con ElevenLabs para reconocimiento de voz
+  - Procesamiento inteligente de órdenes naturales (ej: "agrega 3 coca colas y 2 sabritas")
+  - Confirmación visual y auditiva de productos agregados
+  - Manejo de correcciones por voz (ej: "quita las sabritas", "cambia a 5 coca colas")
+- Carrito de compras con cálculo automático
+- Gestión de descuentos y promociones
+- Múltiples métodos de pago (efectivo, tarjeta, transferencia)
+- Ventas a crédito con límite personalizado
+- Modo offline con sincronización automática
+- Impresión de tickets
+
+### 2. MÓDULO DE INVENTARIO
+- Catálogo de productos con capacidad de 190,000+ artículos
+- Importación masiva desde Excel/CSV
+- Control de stock en tiempo real
+- Alertas de inventario bajo
+- Gestión de lotes y fechas de caducidad
+- Múltiples listas de precios (público, mayoreo, VIP)
+- Categorías y subcategorías
+- Código de barras y SKU
+- Imágenes de productos
+
+### 3. MÓDULO DE CLIENTES
+- Base de datos completa de clientes
+- Sistema de puntos y recompensas
+- Historial de compras detallado
+- Cuentas por cobrar y crédito
+- Estados de cuenta
+- Recordatorios de pago automáticos
+- Segmentación de clientes
+
+### 4. MÓDULO DE REPORTES Y ANALÍTICAS
+- Dashboard ejecutivo con KPIs en tiempo real
+- Ventas por producto, categoría, cajero y sucursal
+- Gráficas interactivas (Chart.js o Recharts)
+- Productos más vendidos y de menor rotación
+- Reportes de utilidad y márgenes
+- Exportación a PDF y Excel
+- Envío automático por email
+
+### 5. MÓDULO DE EMPLEADOS
+- Gestión de usuarios y roles
+- Control de accesos por permisos
+- Registro de entradas/salidas
+- Comisiones por venta
+- Historial de operaciones por cajero
+
+### 6. MÓDULO DE FACTURACIÓN ELECTRÓNICA (Preparado)
+- Estructura para integración con PAC
+- Generación de CFDI 4.0
+- Almacenamiento de XML y PDF
+- Envío automático al cliente
+
+### 7. SISTEMA DE VOZ INTELIGENTE (PRIORIDAD)
+Crea un componente `VoiceOrderSystem` con:
+```typescript
+// Funcionalidades del sistema de voz:
+- Activación con botón "🎤 Ordenar por Voz"
+- Estado visual del micrófono (escuchando/procesando/inactivo)
+- Integración con ElevenLabs API para:
+  * Speech-to-Text (transcripción de audio)
+  * Procesamiento de lenguaje natural para entender órdenes
+  * Text-to-Speech para confirmaciones auditivas
+- Comandos soportados:
+  * "Agrega [cantidad] [nombre producto]"
+  * "Quita [nombre producto]"
+  * "Cambia [producto] a [cantidad]"
+  * "Busca [nombre producto]"
+  * "Cuánto es el total"
+  * "Finalizar venta"
+  * "Cancelar orden"
+- Búsqueda inteligente y tolerante a errores en nombres de productos
+- Confirmación visual y auditiva de cada acción
+- Manejo de ambigüedades (si hay varios productos similares, preguntar)
+- Feedback visual en tiempo real de lo que se está escuchando
+```
+
+## ARQUITECTURA DE BASE DE DATOS
+
+Crea las siguientes tablas en Supabase:
+
+### products
+- id (uuid, primary key)
+- sku (text, unique)
+- barcode (text, unique, nullable)
+- name (text)
+- description (text, nullable)
+- category_id (uuid, foreign key)
+- price (decimal)
+- cost (decimal)
+- stock (integer)
+- min_stock (integer)
+- max_stock (integer)
+- image_url (text, nullable)
+- active (boolean)
+- created_at (timestamp)
+- updated_at (timestamp)
+
+### categories
+- id (uuid, primary key)
+- name (text)
+- parent_id (uuid, foreign key, nullable)
+- active (boolean)
+
+### customers
+- id (uuid, primary key)
+- name (text)
+- email (text, unique, nullable)
+- phone (text, nullable)
+- address (text, nullable)
+- credit_limit (decimal)
+- credit_balance (decimal)
+- points (integer)
+- active (boolean)
+- created_at (timestamp)
+
+### sales
+- id (uuid, primary key)
+- sale_number (text, unique)
+- customer_id (uuid, foreign key, nullable)
+- user_id (uuid, foreign key)
+- subtotal (decimal)
+- discount (decimal)
+- tax (decimal)
+- total (decimal)
+- payment_method (text)
+- status (text)
+- created_at (timestamp)
+
+### sale_items
+- id (uuid, primary key)
+- sale_id (uuid, foreign key)
+- product_id (uuid, foreign key)
+- quantity (integer)
+- unit_price (decimal)
+- subtotal (decimal)
+- discount (decimal)
+
+### users
+- id (uuid, primary key)
+- email (text, unique)
+- name (text)
+- role (text)
+- active (boolean)
+- created_at (timestamp)
+
+## CARACTERÍSTICAS TÉCNICAS
+
+### Seguridad
+- Row Level Security (RLS) en todas las tablas
+- Autenticación JWT con Supabase Auth
+- Encriptación de datos sensibles
+- Rate limiting
+- Validación de inputs
+- Sanitización de datos
+
+### Performance
+- Server Components de Next.js para mejor rendimiento
+- Lazy loading de imágenes
+- Caché inteligente
+- Paginación en listas grandes
+- Optimistic updates
+
+### UX/UI
+- Diseño responsive (mobile-first)
+- Sistema de diseño consistente con Tailwind
+- Modo oscuro/claro
+- Temas de color personalizables
+- Animaciones suaves
+- Feedback visual inmediato
+- Accesibilidad (WCAG 2.1)
+
+### Modo Offline
+- Service Worker para caché
+- IndexedDB para almacenamiento local
+- Cola de sincronización
+- Indicador de estado de conexión
+
+## ESTRUCTURA DEL PROYECTO
+/app
+/api
+/elevenlabs
+/speech-to-text
+/text-to-speech
+/(auth)
+/login
+/register
+/(dashboard)
+/pos
+/inventory
+/customers
+/sales
+/reports
+/settings
+/components
+/pos
+/VoiceOrderSystem.tsx
+/ProductSearch.tsx
+/Cart.tsx
+/PaymentModal.tsx
+/inventory
+/customers
+/ui (componentes reutilizables)
+/lib
+/supabase
+/elevenlabs
+/utils
+/hooks
+/useVoiceOrders.ts
+/useProducts.ts
+/useSales.ts
+/types
+/database.ts
+/api.ts
+
+## CONFIGURACIÓN INICIAL
+
+1. Instalar dependencias necesarias:
+   - @supabase/supabase-js
+   - @supabase/auth-helpers-nextjs
+   - elevenlabs-api (para integración de voz)
+   - recharts (gráficas)
+   - react-hook-form + zod (formularios)
+   - date-fns (manejo de fechas)
+   - jspdf (exportación PDF)
+   - xlsx (importación/exportación Excel)
+
+2. Configurar variables de entorno:
+   - NEXT_PUBLIC_SUPABASE_URL
+   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - SUPABASE_SERVICE_ROLE_KEY
+   - ELEVENLABS_API_KEY
+   - NEXT_PUBLIC_APP_URL
+
+3. Implementar primero el MVP con:
+   - Sistema de autenticación
+   - Módulo POS básico con búsqueda de productos
+   - **Sistema de órdenes por voz completamente funcional**
+   - Carrito de compras
+   - Finalización de venta
+   - Inventario básico
+
+4. Priorizar la funcionalidad de voz:
+   - Crear hook personalizado `useVoiceOrders`
+   - Implementar servicio de ElevenLabs
+   - Crear UI intuitiva para el micrófono
+   - Implementar lógica de procesamiento de lenguaje natural
+   - Agregar confirmaciones auditivas
+
+## INSTRUCCIONES ESPECIALES PARA EL SISTEMA DE VOZ
+
+1. El sistema debe poder entender órdenes en español natural
+2. Debe ser tolerante a variaciones en los nombres de productos
+3. Implementar búsqueda fuzzy para encontrar productos aunque no se pronuncien exactamente
+4. Dar feedback auditivo usando Text-to-Speech de ElevenLabs
+5. Mostrar transcripción en tiempo real
+6. Permitir correcciones por voz antes de confirmar
+7. Implementar timeout de escucha (ej: 5 segundos de silencio)
+8. Manejar errores gracefully con mensajes claros
+
+Empieza creando la estructura base del proyecto, luego implementa el sistema de autenticación, después el módulo POS básico con énfasis en el sistema de voz, y finalmente los demás módulos según prioridad.
+Este prompt incluye todas las especificaciones de la propuesta más el sistema de órdenes por voz con IA usando ElevenLabs. El sistema de voz está diseñado para ser intuitivo y permitir que los cajeros puedan agregar productos al carrito usando comandos de voz naturales en español.
