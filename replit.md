@@ -44,10 +44,10 @@ Database Choice: Supabase (con acceso automático desde la aplicación)
 
 **Test Data Included:**
 - Admin user: admin@salvadorex.test
-- 5 categories: Bebidas, Comidas Rápidas, Postres, Snacks, Entradas
-- 20+ sample products with prices and inventory
-- 5 sample customers with loyalty points
-- Sample sales data
+- Dev user: dev@salvadorex.test (ID: 6c1c07e3-5e49-4bf3-99c0-3acc1ccbfd3e)
+- 5 categories: Bebidas, Comidas, Postres, Snacks, Entradas y Antojitos
+- 5+ sample products with prices and inventory (Coca-Cola, Pepsi, Agua, Hamburguesa, Pizza)
+- Products require SKU field (not null constraint)
 
 ## Configuration
 
@@ -78,9 +78,16 @@ CLERK_PUBLISHABLE_KEY=[clerk pk]
 - ✅ Order placement
 
 ### Authentication
-- ✅ Clerk OAuth integration
+- ✅ Clerk OAuth integration (production)
+- ✅ Development auth bypass system (no Clerk login required in dev mode)
 - ✅ User synchronization to Supabase
 - ✅ Role-based access control
+
+### Development Auth Bypass
+- **Dev User ID**: 6c1c07e3-5e49-4bf3-99c0-3acc1ccbfd3e
+- **Dev User Email**: dev@salvadorex.test
+- **Files**: `src/lib/auth-wrapper.ts`, `src/lib/auth-dev.ts`
+- **How it works**: In development mode, all API routes automatically use the dev user without requiring Clerk authentication
 
 ## Important API Endpoints
 
