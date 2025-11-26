@@ -11,8 +11,10 @@ interface Props {
 const client = new QueryClient();
 
 const Providers = ({ children }: Props) => {
+    const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    
     return (
-        <ClerkProvider>
+        <ClerkProvider publishableKey={publishableKey}>
             <QueryClientProvider client={client}>
                 {children}
             </QueryClientProvider>
