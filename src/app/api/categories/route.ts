@@ -1,28 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/supabase/users";
-import type { Database } from "@/lib/supabase/client";
+import { getAuthenticatedUser, getSupabaseClient } from "@/lib/auth-wrapper";
 
 // GET /api/categories - Get categories filtered by user_id
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
+    const supabase = getSupabaseClient();
 
     const { data, error } = await supabase
       .from("categories")
@@ -52,22 +39,12 @@ export async function GET(request: NextRequest) {
 // POST /api/categories - Create category with user_id
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
+    const supabase = getSupabaseClient();
 
     const categoryData = await request.json();
 
@@ -105,22 +82,12 @@ export async function POST(request: NextRequest) {
 // PATCH /api/categories/:id - Update category (only if user owns it)
 export async function PATCH(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
+    const supabase = getSupabaseClient();
 
     const url = new URL(request.url);
     const categoryId = url.searchParams.get("id");
@@ -172,22 +139,12 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/categories/:id - Delete category (only if user owns it)
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
+    const supabase = getSupabaseClient();
 
     const url = new URL(request.url);
     const categoryId = url.searchParams.get("id");

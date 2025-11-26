@@ -157,7 +157,65 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json({ error: 'Invalid step. Use ?step=check or ?step=seed' }, { status: 400 });
+    if (step === 'dev-user') {
+      const DEV_USER_EMAIL = "dev@salvadorex.test";
+      const DEV_USER_CLERK_ID = "dev_user_local";
+
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', DEV_USER_EMAIL)
+        .single();
+
+      if (existingUser) {
+        return NextResponse.json({
+          success: true,
+          message: 'Dev user already exists',
+          user: {
+            id: existingUser.id,
+            email: existingUser.email,
+            role: existingUser.role,
+            first_name: existingUser.first_name,
+            last_name: existingUser.last_name
+          },
+          instructions: `Set DEV_USER_ID=${existingUser.id} in your environment variables`
+        });
+      }
+
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert([{
+          clerk_id: DEV_USER_CLERK_ID,
+          email: DEV_USER_EMAIL,
+          first_name: 'Dev',
+          last_name: 'User',
+          role: 'ADMIN'
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        return NextResponse.json({ 
+          error: 'Failed to create dev user', 
+          details: createError.message 
+        }, { status: 400 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Dev user created successfully!',
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
+          first_name: newUser.first_name,
+          last_name: newUser.last_name
+        },
+        instructions: `Set DEV_USER_ID=${newUser.id} in your environment variables`
+      });
+    }
+
+    return NextResponse.json({ error: 'Invalid step. Use ?step=check, ?step=seed, or ?step=dev-user' }, { status: 400 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
