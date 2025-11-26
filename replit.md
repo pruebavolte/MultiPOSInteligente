@@ -1,10 +1,10 @@
-# Multi-Tenant POS System
+# SalvadoreX POS System
 
 ## Overview
 
-This is a modern Point of Sale (POS) system built as a full-stack web application. The system is designed to handle retail transactions with support for multiple languages, currencies, and voice-based ordering. It features a comprehensive product catalog capable of managing up to 190,000+ items, customer management with loyalty programs, and real-time inventory tracking.
+SalvadoreX is an enterprise-grade Point of Sale (POS) system with AI-powered capabilities. The system combines traditional POS functionality with cutting-edge features including voice-based ordering, AI menu digitalization from photos, and automated product image generation. It serves both restaurant staff through a comprehensive dashboard and customers through a digital menu interface.
 
-The application serves as a complete retail management solution with POS transactions, inventory control, customer relationship management, and business analytics capabilities.
+The application is built with Next.js 16 using the App Router, TypeScript, and integrates with Supabase for data persistence and Clerk for authentication. It supports multi-language operations (6 languages) and multi-currency transactions (5 currencies).
 
 ## User Preferences
 
@@ -14,142 +14,136 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 
-**Framework & Build System:**
-- React 18+ with TypeScript for type safety
-- Vite as the build tool and development server
-- Wouter for client-side routing (lightweight React Router alternative)
-- TanStack Query (React Query) for server state management and caching
+**Framework**: Next.js 16.0.1 with App Router and React Server Components
+- TypeScript strict mode enabled for type safety
+- Client-side state management using React hooks and context API
+- React Query (@tanstack/react-query) for server state management
+- Dual dashboard architecture:
+  - `/dashboard/*` - Staff/admin interface for POS operations, inventory, and reporting
+  - `/dashboard-user/*` - Customer interface for menu browsing and ordering
 
-**UI Component System:**
-- Shadcn/ui component library based on Radix UI primitives
-- Tailwind CSS for styling with custom design tokens
-- Material Design 3 principles for touch-optimized interfaces
-- Custom theme system supporting light/dark modes
-- Typography: Inter for UI text, JetBrains Mono for monospaced content (prices, SKUs)
+**UI Component System**: Shadcn/ui (48+ components)
+- Radix UI primitives for accessible, unstyled components
+- Tailwind CSS for styling with CSS variables for theming
+- Custom components for domain-specific functionality (POS cart, product search, voice ordering)
 
-**State Management:**
-- TanStack Query for server state with infinite stale time
-- Local React state for UI interactions
-- Context API for theme and global settings
+**State Management**:
+- Language context provider for multi-language support (6 languages)
+- Cart management using custom hooks (use-sales.ts)
+- Product variants and customization tracking
+- Real-time voice transcription state
 
-**Key Design Decisions:**
-- Touch-first interface optimized for tablets and mobile devices
-- 60/40 split layout on POS screen (product grid vs cart sidebar)
-- Minimum touch target heights (h-24) for accessibility
-- Real-time exchange rate conversion for multi-currency support
+**Key Design Patterns**:
+- Server Components for data fetching where possible
+- Client Components marked with "use client" for interactivity
+- Custom hooks for reusable business logic (7 custom hooks)
+- Conditional layouts based on route patterns (authenticated vs public)
 
 ### Backend Architecture
 
-**Server Framework:**
-- Express.js with TypeScript
-- ESM module system throughout
-- Custom middleware for request logging and JSON parsing
+**API Layer**: Next.js API Routes (21 endpoints)
+- RESTful endpoints under `/api/*`
+- Server-side authentication using Clerk
+- API route handlers for CRUD operations
+- Special endpoints for AI features (voice-order, text-to-speech, search-images)
 
-**Database & ORM:**
-- PostgreSQL as the primary database
-- Drizzle ORM for type-safe database operations
-- Neon serverless PostgreSQL for hosting
-- Schema-first approach with Zod validation integration
+**Authentication & Authorization**:
+- Clerk for user authentication and session management
+- Middleware-based route protection (src/middleware.ts)
+- Role-based access control (ADMIN, CUSTOMER roles)
+- Automatic user sync from Clerk to Supabase via `/api/auth/sync-user`
+- Public menu sharing via restaurantId query parameter
 
-**Data Models:**
-- Products: SKU, barcode, pricing tiers, stock levels, categories
-- Customers: Contact info, credit limits, loyalty points
-- Sales: Transaction records with line items and payment methods
-- Categories: Hierarchical product organization
-- TenantConfig: Multi-tenant business settings
+**Business Logic**:
+- Multi-channel product availability system (POS vs Digital Menu)
+- Inventory tracking with min/max stock levels
+- Product variants system (sizes, toppings, extras with pricing)
+- Customer credit/points management
+- Tax calculation (16% IVA/VAT)
+- Multi-currency conversion with exchange rates
 
-**Storage Strategy:**
-- PostgreSQL database storage (DbStorage) using Drizzle ORM
-- Interface-based design (IStorage) for abstraction
-- All CRUD operations abstracted behind IStorage interface
-- Neon serverless PostgreSQL with WebSocket configuration for Node.js
-- Database migrations managed with drizzle-kit
-- Seed script (server/seed.ts) for initial data population
+### Data Storage Solutions
 
-### API Design
+**Primary Database**: Supabase (PostgreSQL)
+- User management with Clerk integration
+- Products with multi-channel availability flags
+- Categories with hierarchical support
+- Product variants (sizes, extras, customizations)
+- Sales and sale items tracking
+- Customer records with credit/loyalty points
+- Orders from digital menu
+- 12 database migrations in `/supabase/migrations`
 
-**RESTful Endpoints:**
-- `/api/products` - Product CRUD operations
-- `/api/categories` - Category management
-- `/api/customers` - Customer management
-- `/api/sales` - Transaction processing
-- `/api/config` - Tenant configuration
-- `/api/voice/transcribe` - Audio transcription
-- `/api/voice/command` - Voice command processing
-- `/api/exchange-rate` - Currency conversion
+**Database Schema Highlights**:
+- `users` table synced with Clerk (clerk_id, email, role, restaurant_id)
+- `products` table with unified multi-channel flags (available_in_pos, available_in_digital_menu, track_inventory)
+- `product_variants` for customizable product options
+- `categories` with parent-child relationships
+- `sales` and `sale_items` for POS transactions
+- `customers` for customer relationship management
+- `orders` and `order_items` for digital menu purchases
 
-**Request Handling:**
-- Zod schema validation on all inputs
-- Multer for audio file uploads (voice orders)
-- Express-session with PostgreSQL store for session management
-- CORS and security headers configured
+**File Storage**: Supabase Storage
+- Product images with upload/delete functionality
+- AI-generated product images
+- Menu photo uploads for digitalization
 
-**Error Handling:**
-- Consistent error responses with status codes
-- Validation errors return detailed field information
-- Request/response logging for debugging
+**Client-Side Storage**:
+- localStorage for language preferences
+- Session storage for cart state
 
-### Voice AI Integration
+### External Dependencies
 
-**Speech Processing Pipeline:**
-1. Browser captures audio via MediaRecorder API
-2. Audio uploaded as WebM to `/api/voice/transcribe`
-3. OpenAI Whisper API transcribes audio to text
-4. Text analyzed by GPT-5 to extract product commands
-5. ElevenLabs TTS synthesizes confirmation audio
+**Authentication & User Management**:
+- **Clerk** (@clerk/nextjs): User authentication, session management, and user profiles
+- Provides UserButton component and auth hooks
+- Automatic user synchronization to Supabase
 
-**Language Support:**
-- Auto-detection of spoken language (Spanish, English, French, German, Chinese, Japanese)
-- Multi-language voice models via ElevenLabs
-- Natural language processing handles variations ("agrega 3 coca colas", "add 3 cokes")
+**AI & Machine Learning**:
+- **OpenAI/Google Generative AI** (@google/generative-ai): Menu digitalization from photos
+- **OpenRouter**: Claude AI for intelligent voice order processing
+- **ElevenLabs** (@elevenlabs/elevenlabs-js, @elevenlabs/react): Text-to-speech and voice agent capabilities
+- Uses ElevenLabs multilingual v2 model for voice responses
 
-**Design Choice:**
-- Whisper for transcription (more accurate than ElevenLabs for this use case)
-- GPT-5 for command parsing (newest model as of August 2025)
-- ElevenLabs for speech synthesis (better voice quality)
+**Database & Backend**:
+- **Supabase** (@supabase/supabase-js): PostgreSQL database and file storage
+- Service role key for server-side operations
+- Row-level security policies
 
-## External Dependencies
+**Payment Processing**:
+- **Stripe** (@stripe/stripe-js): Payment processing integration (configured but implementation details minimal in provided files)
 
-### Third-Party Services
+**Image & Media**:
+- **Pexels API**: External image search for product photos (via `/api/search-images`)
+- Native browser APIs: Web Speech API for voice recognition, MediaRecorder for audio capture
 
-**AI & Voice Services:**
-- OpenAI API: Whisper transcription, GPT-5 language detection and command parsing
-- ElevenLabs API: Text-to-speech synthesis with multi-language voice models
+**UI & Interactions**:
+- **Framer Motion**: Animations and transitions
+- **Recharts**: Dashboard charts and analytics visualization
+- **React Day Picker**: Date selection for reports
+- **dnd-kit**: Drag-and-drop functionality
+- **QRCode.react**: QR code generation for menu sharing
 
-**Database & Infrastructure:**
-- Neon serverless PostgreSQL: Database hosting with connection pooling
-- ExchangeRate API: Real-time currency conversion rates (free tier)
+**Development Tools**:
+- **Prisma** (@prisma/client): Database ORM (configured alongside Supabase)
+- **Zod**: Schema validation with react-hook-form integration
+- **React Hook Form**: Form state management
+- **Axios**: HTTP client for API calls
 
-**Development Tools:**
-- Replit development environment integrations (@replit/vite-plugin-*)
+**Internationalization**:
+- Custom translation system in `/src/lib/translations`
+- Supports: Spanish, English, Portuguese, German, Japanese, French
+- Currency conversion for: MXN, USD, BRL, EUR, JPY
 
-### Key NPM Dependencies
+**Voice & Speech**:
+- Browser Web Speech API for continuous voice recognition
+- ElevenLabs API for natural voice synthesis
+- Auto-pause detection (1.5 seconds) for message submission
+- Turn-based conversation management
 
-**Frontend:**
-- @tanstack/react-query: Server state management
-- @radix-ui/*: Headless UI component primitives
-- wouter: Lightweight routing
-- date-fns: Date formatting and manipulation
-- class-variance-authority: Component variant management
-- tailwind-merge & clsx: Class name utilities
-
-**Backend:**
-- drizzle-orm: Type-safe ORM
-- @neondatabase/serverless: Serverless PostgreSQL client
-- express: HTTP server framework
-- multer: File upload handling
-- connect-pg-simple: PostgreSQL session store
-- zod: Schema validation
-
-**Build Tools:**
-- vite: Build tool and dev server
-- esbuild: Production server bundling
-- tsx: TypeScript execution for development
-- drizzle-kit: Database migrations
-
-### Environment Variables Required
-
-- `DATABASE_URL`: PostgreSQL connection string
-- `OPENAI_API_KEY`: OpenAI API authentication
-- `ELEVENLABS_API_KEY`: ElevenLabs API authentication
-- `NODE_ENV`: Environment indicator (development/production)
+**Key Integration Points**:
+- Voice orders processed through OpenRouter → Claude AI → Product matching
+- Menu photos → Google Generative AI Vision → Product extraction → Auto-save
+- Product names → AI image generation → Supabase storage
+- QR codes → Public menu sharing with restaurantId parameter
+- Clerk authentication → Supabase user sync → Role-based access
