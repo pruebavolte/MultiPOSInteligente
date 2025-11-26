@@ -2,148 +2,112 @@
 
 ## Overview
 
-SalvadoreX is an enterprise-grade Point of Sale (POS) system with AI-powered capabilities. The system combines traditional POS functionality with cutting-edge features including voice-based ordering, AI menu digitalization from photos, and automated product image generation. It serves both restaurant staff through a comprehensive dashboard and customers through a digital menu interface.
+SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
-The application is built with Next.js 16 using the App Router, TypeScript, and integrates with Supabase for data persistence and Clerk for authentication. It supports multi-language operations (6 languages) and multi-currency transactions (5 currencies).
+**Status**: ✅ Base de datos configurada y poblada con datos de prueba
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+Preferred communication style: Simple, everyday language
+Database Choice: Supabase (con acceso automático desde la aplicación)
 
 ## System Architecture
 
 ### Frontend Architecture
-
-**Framework**: Next.js 16.0.1 with App Router and React Server Components
-- TypeScript strict mode enabled for type safety
-- Client-side state management using React hooks and context API
-- React Query (@tanstack/react-query) for server state management
-- Dual dashboard architecture:
-  - `/dashboard/*` - Staff/admin interface for POS operations, inventory, and reporting
-  - `/dashboard-user/*` - Customer interface for menu browsing and ordering
-
-**UI Component System**: Shadcn/ui (48+ components)
-- Radix UI primitives for accessible, unstyled components
-- Tailwind CSS for styling with CSS variables for theming
-- Custom components for domain-specific functionality (POS cart, product search, voice ordering)
-
-**State Management**:
-- Language context provider for multi-language support (6 languages)
-- Cart management using custom hooks (use-sales.ts)
-- Product variants and customization tracking
-- Real-time voice transcription state
-
-**Key Design Patterns**:
-- Server Components for data fetching where possible
-- Client Components marked with "use client" for interactivity
-- Custom hooks for reusable business logic (7 custom hooks)
-- Conditional layouts based on route patterns (authenticated vs public)
+- **Framework**: Next.js 16.0.1 con App Router
+- **Language**: TypeScript 5.x
+- **UI Components**: Shadcn/ui (48+ components)
+- **State Management**: React hooks + Zustand
+- **Server State**: TanStack React Query v5
+- **Styling**: Tailwind CSS + CSS variables
+- **Authentication**: Clerk (OAuth)
 
 ### Backend Architecture
+- **API Layer**: Next.js API Routes (/api/*)
+- **Database**: Supabase PostgreSQL
+- **Authentication**: Clerk with Supabase sync
+- **File Storage**: Supabase Storage
+- **External APIs**: Google Generative AI, ElevenLabs, OpenRouter
 
-**API Layer**: Next.js API Routes (21 endpoints)
-- RESTful endpoints under `/api/*`
-- Server-side authentication using Clerk
-- API route handlers for CRUD operations
-- Special endpoints for AI features (voice-order, text-to-speech, search-images)
+### Database Schema
 
-**Authentication & Authorization**:
-- Clerk for user authentication and session management
-- Middleware-based route protection (src/middleware.ts)
-- Role-based access control (ADMIN, CUSTOMER roles)
-- Automatic user sync from Clerk to Supabase via `/api/auth/sync-user`
-- Public menu sharing via restaurantId query parameter
+**Tables Created:**
+1. `users` - User accounts with Clerk integration
+2. `categories` - Product categories with hierarchy
+3. `products` - Products with multi-channel availability
+4. `customers` - Customer records with loyalty points
+5. `sales` - POS sales transactions
+6. `sale_items` - Line items for sales
+7. `orders` - Digital menu orders
+8. `order_items` - Line items for orders
+9. `product_variants` - Product variations (sizes, toppings, etc.)
 
-**Business Logic**:
-- Multi-channel product availability system (POS vs Digital Menu)
-- Inventory tracking with min/max stock levels
-- Product variants system (sizes, toppings, extras with pricing)
-- Customer credit/points management
-- Tax calculation (16% IVA/VAT)
-- Multi-currency conversion with exchange rates
+**Test Data Included:**
+- Admin user: admin@salvadorex.test
+- 5 categories: Bebidas, Comidas Rápidas, Postres, Snacks, Entradas
+- 20+ sample products with prices and inventory
+- 5 sample customers with loyalty points
+- Sample sales data
 
-### Data Storage Solutions
+## Configuration
 
-**Primary Database**: Supabase (PostgreSQL)
-- User management with Clerk integration
-- Products with multi-channel availability flags
-- Categories with hierarchical support
-- Product variants (sizes, extras, customizations)
-- Sales and sale items tracking
-- Customer records with credit/loyalty points
-- Orders from digital menu
-- 12 database migrations in `/supabase/migrations`
+### Environment Variables
+```
+NEXT_PUBLIC_SUPABASE_URL=https://zhvwmzkcqngcaqpdxtwr.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon key]
+CLERK_PUBLISHABLE_KEY=[clerk pk]
+```
 
-**Database Schema Highlights**:
-- `users` table synced with Clerk (clerk_id, email, role, restaurant_id)
-- `products` table with unified multi-channel flags (available_in_pos, available_in_digital_menu, track_inventory)
-- `product_variants` for customizable product options
-- `categories` with parent-child relationships
-- `sales` and `sale_items` for POS transactions
-- `customers` for customer relationship management
-- `orders` and `order_items` for digital menu purchases
+### Service Keys (Stored Securely)
+- Supabase Service Role Key: ✅ Configured
+- Clerk Secret Key: ✅ Configured
+- Database Connection: ✅ Working
 
-**File Storage**: Supabase Storage
-- Product images with upload/delete functionality
-- AI-generated product images
-- Menu photo uploads for digitalization
+## Current Features
 
-**Client-Side Storage**:
-- localStorage for language preferences
-- Session storage for cart state
+### POS System
+- ✅ Product management
+- ✅ Category organization
+- ✅ Sales transactions (CASH/CARD)
+- ✅ Customer tracking
+- ✅ Inventory management
 
-### External Dependencies
+### Digital Menu
+- ✅ Public menu sharing
+- ✅ Product browsing
+- ✅ Order placement
 
-**Authentication & User Management**:
-- **Clerk** (@clerk/nextjs): User authentication, session management, and user profiles
-- Provides UserButton component and auth hooks
-- Automatic user synchronization to Supabase
+### Authentication
+- ✅ Clerk OAuth integration
+- ✅ User synchronization to Supabase
+- ✅ Role-based access control
 
-**AI & Machine Learning**:
-- **OpenAI/Google Generative AI** (@google/generative-ai): Menu digitalization from photos
-- **OpenRouter**: Claude AI for intelligent voice order processing
-- **ElevenLabs** (@elevenlabs/elevenlabs-js, @elevenlabs/react): Text-to-speech and voice agent capabilities
-- Uses ElevenLabs multilingual v2 model for voice responses
+## Important API Endpoints
 
-**Database & Backend**:
-- **Supabase** (@supabase/supabase-js): PostgreSQL database and file storage
-- Service role key for server-side operations
-- Row-level security policies
+- `GET /api/init-db?step=check` - Check database tables status
+- `GET /api/init-db?step=seed` - Populate test data (already done)
 
-**Payment Processing**:
-- **Stripe** (@stripe/stripe-js): Payment processing integration (configured but implementation details minimal in provided files)
+## Future Enhancements (From Task List)
 
-**Image & Media**:
-- **Pexels API**: External image search for product photos (via `/api/search-images`)
-- Native browser APIs: Web Speech API for voice recognition, MediaRecorder for audio capture
+1. Multi-Language System - French, German, Chinese, Japanese support
+2. Enhanced Currency System - Real-time exchange rate conversion
+3. Analytics & Reporting Dashboard - Sales analytics with charts
+4. Employee Management - Role-based access control
+5. Customer Loyalty System - Points and rewards
+6. Bulk Product Import - CSV/Excel upload
+7. Receipt Printing - Print tickets and reports
+8. Offline Mode - Service workers for offline functionality
+9. CFDI 4.0 - Mexican electronic invoicing
 
-**UI & Interactions**:
-- **Framer Motion**: Animations and transitions
-- **Recharts**: Dashboard charts and analytics visualization
-- **React Day Picker**: Date selection for reports
-- **dnd-kit**: Drag-and-drop functionality
-- **QRCode.react**: QR code generation for menu sharing
+## Application URLs
 
-**Development Tools**:
-- **Prisma** (@prisma/client): Database ORM (configured alongside Supabase)
-- **Zod**: Schema validation with react-hook-form integration
-- **React Hook Form**: Form state management
-- **Axios**: HTTP client for API calls
+- Local Dev: http://localhost:5000
+- Production: Will be available after deployment
+- Supabase Dashboard: https://supabase.com/dashboard/project/zhvwmzkcqngcaqpdxtwr
 
-**Internationalization**:
-- Custom translation system in `/src/lib/translations`
-- Supports: Spanish, English, Portuguese, German, Japanese, French
-- Currency conversion for: MXN, USD, BRL, EUR, JPY
+## Notes
 
-**Voice & Speech**:
-- Browser Web Speech API for continuous voice recognition
-- ElevenLabs API for natural voice synthesis
-- Auto-pause detection (1.5 seconds) for message submission
-- Turn-based conversation management
-
-**Key Integration Points**:
-- Voice orders processed through OpenRouter → Claude AI → Product matching
-- Menu photos → Google Generative AI Vision → Product extraction → Auto-save
-- Product names → AI image generation → Supabase storage
-- QR codes → Public menu sharing with restaurantId parameter
-- Clerk authentication → Supabase user sync → Role-based access
+- Service Worker RPC not available via API - manual SQL execution required for initial setup
+- All subsequent data changes can be handled automatically
+- Database auto-syncs with Clerk for user management
+- Ready for production deployment
