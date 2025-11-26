@@ -36,11 +36,11 @@ export default function DashboardPage() {
             try {
                 // Fetch all data in parallel (including digital menu orders)
                 const [productsRes, customersRes, salesRes, ordersRes] = await Promise.all([
-                    getProducts({}, 1, 1000),
-                    getCustomers({}, 1, 1000),
-                    getSales({}, 1, 100),
+                    getProducts({}, 1, 1000).catch(() => ({ data: [], total: 0 })),
+                    getCustomers({}, 1, 1000).catch(() => ({ data: [], total: 0 })),
+                    getSales({}, 1, 100).catch(() => ({ data: [], total: 0 })),
                     // Fetch orders from digital menu via API
-                    fetch('/api/dashboard/orders').then(res => res.json()),
+                    fetch('/api/dashboard/orders').then(res => res.json()).catch(() => ({ orders: [] })),
                 ]);
 
                 const orders = ordersRes.orders || [];
