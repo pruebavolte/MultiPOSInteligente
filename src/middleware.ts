@@ -1,32 +1,18 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-// Make all routes public in development mode if Clerk key is invalid
-const isPublicRoute = createRouteMatcher([
-  '/login(.*)',
-  '/signup(.*)',
-  '/api(.*)',
-])
+export function middleware(request: NextRequest) {
+  // Skip middleware for API routes and static assets
+  const { pathname } = request.nextUrl
+  
+  if (pathname.startsWith('/api') || pathname.startsWith('/_next') || 
+      pathname.includes('.') || pathname.startsWith('/static')) {
+    return NextResponse.next()
+  }
 
-export default clerkMiddleware(async (auth, request) => {
-  const { userId } = await auth()
-  const url = new URL(request.url)
-  
-  // If authenticated user tries to access login/signup, redirect to dashboard
-  if (userId && (url.pathname === '/login' || url.pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-  
-  // If authenticated user is on home page, redirect to dashboard
-  if (userId && url.pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-  
-  // Protect non-public routes
-  if (!isPublicRoute(request)) {
-    await auth.protect()
-  }
-})
+  // Allow all routes - bypass Clerk authentication for now
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
