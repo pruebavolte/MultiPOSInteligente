@@ -129,13 +129,13 @@ export async function createDevUser(): Promise<User | null> {
     .select()
     .single();
 
-  if (error) {
+  if (error || !newUser) {
     console.error("[Auth] Error creating dev user:", error);
     return null;
   }
 
-  console.log("[Auth] Dev user created:", newUser.email);
-  return newUser;
+  console.log("[Auth] Dev user created:", (newUser as User).email);
+  return newUser as User;
 }
 
 export function getSupabaseClient() {
