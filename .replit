@@ -55,3 +55,16 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_mem_db:1.0.0", "javascript_openai:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_Y3VyaW91cy1oZXJvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk"
+NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL = "/dashboard"
+NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL = "/dashboard"
+NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL = "/dashboard"
+NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL = "/dashboard"
+NEXT_PUBLIC_SUPABASE_URL = "https://ycwdsecikgpojdpzffpf.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inljd2RzZWNpa2dwb2pkcHpmZnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0Njg4OTUsImV4cCI6MjA3ODA0NDg5NX0.vb24zAqdzKKNEdtWND1emnl-RxCNrc-_RxnyCft23Zw"
+OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet"
+IMAGE_GENERATION_MODEL = "google/gemini-2.5-flash-image-preview"
