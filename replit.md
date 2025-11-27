@@ -53,14 +53,20 @@ Database Choice: Supabase (con acceso automático desde la aplicación)
 
 ### Environment Variables
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://zhvwmzkcqngcaqpdxtwr.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://ycwdsecikgpojdpzffpf.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[anon key]
-CLERK_PUBLISHABLE_KEY=[clerk pk]
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_Y3VyaW91cy1oZXJvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk
+OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
+IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 ```
 
 ### Service Keys (Stored Securely)
-- Supabase Service Role Key: ✅ Configured
-- Clerk Secret Key: ✅ Configured
+- SUPABASE_SERVICE_ROLE_KEY: ✅ Configured
+- CLERK_SECRET_KEY: ✅ Configured
+- OPENROUTER_API_KEY: ✅ Configured
+- ELEVENLABS_API_KEY: ✅ Configured
+- PEXELS_API_KEY: ✅ Configured
+- UNSPLASH_ACCESS_KEY: ✅ Configured
 - Database Connection: ✅ Working
 
 ## Current Features
@@ -84,10 +90,9 @@ CLERK_PUBLISHABLE_KEY=[clerk pk]
 - ✅ Role-based access control
 
 ### Development Auth Bypass
-- **Dev User ID**: 6c1c07e3-5e49-4bf3-99c0-3acc1ccbfd3e
-- **Dev User Email**: dev@salvadorex.test
+- **Current Dev User**: grupovolvix@gmail.com (ADMIN) - from new Supabase database
 - **Files**: `src/lib/auth-wrapper.ts`, `src/lib/auth-dev.ts`
-- **How it works**: In development mode, all API routes automatically use the dev user without requiring Clerk authentication
+- **How it works**: In development mode, all API routes automatically use an ADMIN user from the database without requiring Clerk authentication
 
 ## Important API Endpoints
 
@@ -110,7 +115,7 @@ CLERK_PUBLISHABLE_KEY=[clerk pk]
 
 - Local Dev: http://localhost:5000
 - Production: Will be available after deployment
-- Supabase Dashboard: https://supabase.com/dashboard/project/zhvwmzkcqngcaqpdxtwr
+- Supabase Dashboard: https://supabase.com/dashboard/project/ycwdsecikgpojdpzffpf
 
 ## Notes
 

@@ -9,11 +9,11 @@ type User = Database['public']['Tables']['users']['Row'];
 const DEV_USER_EMAIL = "dev@salvadorex.test";
 const DEV_USER_CLERK_ID = "dev_user_local";
 
-const DEV_SUPABASE_URL = 'https://zhvwmzkcqngcaqpdxtwr.supabase.co';
-const DEV_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpodndtemtjcW5nY2FxcGR4dHdyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDE2NzAxOCwiZXhwIjoyMDc5NzQzMDE4fQ.rvPkcyE7Cu1BzAhM_GdZjmqXvQe67gIpPaI7tLESD-Q';
-
 function getDevSupabaseClient() {
-  return createClient<Database>(DEV_SUPABASE_URL, DEV_SERVICE_ROLE_KEY, {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
 }
