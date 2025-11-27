@@ -1,8 +1,8 @@
 # CLAUDE.md - AI Assistant Guide for SalvadoreX POS System
 
-> **Last Updated**: 2025-11-21
+> **Last Updated**: 2025-11-27
 > **Project**: SalvadoreX - AI-Powered Point of Sale System
-> **Version**: 0.1.0
+> **Version**: 0.1.1
 
 ## Table of Contents
 
@@ -29,13 +29,14 @@
 - **AI Image Generation**: Automatically generate professional food photos for products
 - **Multi-language Support**: 6 languages (Spanish, English, Portuguese, German, Japanese, French)
 - **Dual Dashboard**: Separate interfaces for staff (`/dashboard/*`) and customers (`/dashboard-user/*`)
+- **Product Variants**: Support for sizes, toppings, extras with price modifiers (NEW)
 
 ### Key Statistics
 - 120+ TypeScript files
-- 21 API endpoints
+- 23+ API endpoints
 - 48 UI components (Shadcn/ui)
 - 7 custom hooks
-- 12 Supabase migrations
+- 13 Supabase migrations
 - 6 supported languages
 - 5 supported currencies (MXN, USD, BRL, EUR, JPY)
 

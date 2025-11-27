@@ -5,6 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
+**Last Updated**: 2025-11-27 - Actualización del sistema de variantes desde GitHub
 
 ## User Preferences
 
@@ -34,20 +35,23 @@ Database Choice: Supabase (con acceso automático desde la aplicación)
 **Tables Created:**
 1. `users` - User accounts with Clerk integration
 2. `categories` - Product categories with hierarchy
-3. `products` - Products with multi-channel availability
+3. `products` - Products with multi-channel availability (includes has_variants flag)
 4. `customers` - Customer records with loyalty points
 5. `sales` - POS sales transactions
 6. `sale_items` - Line items for sales
 7. `orders` - Digital menu orders
 8. `order_items` - Line items for orders
-9. `product_variants` - Product variations (sizes, toppings, etc.)
+9. `variant_types` - Types of variants (Tamaño, Topping, Extra) **NEW**
+10. `product_variants` - Product variations with price modifiers **NEW**
+11. `sale_item_variants` - Tracks variants selected in POS sales **NEW**
+12. `tenant_config` - Multi-tenant configuration
 
 **Test Data Included:**
 - Admin user: admin@salvadorex.test
-- Dev user: dev@salvadorex.test (ID: 6c1c07e3-5e49-4bf3-99c0-3acc1ccbfd3e)
-- 5 categories: Bebidas, Comidas, Postres, Snacks, Entradas y Antojitos
-- 5+ sample products with prices and inventory (Coca-Cola, Pepsi, Agua, Hamburguesa, Pizza)
-- Products require SKU field (not null constraint)
+- Dev user: grupovolvix@gmail.com (ADMIN) - Current dev user
+- 8 categories: Entradas, Hamburguesas, Menú Ejecutivo, etc.
+- Sample products with prices and inventory
+- Products require SKU and cost fields (not null constraint)
 
 ## Configuration
 
