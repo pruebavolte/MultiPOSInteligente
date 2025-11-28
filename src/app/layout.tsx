@@ -13,6 +13,7 @@ const font = DM_Sans({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "SalvadoreX - Punto de Venta",
     description: "Más que un Punto de Venta, el mejor socio para tu negocio.",
+    manifest: "/manifest.json",
 };
 
 export default function RootLayout({
