@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useConversation } from "@elevenlabs/react";
 import { Button } from "@/components/ui/button";
-import { Phone, PhoneOff, Bot, User, ChefHat, Search, X, Volume2, ShoppingCart } from "lucide-react";
+import { Phone, PhoneOff, Bot, User, ChefHat, Search, X, Volume2, ShoppingCart, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -52,14 +52,148 @@ export function ElevenLabsVoiceAgent({
   const [addedItems, setAddedItems] = useState<{name: string, quantity: number}[]>([]);
   const [orderComplete, setOrderComplete] = useState(false);
   const [autoStartAttempted, setAutoStartAttempted] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
+  const [noiseLevel, setNoiseLevel] = useState<number>(0);
   const recentlyAddedRef = useRef<Set<string>>(new Set());
   const productsRef = useRef(products);
   const onAddToCartRef = useRef(onAddToCart);
   const startConversationRef = useRef<(() => Promise<void>) | undefined>(undefined);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const noiseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const activityCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttemptsRef = useRef<number>(0);
+  const lastActivityTimeRef = useRef<number>(Date.now());
+  const noiseLevelRef = useRef<number>(0);
+  const conversationRef = useRef<any>(null);
+  const MAX_RECONNECT_ATTEMPTS = 3;
+  const SILENCE_TIMEOUT = 15000; // 15 segundos de silencio antes de desconectar
+  const NOISE_THRESHOLD = 0.01; // Umbral de ruido mínimo para considerar actividad
+  const MAX_NOISE_LEVEL = 0.3; // Nivel máximo de ruido aceptable
 
   // Keep refs updated
   productsRef.current = products;
   onAddToCartRef.current = onAddToCart;
+
+  // Voice Activity Detection (VAD) - Detectar actividad de voz
+  const initializeAudioAnalysis = useCallback(async (stream: MediaStream) => {
+    try {
+      // Crear AudioContext para análisis de audio
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        console.warn("AudioContext no disponible en este navegador");
+        return;
+      }
+
+      const audioContext = new AudioContextClass();
+      const analyser = audioContext.createAnalyser();
+      const microphone = audioContext.createMediaStreamSource(stream);
+
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      microphone.connect(analyser);
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      microphoneRef.current = microphone;
+      streamRef.current = stream;
+
+      // Analizar nivel de ruido periódicamente
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      
+      noiseCheckIntervalRef.current = setInterval(() => {
+        if (!analyserRef.current) return;
+
+        analyserRef.current.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        const normalizedNoise = average / 255;
+        
+        setNoiseLevel(normalizedNoise);
+        noiseLevelRef.current = normalizedNoise;
+
+        // Si el ruido es muy alto constantemente, puede ser ruido de fondo
+        if (normalizedNoise > MAX_NOISE_LEVEL && !conversationRef.current?.isSpeaking) {
+          console.warn("⚠️ Nivel de ruido alto detectado:", normalizedNoise);
+        }
+      }, 500);
+
+      // Verificar actividad periódicamente
+      activityCheckIntervalRef.current = setInterval(() => {
+        const timeSinceLastActivity = Date.now() - lastActivityTimeRef.current;
+        
+        // Si no hay actividad por mucho tiempo y hay ruido constante, puede ser ruido de fondo
+        if (timeSinceLastActivity > SILENCE_TIMEOUT && noiseLevelRef.current > NOISE_THRESHOLD) {
+          console.warn("⚠️ Posible ruido de fondo detectado - silenciando");
+          // No desconectar, solo registrar
+        }
+      }, 2000);
+    } catch (error) {
+      console.error("Error inicializando análisis de audio:", error);
+    }
+  }, []);
+
+  // Limpiar análisis de audio
+  const cleanupAudioAnalysis = useCallback(() => {
+    if (noiseCheckIntervalRef.current) {
+      clearInterval(noiseCheckIntervalRef.current);
+      noiseCheckIntervalRef.current = null;
+    }
+    if (activityCheckIntervalRef.current) {
+      clearInterval(activityCheckIntervalRef.current);
+      activityCheckIntervalRef.current = null;
+    }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(console.error);
+      audioContextRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    analyserRef.current = null;
+    microphoneRef.current = null;
+  }, []);
+
+  // Detectar si un mensaje es un comando válido o solo ruido/conversación
+  const isValidCommand = useCallback((message: string): boolean => {
+    if (!message || message.trim().length < 3) return false;
+
+    const lowerMessage = message.toLowerCase().trim();
+    
+    // Patrones que indican comandos válidos
+    const commandPatterns = [
+      // Comandos de orden
+      /quiero|dame|dame|necesito|puedo tener|agrega|añade|pon|ponme/i,
+      /quiero|want|need|can i have|add|put/i,
+      // Números seguidos de productos
+      /\d+\s+(coca|hamburguesa|pizza|taco|refresco|cerveza|agua|producto)/i,
+      // Nombres de productos comunes
+      /(hamburguesa|pizza|taco|refresco|cerveza|agua|coca|sabritas|papas)/i,
+      // Comandos de acción
+      /(cuánto|total|finalizar|terminar|cancelar|quitar|eliminar)/i,
+    ];
+
+    // Si el mensaje es muy corto o solo contiene palabras de relleno, probablemente es ruido
+    const fillerWords = /^(ah|eh|um|uh|mmm|sí|si|no|ok|okay|bueno|well|yes|yeah)$/i;
+    if (fillerWords.test(lowerMessage)) return false;
+
+    // Verificar si contiene patrones de comando
+    const hasCommandPattern = commandPatterns.some(pattern => pattern.test(lowerMessage));
+    
+    // Verificar longitud mínima (comandos válidos suelen ser más largos)
+    const hasMinimumLength = lowerMessage.length >= 5 || hasCommandPattern;
+
+    return hasCommandPattern || hasMinimumLength;
+  }, []);
 
   // Filter products based on search
   const filteredProducts = products.filter(product =>
@@ -264,9 +398,30 @@ export function ElevenLabsVoiceAgent({
     onConnect: () => {
       console.log("🟢 Conectado al agente de voz");
       setIsConnected(true);
+      setConnectionError(null);
       setAddedItems([]);
       setOrderComplete(false);
       recentlyAddedRef.current.clear();
+      reconnectAttemptsRef.current = 0;
+      const now = Date.now();
+      setLastActivityTime(now);
+      lastActivityTimeRef.current = now;
+
+      // Inicializar análisis de audio si hay stream
+      if (streamRef.current) {
+        initializeAudioAnalysis(streamRef.current);
+      }
+
+      // Resetear timeout de silencio
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
+      silenceTimeoutRef.current = setTimeout(() => {
+        if (isConnected && !conversation.isSpeaking) {
+          console.log("⏱️ Timeout de silencio - verificando conexión");
+          // No desconectar automáticamente, solo registrar
+        }
+      }, SILENCE_TIMEOUT);
 
       // Send menu context to the agent immediately after connection
       const productList = productsRef.current.map(p =>
@@ -283,13 +438,19 @@ REGLAS DE CONFIRMACIÓN:
 - Cuando el cliente pida un producto, INMEDIATAMENTE confirma diciendo "Perfecto, [nombre exacto del producto]" o "Claro, [nombre exacto del producto]".
 - NO preguntes si quiere agregarlo, agrégalo automáticamente.
 - Siempre usa el nombre exacto del producto del menú.
-- Después de confirmar, pregunta si desea algo más.`
-        : `MENU CONTEXT: These are the available products to order:\n${productList}\n\nWhen the customer orders something, immediately confirm by saying the exact product name. Don't ask if they want to add it, just confirm it's added.`;
+- Después de confirmar, pregunta si desea algo más.
+- IGNORA ruido de fondo, conversaciones no dirigidas a ti, o sonidos ambientales.
+- SOLO responde a comandos claros relacionados con pedidos.`
+        : `MENU CONTEXT: These are the available products to order:\n${productList}\n\nWhen the customer orders something, immediately confirm by saying the exact product name. Don't ask if they want to add it, just confirm it's added.\n\nIGNORE background noise, conversations not directed at you, or ambient sounds.\nONLY respond to clear commands related to orders.`;
 
       // Use sendContextualUpdate to inform the agent about the menu
       setTimeout(() => {
-        conversation.sendContextualUpdate(contextMessage);
-        console.log("📋 Contexto del menú enviado al agente");
+        try {
+          conversation.sendContextualUpdate(contextMessage);
+          console.log("📋 Contexto del menú enviado al agente");
+        } catch (error) {
+          console.error("Error enviando contexto:", error);
+        }
       }, 500);
 
       toast.success(language === "es"
@@ -300,6 +461,8 @@ REGLAS DE CONFIRMACIÓN:
     onDisconnect: () => {
       console.log("🔴 Desconectado del agente de voz");
       setIsConnected(false);
+      cleanupAudioAnalysis();
+      reconnectAttemptsRef.current = 0;
       toast.info(language === "es"
         ? "Conversación finalizada"
         : "Conversation ended"
@@ -308,11 +471,34 @@ REGLAS DE CONFIRMACIÓN:
     onMessage: (message) => {
       console.log("📩 Mensaje recibido:", message);
 
+      // Actualizar tiempo de última actividad
+      const now = Date.now();
+      setLastActivityTime(now);
+      lastActivityTimeRef.current = now;
+
+      // Resetear timeout de silencio
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
+      silenceTimeoutRef.current = setTimeout(() => {
+        if (isConnected && !conversation.isSpeaking) {
+          console.log("⏱️ Sin actividad detectada");
+        }
+      }, SILENCE_TIMEOUT);
+
       // Handle different message types
       if (message.source === "user") {
+        const messageText = message.message || "";
+        
+        // Validar si es un comando válido antes de procesar
+        if (!isValidCommand(messageText)) {
+          console.log("⚠️ Mensaje ignorado (no es un comando válido):", messageText);
+          return; // Ignorar ruido o conversaciones no dirigidas
+        }
+
         const userMessage: Message = {
           role: "user",
-          content: message.message || "",
+          content: messageText,
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, userMessage]);
@@ -328,37 +514,104 @@ REGLAS DE CONFIRMACIÓN:
         detectAndAddProducts(message.message || "");
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("❌ Error en el agente:", error);
-      toast.error(language === "es"
-        ? "Error en la conexión con el agente"
-        : "Error connecting to agent"
-      );
+      setConnectionError(error?.message || "Error desconocido");
+      
+      // Intentar reconectar si no se ha excedido el límite
+      if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS && isConnected) {
+        reconnectAttemptsRef.current += 1;
+        console.log(`🔄 Intento de reconexión ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}`);
+        
+        setTimeout(() => {
+          if (startConversationRef.current) {
+            startConversationRef.current().catch(console.error);
+          }
+        }, 2000 * reconnectAttemptsRef.current);
+      } else {
+        toast.error(language === "es"
+          ? "Error en la conexión con el agente. Por favor, intenta reconectar manualmente."
+          : "Error connecting to agent. Please try reconnecting manually."
+        );
+      }
     },
   });
 
+  // Mantener referencia actualizada del conversation
+  conversationRef.current = conversation;
+
   // Start conversation with the agent
   const startConversation = async () => {
+    if (isInitializing || isConnected) {
+      console.log("⏸️ Ya hay una conexión o inicialización en curso");
+      return;
+    }
+
     try {
+      setIsInitializing(true);
+      setConnectionError(null);
       console.log("🚀 Iniciando conversación con agente:", agentId);
       console.log("📋 Productos disponibles:", products.map(p => p.name));
 
-      // Request microphone permission first
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Verificar soporte del navegador
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Tu navegador no soporta grabación de audio. Por favor, usa Chrome, Firefox, Edge o Safari.");
+      }
 
-      // Get signed URL from our backend
-      const signedUrlResponse = await fetch("/api/elevenlabs-agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agentId,
-          products,
-          language,
-        }),
-      });
+      // Request microphone permission with better error handling
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            sampleRate: 16000,
+          } 
+        });
+        streamRef.current = stream;
+        
+        // Inicializar análisis de audio
+        await initializeAudioAnalysis(stream);
+      } catch (micError: any) {
+        if (micError.name === "NotAllowedError" || micError.name === "PermissionDeniedError") {
+          throw new Error("Permiso de micrófono denegado. Por favor, permite el acceso al micrófono en la configuración del navegador.");
+        } else if (micError.name === "NotFoundError" || micError.name === "DevicesNotFoundError") {
+          throw new Error("No se encontró ningún micrófono. Por favor, conecta un micrófono.");
+        } else if (micError.name === "NotReadableError" || micError.name === "TrackStartError") {
+          throw new Error("El micrófono está siendo usado por otra aplicación. Por favor, cierra otras aplicaciones que usen el micrófono.");
+        } else {
+          throw new Error(`Error al acceder al micrófono: ${micError.message}`);
+        }
+      }
+
+      // Get signed URL from our backend with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+
+      let signedUrlResponse: Response;
+      try {
+        signedUrlResponse = await fetch("/api/elevenlabs-agent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            agentId,
+            products,
+            language,
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === "AbortError") {
+          throw new Error("Tiempo de espera agotado al conectar con el servidor. Por favor, verifica tu conexión a internet.");
+        }
+        throw new Error(`Error al conectar con el servidor: ${fetchError.message}`);
+      }
 
       if (!signedUrlResponse.ok) {
-        const errorData = await signedUrlResponse.json();
+        const errorData = await signedUrlResponse.json().catch(() => ({ error: "Error desconocido" }));
         throw new Error(errorData.error || "Failed to get agent configuration");
       }
 
@@ -369,11 +622,19 @@ REGLAS DE CONFIRMACIÓN:
       await conversation.startSession({
         signedUrl,
       });
-    } catch (error) {
+
+      setIsInitializing(false);
+    } catch (error: any) {
       console.error("Error starting conversation:", error);
+      setIsInitializing(false);
+      setConnectionError(error.message);
+      
+      // Limpiar recursos en caso de error
+      cleanupAudioAnalysis();
+      
       toast.error(language === "es"
-        ? "No se pudo iniciar la conversación. Verifica el acceso al micrófono."
-        : "Could not start conversation. Check microphone access."
+        ? error.message || "No se pudo iniciar la conversación. Verifica el acceso al micrófono."
+        : error.message || "Could not start conversation. Check microphone access."
       );
     }
   };
@@ -381,37 +642,61 @@ REGLAS DE CONFIRMACIÓN:
   // End conversation
   const endConversation = async () => {
     try {
+      cleanupAudioAnalysis();
       await conversation.endSession();
+      reconnectAttemptsRef.current = 0;
+      setConnectionError(null);
     } catch (error) {
       console.error("Error ending conversation:", error);
+      // Forzar limpieza incluso si hay error
+      cleanupAudioAnalysis();
+      setIsConnected(false);
     }
   };
+
+  // Limpiar al desmontar
+  useEffect(() => {
+    return () => {
+      cleanupAudioAnalysis();
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
+    };
+  }, [cleanupAudioAnalysis]);
 
   // Store startConversation in ref for auto-start
   startConversationRef.current = startConversation;
 
-  // Auto-start conversation if microphone permission is already granted
+  // Auto-start conversation if microphone permission is already granted (mejorado para compatibilidad)
   useEffect(() => {
-    if (autoStartAttempted || isConnected) return;
+    if (autoStartAttempted || isConnected || isInitializing) return;
 
     const checkAndAutoStart = async () => {
       try {
-        // Check if we already have microphone permission
-        const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        // Verificar soporte de Permissions API (no disponible en todos los navegadores)
+        if ('permissions' in navigator && 'query' in navigator.permissions) {
+          try {
+            const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
 
-        if (permissionStatus.state === 'granted') {
-          console.log("🎤 Permiso de micrófono ya otorgado - iniciando automáticamente");
-          setAutoStartAttempted(true);
-          // Small delay to ensure component is fully mounted
-          setTimeout(() => {
-            if (startConversationRef.current) {
-              startConversationRef.current();
+            if (permissionStatus.state === 'granted') {
+              console.log("🎤 Permiso de micrófono ya otorgado - iniciando automáticamente");
+              setAutoStartAttempted(true);
+              // Small delay to ensure component is fully mounted
+              setTimeout(() => {
+                if (startConversationRef.current && !isConnected) {
+                  startConversationRef.current();
+                }
+              }, 1000);
+              return;
             }
-          }, 500);
-        } else {
-          console.log("🎤 Permiso de micrófono no otorgado - esperando clic del usuario");
-          setAutoStartAttempted(true);
+          } catch (permError) {
+            // Permissions API puede fallar en algunos navegadores
+            console.log("⚠️ Permissions API no disponible o falló:", permError);
+          }
         }
+        
+        console.log("🎤 Permiso de micrófono no verificado - esperando clic del usuario");
+        setAutoStartAttempted(true);
       } catch (error) {
         // permissions.query may not be supported in all browsers
         console.log("🎤 No se pudo verificar permisos - esperando clic del usuario");
@@ -419,8 +704,10 @@ REGLAS DE CONFIRMACIÓN:
       }
     };
 
-    checkAndAutoStart();
-  }, [autoStartAttempted, isConnected]);
+    // Pequeño delay para asegurar que el componente esté montado
+    const timeoutId = setTimeout(checkAndAutoStart, 500);
+    return () => clearTimeout(timeoutId);
+  }, [autoStartAttempted, isConnected, isInitializing]);
 
   // Get status color only
   const getStatusColor = () => {
@@ -442,19 +729,34 @@ REGLAS DE CONFIRMACIÓN:
         {/* Large call button */}
         <button
           onClick={isConnected ? endConversation : startConversation}
+          disabled={isInitializing}
           className={cn(
             "w-28 h-28 rounded-full flex items-center justify-center transition-all shadow-2xl active:scale-95",
             isConnected
               ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+              : isInitializing
+              ? "bg-yellow-500 hover:bg-yellow-600 text-white opacity-75 cursor-not-allowed"
               : "bg-green-500 hover:bg-green-600 text-white"
           )}
         >
-          {isConnected ? (
+          {isInitializing ? (
+            <Loader2 className="h-12 w-12 animate-spin" />
+          ) : isConnected ? (
             <PhoneOff className="h-12 w-12" />
           ) : (
             <Phone className="h-12 w-12" />
           )}
         </button>
+
+        {/* Error message */}
+        {connectionError && (
+          <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg max-w-xs">
+            <div className="flex items-center gap-2 text-xs text-red-700 dark:text-red-300">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span className="break-words">{connectionError}</span>
+            </div>
+          </div>
+        )}
 
         <p className="text-base font-medium mt-3 text-center">
           {isConnected ? (
@@ -633,19 +935,34 @@ REGLAS DE CONFIRMACIÓN:
           {/* Main call button - Large and centered */}
           <button
             onClick={isConnected ? endConversation : startConversation}
+            disabled={isInitializing}
             className={cn(
               "w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-2xl active:scale-95",
               isConnected
                 ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
+                : isInitializing
+                ? "bg-yellow-500 hover:bg-yellow-600 text-white opacity-75 cursor-not-allowed"
                 : "bg-green-500 hover:bg-green-600 text-white"
             )}
           >
-            {isConnected ? (
+            {isInitializing ? (
+              <Loader2 className="h-14 w-14 animate-spin" />
+            ) : isConnected ? (
               <PhoneOff className="h-14 w-14" />
             ) : (
               <Phone className="h-14 w-14" />
             )}
           </button>
+
+          {/* Error message - Desktop */}
+          {connectionError && (
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg max-w-md">
+              <div className="flex items-start gap-2 text-sm text-red-700 dark:text-red-300">
+                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                <span className="break-words">{connectionError}</span>
+              </div>
+            </div>
+          )}
 
           <p className="text-lg font-medium mt-4 text-center">
             {isConnected ? (

@@ -57,9 +57,9 @@ export function ProductSearch({
   }, [products, search]);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4">
       {/* Search Input and Size Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-shrink-0">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -105,7 +105,7 @@ export function ProductSearch({
       </div>
 
       {/* Products Grid */}
-      <ScrollArea className="h-[500px] pr-4">
+      <ScrollArea className="flex-1 pr-4">
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <p className="text-sm text-muted-foreground">Cargando productos...</p>
@@ -209,7 +209,7 @@ export function ProductSearch({
 
       {/* Search Summary */}
       {search && (
-        <div className="text-sm text-muted-foreground text-center">
+        <div className="text-sm text-muted-foreground text-center flex-shrink-0">
           {filteredProducts.length} producto(s) encontrado(s)
         </div>
       )}

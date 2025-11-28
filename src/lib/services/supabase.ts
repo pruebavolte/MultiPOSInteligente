@@ -566,6 +566,18 @@ export async function createSaleWithItems(
       }
     }
 
+    // Process recipe deductions (automatic ingredient stock deduction for recipe products)
+    const { error: recipeError } = await supabase.rpc("process_recipe_deductions", {
+      p_sale_id: saleData.id,
+      p_user_id: sale.user_id,
+    });
+
+    // Log recipe deduction errors but don't fail the sale
+    if (recipeError) {
+      console.error("Error processing recipe deductions:", recipeError);
+      // Continue with sale completion even if recipe deductions fail
+    }
+
     // Get complete sale data
     const { data: completeSale, error: fetchError } = await supabase
       .from("sales")

@@ -40,10 +40,12 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
+  ChefHat,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ProductModal } from "@/components/inventory/product-modal";
+import { RecipeModal } from "@/components/inventory/recipe-modal";
 
 export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,6 +54,8 @@ export default function InventoryPage() {
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [recipeModalOpen, setRecipeModalOpen] = useState(false);
+  const [recipeProduct, setRecipeProduct] = useState<Product | null>(null);
 
   // Show ALL products (POS + Digital Menu) - Sistema unificado multi-canal
   const { products, loading, page, totalPages, setPage, updateFilter } = useProducts({});
@@ -101,6 +105,11 @@ export default function InventoryPage() {
   const handleCloseModal = () => {
     setProductModalOpen(false);
     setEditingProduct(null);
+  };
+
+  const handleManageRecipe = (product: Product) => {
+    setRecipeProduct(product);
+    setRecipeModalOpen(true);
   };
 
   const getStockStatus = (product: Product) => {
@@ -383,6 +392,10 @@ export default function InventoryPage() {
                                   <Edit className="h-4 w-4 mr-2" />
                                   Editar
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleManageRecipe(product)}>
+                                  <ChefHat className="h-4 w-4 mr-2" />
+                                  Gestionar Receta
+                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleDelete(product)}
                                   className="text-destructive"
@@ -438,6 +451,13 @@ export default function InventoryPage() {
         product={editingProduct}
         categories={categories}
         onCategoryCreated={refreshCategories}
+      />
+
+      {/* Recipe Modal */}
+      <RecipeModal
+        open={recipeModalOpen}
+        onOpenChange={setRecipeModalOpen}
+        product={recipeProduct}
       />
     </div>
   );

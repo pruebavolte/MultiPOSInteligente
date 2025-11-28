@@ -1,6 +1,7 @@
 import Providers from "@/components/global/providers";
 import ConditionalLayout from "@/components/layout/conditional-layout";
 import BackgroundGrid from "@/components/layout/background-grid";
+import ServiceWorkerRegister from "@/components/pwa/service-worker-register";
 import { Toaster } from "@/components/ui/sonner";
 import { dmSans, inter } from "@/constants/fonts";
 import { cn } from "@/lib/utils";
@@ -22,7 +23,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="es" suppressHydrationWarning>
+        <html lang="es">
             <body
                 className={cn(
                     "min-h-screen bg-background text-foreground !font-heading antialiased",
@@ -31,6 +32,7 @@ export default function RootLayout({
                 )}
             >
                 <Providers>
+                    <ServiceWorkerRegister />
                     <BackgroundGrid />
                     <Toaster richColors theme="light" position="top-center" />
                     <ConditionalLayout>
@@ -40,4 +42,4 @@ export default function RootLayout({
             </body>
         </html>
     );
-}
+};

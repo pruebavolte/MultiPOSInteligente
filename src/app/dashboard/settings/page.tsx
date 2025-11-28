@@ -23,8 +23,10 @@ import {
     Bell,
     Shield,
     Save,
+    Building2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { BrandSettingsForm } from "@/components/brands/brand-settings-form";
 
 export default function SettingsPage() {
     const [loading, setLoading] = useState(false);
@@ -120,8 +122,12 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Settings Tabs */}
-                <Tabs defaultValue="general" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+                <Tabs defaultValue="brand" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
+                        <TabsTrigger value="brand" className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            <span className="hidden sm:inline">Marca</span>
+                        </TabsTrigger>
                         <TabsTrigger value="general" className="flex items-center gap-2">
                             <Store className="h-4 w-4" />
                             <span className="hidden sm:inline">General</span>
@@ -139,6 +145,11 @@ export default function SettingsPage() {
                             <span className="hidden sm:inline">Notificaciones</span>
                         </TabsTrigger>
                     </TabsList>
+
+                    {/* Brand Settings */}
+                    <TabsContent value="brand" className="space-y-4">
+                        <BrandSettingsForm />
+                    </TabsContent>
 
                     {/* General Settings */}
                     <TabsContent value="general" className="space-y-4">

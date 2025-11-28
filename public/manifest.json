@@ -29,17 +29,5 @@
     }
   ],
   "categories": ["business", "productivity"],
-  "screenshots": [
-    {
-      "src": "/screenshots/ss1.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    },
-    {
-      "src": "/screenshots/ss2.png",
-      "sizes": "1080x1920",
-      "type": "image/png"
-    }
-  ],
   "dir": "auto"
 }

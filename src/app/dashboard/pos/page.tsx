@@ -6,15 +6,17 @@ import { useCart } from "@/hooks/use-sales";
 import { useCustomers } from "@/hooks/use-customers";
 import { ElevenLabsVoiceAgent } from "@/components/menu-digital/elevenlabs-voice-agent";
 import { ProductSearch } from "@/components/pos/product-search";
+import { CategoryBrowser } from "@/components/pos/category-browser";
 import { Cart } from "@/components/pos/cart";
 import { PaymentModal } from "@/components/pos/payment-modal";
 import { VariantSelectionModal } from "@/components/pos/variant-selection-modal";
+import { ReceiptViewer } from "@/components/pos/receipt-viewer";
 import { Product } from "@/types/database";
 import { CartItemVariant } from "@/types/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Mic, Search, ShoppingCart, X, Star, ChefHat } from "lucide-react";
+import { Mic, Search, ShoppingCart, X, Star, ChefHat, Grid3x3 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +34,8 @@ export default function POSPage() {
   const [loadingBestSellers, setLoadingBestSellers] = useState(true);
   const [variantModalOpen, setVariantModalOpen] = useState(false);
   const [selectedProductForVariants, setSelectedProductForVariants] = useState<Product | null>(null);
+  const [receiptViewerOpen, setReceiptViewerOpen] = useState(false);
+  const [lastSaleId, setLastSaleId] = useState<string>("");
   const prevCartCountRef = useRef(0);
 
   // Fetch best sellers
@@ -53,12 +57,11 @@ export default function POSPage() {
   }, []);
 
   // Hooks
-  // Load menu_digital products for voice ordering
-  const { products: menuProducts, loading: productsLoading } = useProducts({ active: true, product_type: "menu_digital" });
-  // Also load inventory products for search
-  const { products: inventoryProducts } = useProducts({ active: true, product_type: "inventory" });
-  // Combine both for search, use menu products for voice
-  const allProducts = [...menuProducts, ...inventoryProducts];
+  // Load all products without filtering by channel
+  // This ensures compatibility with products that don't have available_in_pos set yet
+  const { products: allProducts, loading: productsLoading } = useProducts();
+  // Use all products for both voice and search
+  const menuProducts = allProducts;
   const { customers } = useCustomers({ active: true });
   const {
     cart,
@@ -188,6 +191,12 @@ export default function POSPage() {
           toast.info(`Cambio: $${change.toFixed(2)}`);
         }
       }
+
+      // Show receipt viewer
+      if (result.saleId) {
+        setLastSaleId(result.saleId);
+        setReceiptViewerOpen(true);
+      }
     } else {
       toast.error("Error al completar la venta", {
         description: result.error,
@@ -214,10 +223,14 @@ export default function POSPage() {
           {/* Left Column - Product Selection */}
           <div className="flex flex-col gap-4 min-h-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="search" className="gap-2">
                   <Search className="h-4 w-4" />
                   Buscar
+                </TabsTrigger>
+                <TabsTrigger value="categories" className="gap-2">
+                  <Grid3x3 className="h-4 w-4" />
+                  Categorías
                 </TabsTrigger>
                 <TabsTrigger value="best-sellers" className="gap-2">
                   <Star className="h-4 w-4" />
@@ -229,8 +242,16 @@ export default function POSPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="search" className="flex-1 mt-4">
+              <TabsContent value="search" className="flex-1 mt-4 h-[calc(100vh-320px)]">
                 <ProductSearch
+                  products={allProducts}
+                  onSelectProduct={handleSelectProduct}
+                  loading={productsLoading}
+                />
+              </TabsContent>
+
+              <TabsContent value="categories" className="flex-1 mt-4 h-[calc(100vh-320px)]">
+                <CategoryBrowser
                   products={allProducts}
                   onSelectProduct={handleSelectProduct}
                   loading={productsLoading}
@@ -401,6 +422,15 @@ export default function POSPage() {
         product={selectedProductForVariants}
         onConfirm={handleVariantConfirm}
       />
+
+      {/* Receipt Viewer */}
+      {lastSaleId && (
+        <ReceiptViewer
+          open={receiptViewerOpen}
+          onOpenChange={setReceiptViewerOpen}
+          saleId={lastSaleId}
+        />
+      )}
     </div>
   );
 }

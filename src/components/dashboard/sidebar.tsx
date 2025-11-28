@@ -13,6 +13,8 @@ import {
     ChevronLeft,
     ChefHat,
     ClipboardList,
+    PackageX,
+    Soup,
 } from "lucide-react";
 import {
     Sheet,
@@ -27,7 +29,9 @@ const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Punto de Venta", href: "/dashboard/pos", icon: ShoppingCart },
     { name: "Inventario", href: "/dashboard/inventory", icon: Package },
+    { name: "Ingredientes", href: "/dashboard/ingredients", icon: Soup },
     { name: "Menu Digital", href: "/dashboard/menu-digital", icon: ChefHat },
+    { name: "Devoluciones", href: "/dashboard/returns", icon: PackageX },
     { name: "Clientes", href: "/dashboard/customers", icon: Users },
     { name: "Reportes", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Configuración", href: "/dashboard/settings", icon: Settings },
