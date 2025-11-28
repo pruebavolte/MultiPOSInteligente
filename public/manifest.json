@@ -1,25 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "id": "/",
   "lang": "es-MX",
-  "name": "System International",
+  "name": "System International - POS y Gestión de Negocios",
   "short_name": "SystemIntl",
-  "description": "Suite digital inteligente — POS, menú, gestión de negocios",
-  "start_url": "/?utm_source=home",
+  "description": "Suite digital inteligente — POS, menú digital, gestión de inventario, reportes de ventas y más para tu negocio",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "dir": "auto",
+  "categories": ["business", "productivity", "finance"],
   "icons": [
     {
       "src": "/icons/si-icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icons/si-icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icons/si-icon-512-maskable.png",
@@ -28,6 +33,65 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["business", "productivity"],
-  "dir": "auto"
+  "shortcuts": [
+    {
+      "name": "Punto de Venta",
+      "short_name": "POS",
+      "description": "Abrir punto de venta",
+      "url": "/dashboard/pos",
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Menú Digital",
+      "short_name": "Menú",
+      "description": "Ver menú digital",
+      "url": "/dashboard/menu-digital",
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Reportes",
+      "short_name": "Reportes",
+      "description": "Ver reportes de ventas",
+      "url": "/dashboard/reports",
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard principal con vista de ventas y estadísticas"
+    },
+    {
+      "src": "/images/dashboard1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Panel de control con métricas del negocio"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "display_override": ["standalone", "minimal-ui"],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
