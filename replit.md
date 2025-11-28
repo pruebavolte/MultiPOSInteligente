@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-11-28 - Sincronización con GitHub (manifest PWA + limpieza)
+**Last Updated**: 2025-11-28 - Fix deployment build (Prisma generation + TypeScript exclusions)
 
 ## User Preferences
 
