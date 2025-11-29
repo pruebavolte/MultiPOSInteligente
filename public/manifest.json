@@ -74,14 +74,14 @@
   "screenshots": [
     {
       "src": "/images/dashboard.png",
-      "sizes": "1280x720",
+      "sizes": "2560x1426",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Dashboard principal con vista de ventas y estadísticas"
     },
     {
       "src": "/images/dashboard1.png",
-      "sizes": "1280x720",
+      "sizes": "2852x1488",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Panel de control con métricas del negocio"
