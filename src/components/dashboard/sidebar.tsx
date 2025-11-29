@@ -15,6 +15,7 @@ import {
     ClipboardList,
     PackageX,
     Soup,
+    Ticket,
 } from "lucide-react";
 import {
     Sheet,
@@ -33,6 +34,7 @@ const navigation = [
     { name: "Menu Digital", href: "/dashboard/menu-digital", icon: ChefHat },
     { name: "Devoluciones", href: "/dashboard/returns", icon: PackageX },
     { name: "Clientes", href: "/dashboard/customers", icon: Users },
+    { name: "Solicitudes", href: "/dashboard/requests", icon: Ticket },
     { name: "Reportes", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Configuración", href: "/dashboard/settings", icon: Settings },
 ];
