@@ -68,14 +68,14 @@
   "screenshots": [
     {
       "src": "/images/mobile-pos.png",
-      "sizes": "1024x1820",
+      "sizes": "768x1408",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Dashboard POS en móvil"
     },
     {
       "src": "/images/mobile-menu.png",
-      "sizes": "1024x1820",
+      "sizes": "768x1408",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Menú digital en móvil"
@@ -156,7 +156,7 @@
       "ms_ac_template": "/widgets/sales-widget.json",
       "data": "/api/dashboard/orders",
       "type": "application/json",
-      "screenshots": [{ "src": "/images/mobile-pos.png", "sizes": "1024x1820" }],
+      "screenshots": [{ "src": "/images/mobile-pos.png", "sizes": "768x1408" }],
       "icons": [{ "src": "/icons/si-icon-192.png", "sizes": "192x192" }],
       "backgrounds": [{ "src": "/images/dashboard.png", "sizes": "2560x1426" }]
     }
