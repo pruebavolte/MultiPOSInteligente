@@ -25,8 +25,10 @@ function isPWAAsset(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   return pathname === '/manifest.json' ||
          pathname === '/sw.js' ||
+         pathname === '/offline.html' ||
          pathname.startsWith('/icons/') ||
-         pathname.startsWith('/images/');
+         pathname.startsWith('/images/') ||
+         pathname.startsWith('/widgets/');
 }
 
 const isAuthRoute = createRouteMatcher([
@@ -148,6 +150,6 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|icons/.*|images/.*).*)',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|offline.html|widgets/.*|icons/.*|images/.*).*)',
   ],
 };

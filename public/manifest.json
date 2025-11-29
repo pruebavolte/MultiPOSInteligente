@@ -8,11 +8,13 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "dir": "auto",
   "categories": ["business", "productivity", "finance"],
+  "iarc_rating_id": "",
   "icons": [
     {
       "src": "/icons/si-icon-192.png",
@@ -69,6 +71,18 @@
           "sizes": "192x192"
         }
       ]
+    },
+    {
+      "name": "Inventario",
+      "short_name": "Inventario",
+      "description": "Gestionar inventario",
+      "url": "/dashboard/inventory",
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "screenshots": [
@@ -87,11 +101,105 @@
       "label": "Panel de control con métricas del negocio"
     }
   ],
-  "related_applications": [],
-  "prefer_related_applications": false,
-  "display_override": ["standalone", "minimal-ui"],
-  "handle_links": "preferred",
+  "file_handlers": [
+    {
+      "action": "/dashboard/inventory",
+      "accept": {
+        "text/csv": [".csv"],
+        "application/vnd.ms-excel": [".xls"],
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"]
+      },
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "launch_type": "single-client"
+    },
+    {
+      "action": "/dashboard/products",
+      "accept": {
+        "application/json": [".json"]
+      },
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+pos",
+      "url": "/dashboard/pos?action=%s"
+    },
+    {
+      "protocol": "web+menu",
+      "url": "/dashboard/menu-digital?item=%s"
+    },
+    {
+      "protocol": "web+order",
+      "url": "/dashboard/orders?id=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "text/csv", "application/json"]
+        }
+      ]
+    }
+  },
   "launch_handler": {
-    "client_mode": "navigate-existing"
-  }
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "handle_links": "preferred",
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "note_taking": {
+    "new_note_url": "/dashboard/notes/new"
+  },
+  "widgets": [
+    {
+      "name": "Ventas del Día",
+      "short_name": "Ventas",
+      "description": "Resumen de ventas diarias",
+      "tag": "sales-widget",
+      "ms_ac_template": "/widgets/sales-widget.json",
+      "data": "/api/dashboard/orders",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/images/dashboard.png",
+          "sizes": "2560x1426"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/icons/si-icon-192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "backgrounds": [
+        {
+          "src": "/images/dashboard.png",
+          "sizes": "2560x1426"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
