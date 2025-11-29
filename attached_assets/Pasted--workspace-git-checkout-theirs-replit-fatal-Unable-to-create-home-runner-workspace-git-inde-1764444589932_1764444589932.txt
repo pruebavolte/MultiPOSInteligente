@@ -1,0 +1,76 @@
+~/workspace$ git checkout --theirs .replit
+fatal: Unable to create '/home/runner/workspace/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+~/workspace$ git add .replit
+fatal: Unable to create '/home/runner/workspace/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+~/workspace$ git rebase --continue
+.replit: needs merge
+You must edit all merge conflicts and then
+mark them as resolved using git add
+~/workspace$ git push origin main
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. If you want to integrate the remote changes, use 'git pull'
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ git rebase --abort && git push --force origin main
+error: Unable to create '/home/runner/workspace/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: could not move back to 6ec61e123b5a1f458d9eff6126a826afdddc9706
+~/workspace$ git checkout --theirs .replit
+fatal: Unable to create '/home/runner/workspace/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+~/workspace$ git add .replit
+fatal: Unable to create '/home/runner/workspace/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+~/workspace$ git rebase --continue
+.replit: needs merge
+You must edit all merge conflicts and then
+mark them as resolved using git add
+~/workspace$ git rebase --abort && git push --force origin main
+error: Unable to create '/home/runner/workspace/.git/index.lock': File exists.
+
+Another git process seems to be running in this repository, e.g.
+an editor opened by 'git commit'. Please make sure all processes
+are terminated then try again. If it still fails, a git process
+may have crashed in this repository earlier:
+remove the file manually to continue.
+fatal: could not move back to 6ec61e123b5a1f458d9eff6126a826afdddc9706
+~/workspace$ git push origin main
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. If you want to integrate the remote changes, use 'git pull'
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ ^C
+~/workspace$ 
