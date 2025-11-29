@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
   '/',
@@ -16,9 +16,17 @@ function isPublicMenuRoute(request: Request) {
 // Check if the API route is for public menu access
 function isPublicMenuApiRoute(request: Request) {
   const url = new URL(request.url);
-  // Allow public access to menu products API and orders API when restaurantId is provided
   return (url.pathname === '/api/menu-products' && url.searchParams.has('restaurantId')) ||
-         url.pathname === '/api/orders'; // Orders can be placed publicly (restaurantId is in request body)
+         url.pathname === '/api/orders';
+}
+
+// Check if request is for a PWA asset (should be public)
+function isPWAAsset(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  return pathname === '/manifest.json' ||
+         pathname === '/sw.js' ||
+         pathname.startsWith('/icons/') ||
+         pathname.startsWith('/images/');
 }
 
 const isAuthRoute = createRouteMatcher([
@@ -30,11 +38,12 @@ const isAdminRoute = createRouteMatcher([
   '/dashboard/admin(.*)',
 ]);
 
-const isCustomerOnlyRoute = createRouteMatcher([
-  '/dashboard-user(.*)',
-]);
-
 export default clerkMiddleware(async (auth, request) => {
+  // Allow PWA assets without authentication
+  if (isPWAAsset(request)) {
+    return NextResponse.next();
+  }
+
   const { userId } = await auth();
 
   // If user is on an auth page and already signed in, redirect based on role
@@ -62,14 +71,12 @@ export default clerkMiddleware(async (auth, request) => {
         console.error('Error getting user role:', error);
       }
 
-      // Default redirect to dashboard
       const dashboardUrl = new URL('/dashboard', request.url);
       return Response.redirect(dashboardUrl);
     }
   }
 
   // Protect all routes except public ones
-  // Allow public access to menu page and menu API with restaurantId
   if (!isPublicRoute(request) && !isPublicMenuRoute(request) && !isPublicMenuApiRoute(request)) {
     await auth.protect();
   }
@@ -86,7 +93,6 @@ export default clerkMiddleware(async (auth, request) => {
       if (response.ok) {
         const { role } = await response.json();
 
-        // Redirect CUSTOMER and USER to dashboard-user IMMEDIATELY
         if (role === 'CUSTOMER' || role === 'USER') {
           const dashboardUserUrl = new URL('/dashboard-user', request.url);
           return Response.redirect(dashboardUserUrl);
@@ -94,7 +100,6 @@ export default clerkMiddleware(async (auth, request) => {
       }
     } catch (error) {
       console.error('Error checking user role:', error);
-      // On error, still try to redirect CUSTOMER (safe default)
     }
   }
 
@@ -105,7 +110,6 @@ export default clerkMiddleware(async (auth, request) => {
       return Response.redirect(loginUrl);
     }
 
-    // Check if user is admin
     try {
       const response = await fetch(`${request.nextUrl.origin}/api/auth/check-admin`, {
         headers: {
@@ -114,7 +118,6 @@ export default clerkMiddleware(async (auth, request) => {
       });
 
       if (!response.ok || !(await response.json()).isAdmin) {
-        // Redirect non-admin users to their appropriate dashboard
         const response = await fetch(`${request.nextUrl.origin}/api/auth/user-role`, {
           headers: {
             'x-user-id': userId,
@@ -145,9 +148,6 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
