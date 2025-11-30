@@ -20,12 +20,16 @@ export default function DashboardLayout({
         setIsMounted(true);
     }, []);
 
+    const handleMainClick = () => {
+        if (mobileMenuOpen) {
+            setMobileMenuOpen(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-background">
-            {/* User Sync - Automatically syncs user from Clerk to Supabase */}
             <UserSync />
 
-            {/* Sidebar */}
             <Sidebar
                 isCollapsed={isCollapsed}
                 onToggle={() => setIsCollapsed(!isCollapsed)}
@@ -33,20 +37,22 @@ export default function DashboardLayout({
                 onMobileMenuChange={setMobileMenuOpen}
             />
 
-            {/* Main Content Area */}
             <div
                 className={`transition-all duration-300 ${
                     isCollapsed ? "lg:pl-20" : "lg:pl-64"
                 }`}
+                onClick={handleMainClick}
             >
-                {/* Dashboard Header */}
                 <header className="sticky top-0 z-40 w-full border-b bg-background">
                     <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3 lg:hidden">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => setMobileMenuOpen(true)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMobileMenuOpen(true);
+                                }}
                                 className="lg:hidden"
                             >
                                 <Menu className="h-6 w-6" />
@@ -54,13 +60,12 @@ export default function DashboardLayout({
                             <img src="/images/logo_salvadorx.png" alt="Logo SalvadoreX" className="h-8"/>
                         </div>
                         <div className="flex-1"></div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                             {isMounted && <UserButton afterSignOutUrl="/" />}
                         </div>
                     </div>
                 </header>
 
-                {/* Dashboard Content */}
                 <main className="w-full">
                     {children}
                 </main>

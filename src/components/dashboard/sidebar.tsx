@@ -27,8 +27,8 @@ import { AdminNavItem } from "@/components/dashboard/admin-nav-item";
 import { OrdersNavItem } from "@/components/dashboard/orders-nav-item";
 
 const navigation = [
+    { name: "POS", href: "/dashboard/pos", icon: ShoppingCart },
     { name: "Dashboard", href: "/dashboard", icon: Home },
-    { name: "Punto de Venta", href: "/dashboard/pos", icon: ShoppingCart },
     { name: "Inventario", href: "/dashboard/inventory", icon: Package },
     { name: "Ingredientes", href: "/dashboard/ingredients", icon: Soup },
     { name: "Menu Digital", href: "/dashboard/menu-digital", icon: ChefHat },
