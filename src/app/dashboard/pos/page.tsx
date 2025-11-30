@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useProducts } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-sales";
 import { useCustomers } from "@/hooks/use-customers";
@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getProductWithVariants } from "@/lib/services/supabase";
 import { supabase } from "@/lib/supabase/client";
+import { useSearch } from "@/contexts/search-context";
 
 interface Category {
   id: string;
@@ -38,8 +39,9 @@ export default function POSPage() {
   const [lastSaleId, setLastSaleId] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [barcodeSearchResult, setBarcodeSearchResult] = useState<Product | null>(null);
   const prevCartCountRef = useRef(0);
+
+  const { registerSearchHandler, unregisterSearchHandler, setSearchResult } = useSearch();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -63,6 +65,42 @@ export default function POSPage() {
     clearCart,
     completeSale,
   } = useCart();
+
+  // Handle barcode search
+  const handleBarcodeSearch = useCallback((barcode: string) => {
+    const product = allProducts.find(
+      (p) => p.barcode === barcode || p.sku === barcode
+    );
+
+    if (product) {
+      // Product found - add to cart and show success
+      addItem(product, 1);
+      toast.success(`${product.name} agregado al carrito`);
+      setSearchResult({
+        found: true,
+        product: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image_url: product.image_url || undefined,
+          barcode: product.barcode || product.sku,
+        },
+        searchedBarcode: barcode,
+      });
+    } else {
+      // Product not found - show dialog
+      setSearchResult({
+        found: false,
+        searchedBarcode: barcode,
+      });
+    }
+  }, [allProducts, addItem, setSearchResult]);
+
+  // Register the search handler
+  useEffect(() => {
+    registerSearchHandler(handleBarcodeSearch);
+    return () => unregisterSearchHandler();
+  }, [handleBarcodeSearch, registerSearchHandler, unregisterSearchHandler]);
 
   const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 

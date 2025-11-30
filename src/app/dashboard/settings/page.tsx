@@ -24,6 +24,9 @@ import {
     Shield,
     Save,
     Building2,
+    Database,
+    Plus,
+    Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BrandSettingsForm } from "@/components/brands/brand-settings-form";
@@ -55,6 +58,42 @@ export default function SettingsPage() {
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [lowStockAlerts, setLowStockAlerts] = useState(true);
     const [dailySalesReport, setDailySalesReport] = useState(false);
+
+    // Database settings state
+    const [databases, setDatabases] = useState([
+        { id: 1, name: "General", type: "general", status: "active" },
+        { id: 2, name: "Restaurantes", type: "restaurant", status: "active" },
+    ]);
+    const [showDbForm, setShowDbForm] = useState(false);
+    const [newDb, setNewDb] = useState({ name: "", type: "general" });
+
+    const handleAddDatabase = () => {
+        if (!newDb.name.trim()) {
+            toast.error("El nombre de la base de datos es requerido");
+            return;
+        }
+        setDatabases([
+            ...databases,
+            {
+                id: Math.max(...databases.map(d => d.id)) + 1,
+                name: newDb.name,
+                type: newDb.type,
+                status: "active",
+            },
+        ]);
+        toast.success(`Base de datos "${newDb.name}" creada`);
+        setNewDb({ name: "", type: "general" });
+        setShowDbForm(false);
+    };
+
+    const handleDeleteDatabase = (id: number) => {
+        if (id <= 2) {
+            toast.error("No puedes eliminar bases de datos del sistema");
+            return;
+        }
+        setDatabases(databases.filter(d => d.id !== id));
+        toast.success("Base de datos eliminada");
+    };
 
     const handleSaveGeneralSettings = async () => {
         setLoading(true);
@@ -123,7 +162,7 @@ export default function SettingsPage() {
 
                 {/* Settings Tabs */}
                 <Tabs defaultValue="brand" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
+                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
                         <TabsTrigger value="brand" className="flex items-center gap-2">
                             <Building2 className="h-4 w-4" />
                             <span className="hidden sm:inline">Marca</span>
@@ -143,6 +182,10 @@ export default function SettingsPage() {
                         <TabsTrigger value="notifications" className="flex items-center gap-2">
                             <Bell className="h-4 w-4" />
                             <span className="hidden sm:inline">Notificaciones</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="databases" className="flex items-center gap-2">
+                            <Database className="h-4 w-4" />
+                            <span className="hidden sm:inline">Bases de Datos</span>
                         </TabsTrigger>
                     </TabsList>
 
@@ -502,6 +545,116 @@ export default function SettingsPage() {
                                         Guardar Cambios
                                     </Button>
                                 </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Database Settings */}
+                    <TabsContent value="databases" className="space-y-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Database className="h-5 w-5" />
+                                    Bases de Datos
+                                </CardTitle>
+                                <CardDescription>
+                                    Gestiona las bases de datos generales y por giro de negocio
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {/* Add Database Form */}
+                                {showDbForm && (
+                                    <div className="border rounded-lg p-4 space-y-4 bg-muted/50">
+                                        <div className="space-y-2">
+                                            <Label>Nombre de la Base de Datos</Label>
+                                            <Input
+                                                placeholder="Ej: Cafeterías"
+                                                value={newDb.name}
+                                                onChange={(e) => setNewDb({ ...newDb, name: e.target.value })}
+                                                data-testid="input-db-name"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Tipo / Giro de Negocio</Label>
+                                            <Select
+                                                value={newDb.type}
+                                                onValueChange={(val) => setNewDb({ ...newDb, type: val })}
+                                            >
+                                                <SelectTrigger data-testid="select-db-type">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="general">General</SelectItem>
+                                                    <SelectItem value="restaurant">Restaurante</SelectItem>
+                                                    <SelectItem value="cafe">Cafetería</SelectItem>
+                                                    <SelectItem value="retail">Retail / Tienda</SelectItem>
+                                                    <SelectItem value="pharmacy">Farmacia</SelectItem>
+                                                    <SelectItem value="other">Otro</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button onClick={handleAddDatabase} data-testid="button-create-db">
+                                                Crear Base de Datos
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowDbForm(false)}
+                                                data-testid="button-cancel-db"
+                                            >
+                                                Cancelar
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Databases List */}
+                                <div className="space-y-3">
+                                    {databases.map((db) => (
+                                        <div
+                                            key={db.id}
+                                            className="flex items-center justify-between p-4 border rounded-lg"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Database className="h-5 w-5 text-primary" />
+                                                <div>
+                                                    <p className="font-medium">{db.name}</p>
+                                                    <p className="text-sm text-muted-foreground capitalize">
+                                                        {db.type}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1">
+                                                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {db.status}
+                                                    </span>
+                                                </div>
+                                                {db.id > 2 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDeleteDatabase(db.id)}
+                                                        data-testid={`button-delete-db-${db.id}`}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <Separator />
+
+                                {/* Add Button */}
+                                {!showDbForm && (
+                                    <Button onClick={() => setShowDbForm(true)} data-testid="button-add-db">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Agregar Base de Datos
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>
