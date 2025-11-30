@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse, NextRequest } from 'next/server';
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 const isPublicRoute = createRouteMatcher([
   '/',
   '/login(.*)',
@@ -44,6 +46,15 @@ export default clerkMiddleware(async (auth, request) => {
   // Allow PWA assets without authentication
   if (isPWAAsset(request)) {
     return NextResponse.next();
+  }
+
+  // In development mode, bypass authentication for dashboard and API routes
+  if (isDevelopment) {
+    const pathname = request.nextUrl.pathname;
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/api/')) {
+      console.log('[Middleware] Development mode - bypassing auth for:', pathname);
+      return NextResponse.next();
+    }
   }
 
   const { userId } = await auth();

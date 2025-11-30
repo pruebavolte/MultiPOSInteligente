@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/supabase/users";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 
 /**
  * GET /api/auth/current-user
@@ -9,22 +8,12 @@ import { getUserByClerkId } from "@/lib/supabase/users";
  */
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "No autenticado" },
-        { status: 401 }
-      );
-    }
-
-    // Get user data from Supabase using the typed function
-    const userData = await getUserByClerkId(userId);
+    const userData = await getAuthenticatedUser();
 
     if (!userData) {
       return NextResponse.json(
-        { error: "Usuario no encontrado en la base de datos" },
-        { status: 404 }
+        { error: "No autenticado" },
+        { status: 401 }
       );
     }
 

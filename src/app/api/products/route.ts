@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/supabase/users";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 
 // GET /api/products - Get products filtered by user_id
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
 
     const searchParams = request.nextUrl.searchParams;
     const productType = searchParams.get("product_type");
@@ -86,22 +75,12 @@ export async function GET(request: NextRequest) {
 // POST /api/products - Create product with user_id
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
 
     const productData = await request.json();
 
@@ -139,22 +118,12 @@ export async function POST(request: NextRequest) {
 // PATCH /api/products/:id - Update product (only if user owns it)
 export async function PATCH(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
 
     const url = new URL(request.url);
     const productId = url.searchParams.get("id");
@@ -206,22 +175,12 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/products/:id - Delete product (only if user owns it)
 export async function DELETE(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const userData = await getAuthenticatedUser();
+    if (!userData) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
     const supabase = supabaseAdmin;
-
-    // Get user's UUID from Supabase
-    const userData = await getUserByClerkId(userId);
-
-    if (!userData) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
 
     const url = new URL(request.url);
     const productId = url.searchParams.get("id");

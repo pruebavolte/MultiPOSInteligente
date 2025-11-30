@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/supabase/users";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
+    const user = await getAuthenticatedUser();
 
-    if (!userId) {
+    if (!user) {
       return NextResponse.json({ isAdmin: false }, { status: 401 });
     }
 
-    const user = await getUserByClerkId(userId);
-
     return NextResponse.json({
-      isAdmin: user?.role === "ADMIN",
+      isAdmin: user.role === "ADMIN",
     });
   } catch (error) {
     console.error("Error checking admin status:", error);
