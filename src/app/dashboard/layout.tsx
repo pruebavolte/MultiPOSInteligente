@@ -5,7 +5,9 @@ import Sidebar from "@/components/dashboard/sidebar";
 import { UserSync } from "@/components/auth/user-sync";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Menu, Search } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
     children,
@@ -15,6 +17,9 @@ export default function DashboardLayout({
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [searchValue, setSearchValue] = useState("");
+    const pathname = usePathname();
+    const showSearchBar = pathname === "/dashboard/pos";
 
     useEffect(() => {
         setIsMounted(true);
@@ -44,7 +49,7 @@ export default function DashboardLayout({
                 onClick={handleMainClick}
             >
                 <header className="sticky top-0 z-40 w-full border-b bg-background">
-                    <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+                    <div className="flex h-16 items-center gap-4 px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3 lg:hidden">
                             <Button
                                 variant="ghost"
@@ -59,6 +64,23 @@ export default function DashboardLayout({
                             </Button>
                             <img src="/images/logo_salvadorx.png" alt="Logo SalvadoreX" className="h-8"/>
                         </div>
+
+                        {showSearchBar && (
+                            <div className="flex-1 max-w-md">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        type="text"
+                                        placeholder="Buscar por código de barras..."
+                                        value={searchValue}
+                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        className="pl-10 h-9"
+                                        data-testid="input-header-search"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex-1"></div>
                         <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                             {isMounted && <UserButton afterSignOutUrl="/" />}

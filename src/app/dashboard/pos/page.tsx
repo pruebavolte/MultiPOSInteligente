@@ -5,7 +5,6 @@ import { useProducts } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-sales";
 import { useCustomers } from "@/hooks/use-customers";
 import { ElevenLabsVoiceAgent } from "@/components/menu-digital/elevenlabs-voice-agent";
-import { ProductSearch } from "@/components/pos/product-search";
 import { CategoryBrowser } from "@/components/pos/category-browser";
 import { Cart } from "@/components/pos/cart";
 import { PaymentModal } from "@/components/pos/payment-modal";
@@ -14,9 +13,9 @@ import { ReceiptViewer } from "@/components/pos/receipt-viewer";
 import { Product } from "@/types/database";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Mic, Search, ShoppingCart, X, Grid3x3 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mic, ShoppingCart, X, Grid3x3, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getProductWithVariants } from "@/lib/services/supabase";
@@ -37,9 +36,9 @@ export default function POSPage() {
   const [selectedProductForVariants, setSelectedProductForVariants] = useState<Product | null>(null);
   const [receiptViewerOpen, setReceiptViewerOpen] = useState(false);
   const [lastSaleId, setLastSaleId] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [barcodeSearchResult, setBarcodeSearchResult] = useState<Product | null>(null);
   const prevCartCountRef = useRef(0);
 
   useEffect(() => {
@@ -180,12 +179,12 @@ export default function POSPage() {
   };
 
   const filteredProducts = allProducts.filter(product => {
-    const matchesSearch = !searchQuery || 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesCategory;
   });
+
+  // Get best sellers (top 6 products)
+  const bestSellers = allProducts.slice(0, 6);
 
   const categoryCounts: { [key: string]: number } = {};
   allProducts.forEach((product) => {
@@ -196,21 +195,57 @@ export default function POSPage() {
 
   return (
     <div className="w-full h-[calc(100vh-4rem)] flex flex-col">
-      {/* Top Bar - Search and Categories */}
-      <div className="flex-shrink-0 border-b bg-background px-4 py-2 space-y-2">
-        {/* Search Bar */}
+      {/* Top Bar - Categories Combobox and Best Sellers */}
+      <div className="flex-shrink-0 border-b bg-background px-4 py-3 space-y-2">
+        {/* Categories Combobox and Best Sellers */}
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Buscar productos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-9"
-              data-testid="input-pos-search"
-            />
+          <div className="w-48">
+            <Select value={selectedCategory || "all"} onValueChange={(val) => setSelectedCategory(val === "all" ? null : val)}>
+              <SelectTrigger data-testid="select-categories">
+                <SelectValue placeholder="Seleccionar categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-1">
+                    <Grid3x3 className="h-3 w-3" />
+                    <span>Todos</span>
+                  </div>
+                </SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    <span>{category.name}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Best Sellers */}
+          {bestSellers.length > 0 && (
+            <div className="flex-1 flex items-center gap-2 overflow-x-auto">
+              <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground flex-shrink-0">
+                <TrendingUp className="h-3 w-3" />
+                <span>Más vendidos:</span>
+              </div>
+              <ScrollArea className="w-full">
+                <div className="flex gap-2 pb-1">
+                  {bestSellers.map((product) => (
+                    <Button
+                      key={product.id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSelectProduct(product)}
+                      className="flex-shrink-0"
+                      data-testid={`button-best-seller-${product.id}`}
+                    >
+                      {product.name}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
           <Button
             variant={activeView === "voice" ? "default" : "outline"}
             size="icon"
@@ -220,57 +255,6 @@ export default function POSPage() {
             <Mic className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Categories */}
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              data-testid="button-category-all"
-              className={cn(
-                "px-3 py-1 rounded-full font-medium text-xs transition-all duration-200 flex-shrink-0",
-                selectedCategory === null
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted hover:bg-muted/80 text-foreground"
-              )}
-            >
-              <div className="flex items-center gap-1">
-                <Grid3x3 className="h-3 w-3" />
-                <span>Todos</span>
-                <span className={cn(
-                  "px-1 py-0.5 rounded-full text-[10px] font-bold",
-                  selectedCategory === null ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
-                )}>
-                  {allProducts.length}
-                </span>
-              </div>
-            </button>
-
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                data-testid={`button-category-${category.id}`}
-                className={cn(
-                  "px-3 py-1 rounded-full font-medium text-xs transition-all duration-200 flex-shrink-0",
-                  selectedCategory === category.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted hover:bg-muted/80 text-foreground"
-                )}
-              >
-                <div className="flex items-center gap-1">
-                  <span>{category.name}</span>
-                  <span className={cn(
-                    "px-1 py-0.5 rounded-full text-[10px] font-bold",
-                    selectedCategory === category.id ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
-                  )}>
-                    {categoryCounts[category.id] || 0}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
       </div>
 
       {/* Main Content */}
