@@ -2,19 +2,26 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from "react";
 
+type ProductSource = "tenant" | "global" | "external" | "not_found";
+
 interface SearchResult {
   found: boolean;
   type?: "barcode" | "name_search";
+  source?: ProductSource;
   product?: {
-    id: string;
+    id?: string;
     name: string;
     price: number;
     image_url?: string;
     barcode?: string;
     category?: string;
     cost?: number;
+    brand?: string;
+    description?: string;
+    confidence?: number;
   };
   searchedBarcode: string;
+  message?: string;
 }
 
 type CategoryPosition = "hidden" | "left" | "top" | "bottom";

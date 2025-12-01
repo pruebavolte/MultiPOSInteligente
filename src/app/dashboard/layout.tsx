@@ -71,6 +71,7 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [productCategory, setProductCategory] = useState<string>("");
   const [productImageUrl, setProductImageUrl] = useState<string>("");
+  const [productDescription, setProductDescription] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -102,16 +103,39 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
 
   useEffect(() => {
     if (showAddProductModal) {
-      setProductPrice("");
       setProductCost("");
       setProductStock("");
       setProductMinStock("");
-      setProductCategory("");
-      setProductImageUrl("");
       setImageFile(null);
       clearImages();
-      setShowAdvanced(false);
       setIsCameraOpen(false);
+      
+      if (searchResult?.source === "global" || searchResult?.source === "external") {
+        setProductPrice(searchResult.product?.price?.toString() || "");
+        setProductImageUrl(searchResult.product?.image_url || "");
+        setProductDescription(searchResult.product?.description || "");
+        
+        if (searchResult.product?.category) {
+          const matchingCategory = categories.find(
+            c => c.name.toLowerCase() === searchResult.product?.category?.toLowerCase()
+          );
+          setProductCategory(matchingCategory?.id || "");
+        } else {
+          setProductCategory("");
+        }
+        
+        if (searchResult.product?.description || searchResult.product?.image_url) {
+          setShowAdvanced(true);
+        } else {
+          setShowAdvanced(false);
+        }
+      } else {
+        setProductPrice("");
+        setProductImageUrl("");
+        setProductDescription("");
+        setProductCategory("");
+        setShowAdvanced(false);
+      }
       
       setTimeout(() => {
         if (searchType === "barcode") {
@@ -121,7 +145,7 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
         }
       }, 100);
     }
-  }, [showAddProductModal, searchType, clearImages]);
+  }, [showAddProductModal, searchType, clearImages, searchResult, categories]);
 
   const generateBarcode = () => {
     return `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-13);
@@ -311,6 +335,7 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
         min_stock: productMinStock ? parseInt(productMinStock) : 0,
         category_id: productCategory || null,
         image_url: finalImageUrl || null,
+        description: productDescription.trim() || null,
         active: true,
         available_in_digital_menu: false,
         available_in_pos: true,
@@ -333,9 +358,11 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
       setNewProductBarcode("");
       setProductPrice("");
       setProductCost("");
+      setProductDescription("");
       setProductImageUrl("");
       setImageFile(null);
       setSearchType(null);
+      setSearchResult(null);
       window.location.reload();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Error al guardar producto");
@@ -510,9 +537,19 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
       <Dialog open={showAddProductModal} onOpenChange={setShowAddProductModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Agregar Nuevo Producto</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Agregar Nuevo Producto
+              {(searchResult?.source === "global" || searchResult?.source === "external") && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  {searchResult.source === "global" ? "Base Global" : "API Externa"}
+                </span>
+              )}
+            </DialogTitle>
             <DialogDescription>
-              Complete los datos del nuevo producto
+              {(searchResult?.source === "global" || searchResult?.source === "external") 
+                ? searchResult.message || "Producto encontrado. Revisa los datos y agrega a tu inventario."
+                : "Complete los datos del nuevo producto"
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -550,6 +587,17 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
                 step="0.01"
                 min="0"
                 data-testid="input-product-price"
+              />
+            </div>
+            
+            <div>
+              <p className="text-xs text-muted-foreground font-medium mb-2">Descripción (opcional)</p>
+              <textarea
+                value={productDescription}
+                onChange={(e) => setProductDescription(e.target.value)}
+                placeholder="preparado con..."
+                className="w-full min-h-[60px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                data-testid="input-product-description"
               />
             </div>
 

@@ -87,7 +87,7 @@ export default function POSPage() {
     setSearchValue("");
   }, [setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
 
-  const handleSearch = useCallback((query: string, isNumberSearch: boolean) => {
+  const handleSearch = useCallback(async (query: string, isNumberSearch: boolean) => {
     if (isNumberSearch) {
       const product = allProducts.find(
         (p) => p.barcode === query || p.sku === query
@@ -100,6 +100,7 @@ export default function POSPage() {
         setSearchResult({
           found: true,
           type: "barcode",
+          source: "tenant",
           product: {
             id: product.id,
             name: product.name,
@@ -112,6 +113,48 @@ export default function POSPage() {
           searchedBarcode: query,
         });
       } else {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          const response = await fetch("/api/barcode-lookup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ barcode: query, userId: user?.id }),
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            
+            if (result.source !== "not_found" && result.product) {
+              setSearchResult({
+                found: true,
+                type: "barcode",
+                source: result.source,
+                product: {
+                  name: result.product.name,
+                  price: result.product.price || 0,
+                  image_url: result.product.image_url,
+                  barcode: result.product.barcode,
+                  category: result.product.category,
+                  brand: result.product.brand,
+                  description: result.product.description,
+                  confidence: result.product.confidence,
+                },
+                searchedBarcode: query,
+                message: result.message,
+              });
+              
+              const sourceLabel = result.source === "global" 
+                ? "base de datos global" 
+                : "API externa";
+              toast.info(`Producto encontrado en ${sourceLabel}. Puedes agregarlo a tu inventario.`);
+              openAddProductModal(result.product.name, query);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error("Error in barcode cascade lookup:", error);
+        }
+        
         openAddProductModal("", query);
       }
     } else {
