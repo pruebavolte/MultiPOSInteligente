@@ -3,10 +3,29 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Product } from "@/types/database";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Package, Grid3x3 } from "lucide-react";
+import { Package, Grid3x3, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Category {
   id: string;
@@ -100,6 +119,144 @@ function usePinchZoom(
   return containerRef;
 }
 
+interface SortableProductCardProps {
+  product: Product;
+  onSelectProduct: (product: Product) => void;
+  config: {
+    gridCols: string;
+    imageHeight: string;
+    fontSize: string;
+  };
+  isDragging?: boolean;
+}
+
+function SortableProductCard({ product, onSelectProduct, config, isDragging }: SortableProductCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: product.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+    zIndex: isSortableDragging ? 1000 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      data-testid={`card-category-product-${product.id}`}
+      className={cn(
+        "bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group relative",
+        "border border-gray-100 dark:border-gray-700",
+        product.stock <= product.min_stock && "ring-2 ring-orange-400",
+        isSortableDragging && "shadow-xl ring-2 ring-primary"
+      )}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-1 left-1 z-10 p-1 bg-black/30 hover:bg-black/50 rounded cursor-grab active:cursor-grabbing touch-none"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical className="h-4 w-4 text-white" />
+      </div>
+
+      <div
+        onClick={() => onSelectProduct(product)}
+        className="h-full"
+      >
+        <div className={cn(
+          "relative w-full bg-gray-50 dark:bg-gray-900",
+          config.imageHeight
+        )}>
+          {product.image_url ? (
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 20vw"
+            />
+          ) : (
+            <div className="flex items-center justify-center w-full h-full text-gray-300">
+              <Package className="h-12 w-12" />
+            </div>
+          )}
+
+          {product.stock <= product.min_stock && (
+            <div className="absolute top-1 right-1 bg-orange-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium">
+              Bajo
+            </div>
+          )}
+        </div>
+
+        <div className="p-2 text-center">
+          <h3 className={cn(
+            "font-medium text-foreground line-clamp-2 leading-tight mb-1",
+            config.fontSize
+          )}>
+            {product.name}
+          </h3>
+          <p className="text-primary font-bold text-sm">
+            ${product.price.toFixed(2)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductCardOverlay({ product, config }: { product: Product; config: SortableProductCardProps["config"] }) {
+  return (
+    <div
+      className={cn(
+        "bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-2xl cursor-grabbing",
+        "border-2 border-primary ring-4 ring-primary/20",
+        "transform scale-105"
+      )}
+      style={{ width: "150px" }}
+    >
+      <div className={cn(
+        "relative w-full bg-gray-50 dark:bg-gray-900",
+        config.imageHeight
+      )}>
+        {product.image_url ? (
+          <Image
+            src={product.image_url}
+            alt={product.name}
+            fill
+            className="object-cover"
+            sizes="150px"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-gray-300">
+            <Package className="h-12 w-12" />
+          </div>
+        )}
+      </div>
+
+      <div className="p-2 text-center">
+        <h3 className={cn(
+          "font-medium text-foreground line-clamp-2 leading-tight mb-1",
+          config.fontSize
+        )}>
+          {product.name}
+        </h3>
+        <p className="text-primary font-bold text-sm">
+          ${product.price.toFixed(2)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function CategoryBrowser({
   products,
   onSelectProduct,
@@ -112,6 +269,8 @@ export function CategoryBrowser({
   const [localSelectedCategory, setLocalSelectedCategory] = useState<string | null>(null);
   const [cardSize, setCardSize] = useState<CardSize>("medium");
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [productOrder, setProductOrder] = useState<string[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const selectedCategory = externalSelectedCategory !== undefined ? externalSelectedCategory : localSelectedCategory;
   const setSelectedCategory = onCategoryChange || setLocalSelectedCategory;
@@ -125,32 +284,40 @@ export function CategoryBrowser({
       fontSize: "text-xs",
     },
     medium: {
-      gridCols: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4",
+      gridCols: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
       imageHeight: "aspect-square",
       fontSize: "text-sm",
     },
     large: {
-      gridCols: "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3",
-      imageHeight: "aspect-square",
+      gridCols: "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+      imageHeight: "aspect-[4/3]",
       fontSize: "text-base",
     },
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("categories")
-          .select("*")
-          .order("name");
+      setLoadingCategories(true);
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
 
-        if (error) throw error;
-        setCategories(data || []);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setLoadingCategories(false);
+      if (!error && data) {
+        setCategories(data);
       }
+      setLoadingCategories(false);
     };
 
     fetchCategories();
@@ -163,6 +330,28 @@ export function CategoryBrowser({
     return products.filter((product) => product.category_id === selectedCategory);
   }, [products, selectedCategory]);
 
+  useEffect(() => {
+    const savedOrder = localStorage.getItem(`productOrder_${selectedCategory || 'all'}`);
+    if (savedOrder) {
+      setProductOrder(JSON.parse(savedOrder));
+    } else {
+      setProductOrder(filteredProducts.map(p => p.id));
+    }
+  }, [filteredProducts, selectedCategory]);
+
+  const orderedProducts = useMemo(() => {
+    if (productOrder.length === 0) return filteredProducts;
+    
+    const orderMap = new Map(productOrder.map((id, index) => [id, index]));
+    const sorted = [...filteredProducts].sort((a, b) => {
+      const orderA = orderMap.get(a.id) ?? Infinity;
+      const orderB = orderMap.get(b.id) ?? Infinity;
+      return orderA - orderB;
+    });
+    
+    return sorted;
+  }, [filteredProducts, productOrder]);
+
   const categoryCounts = useMemo(() => {
     const counts: { [key: string]: number } = {};
     products.forEach((product) => {
@@ -172,6 +361,28 @@ export function CategoryBrowser({
     });
     return counts;
   }, [products]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (over && active.id !== over.id) {
+      const oldIndex = orderedProducts.findIndex(p => p.id === active.id);
+      const newIndex = orderedProducts.findIndex(p => p.id === over.id);
+
+      const newOrderedProducts = arrayMove(orderedProducts, oldIndex, newIndex);
+      const newOrder = newOrderedProducts.map(p => p.id);
+      
+      setProductOrder(newOrder);
+      localStorage.setItem(`productOrder_${selectedCategory || 'all'}`, JSON.stringify(newOrder));
+    }
+  };
+
+  const activeProduct = activeId ? orderedProducts.find(p => p.id === activeId) : null;
 
   if (loading || loadingCategories) {
     return (
@@ -245,7 +456,7 @@ export function CategoryBrowser({
 
       <div ref={pinchRef} className="flex-1 min-h-0 touch-pan-y">
         <ScrollArea className="h-full">
-          {filteredProducts.length === 0 ? (
+          {orderedProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 space-y-2">
               <Package className="h-12 w-12 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
@@ -253,57 +464,33 @@ export function CategoryBrowser({
               </p>
             </div>
           ) : (
-            <div className={cn("grid gap-3 p-1 transition-all duration-300", config.gridCols)}>
-              {filteredProducts.map((product) => (
-                <div
-                  key={product.id}
-                  data-testid={`card-category-product-${product.id}`}
-                  className={cn(
-                    "bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group",
-                    "border border-gray-100 dark:border-gray-700",
-                    product.stock <= product.min_stock && "ring-2 ring-orange-400"
-                  )}
-                  onClick={() => onSelectProduct(product)}
-                >
-                  <div className={cn(
-                    "relative w-full bg-gray-50 dark:bg-gray-900",
-                    config.imageHeight
-                  )}>
-                    {product.image_url ? (
-                      <Image
-                        src={product.image_url}
-                        alt={product.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 20vw"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-full text-gray-300">
-                        <Package className="h-12 w-12" />
-                      </div>
-                    )}
-
-                    {product.stock <= product.min_stock && (
-                      <div className="absolute top-1 right-1 bg-orange-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium">
-                        Bajo
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-2 text-center">
-                    <h3 className={cn(
-                      "font-medium text-foreground line-clamp-2 leading-tight mb-1",
-                      config.fontSize
-                    )}>
-                      {product.name}
-                    </h3>
-                    <p className="text-primary font-bold text-sm">
-                      ${product.price.toFixed(2)}
-                    </p>
-                  </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={orderedProducts.map(p => p.id)}
+                strategy={rectSortingStrategy}
+              >
+                <div className={cn("grid gap-3 p-1 transition-all duration-300", config.gridCols)}>
+                  {orderedProducts.map((product) => (
+                    <SortableProductCard
+                      key={product.id}
+                      product={product}
+                      onSelectProduct={onSelectProduct}
+                      config={config}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+              <DragOverlay>
+                {activeProduct ? (
+                  <ProductCardOverlay product={activeProduct} config={config} />
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           )}
         </ScrollArea>
       </div>

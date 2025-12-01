@@ -87,6 +87,15 @@ export default function POSPage() {
     return String(maxId + 1);
   }, [allProducts]);
 
+  // Open add product modal with pre-filled data
+  const openAddProductModal = useCallback((nameOrBarcode: string) => {
+    const nextBarcode = getNextBarcode();
+    setNewProductName(nameOrBarcode);
+    setNewProductBarcode(nextBarcode);
+    setShowAddProductModal(true);
+    setSearchValue("");
+  }, [getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
+
   // Handle search (barcode or name search)
   const handleSearch = useCallback((query: string, isNumberSearch: boolean) => {
     if (isNumberSearch) {
@@ -115,26 +124,13 @@ export default function POSPage() {
         });
       } else {
         // Barcode not found - open add product modal with barcode as name
-        handleBarcodeNotFound(query);
+        openAddProductModal(query);
       }
     } else {
       // Text search: open add product modal with name pre-filled
-      const nextBarcode = getNextBarcode();
-      setNewProductName(query);
-      setNewProductBarcode(nextBarcode);
-      setShowAddProductModal(true);
-      setSearchValue(""); // Clear search bar
+      openAddProductModal(query);
     }
-  }, [allProducts, categories, addItem, setSearchResult, getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
-
-  // When barcode not found - open add product modal instead
-  const handleBarcodeNotFound = useCallback((barcode: string) => {
-    const nextBarcode = getNextBarcode();
-    setNewProductName(barcode);
-    setNewProductBarcode(nextBarcode);
-    setShowAddProductModal(true);
-    setSearchValue(""); // Clear search bar
-  }, [allProducts, categories, addItem, setSearchResult, getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
+  }, [allProducts, categories, addItem, setSearchResult, openAddProductModal]);
 
   // Register the search handler
   useEffect(() => {
