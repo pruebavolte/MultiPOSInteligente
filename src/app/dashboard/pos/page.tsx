@@ -114,12 +114,8 @@ export default function POSPage() {
           searchedBarcode: query,
         });
       } else {
-        // Barcode not found - show "not found" dialog
-        setSearchResult({
-          found: false,
-          type: "barcode",
-          searchedBarcode: query,
-        });
+        // Barcode not found - open add product modal with barcode as name
+        handleBarcodeNotFound(query);
       }
     } else {
       // Text search: open add product modal with name pre-filled
@@ -129,6 +125,15 @@ export default function POSPage() {
       setShowAddProductModal(true);
       setSearchValue(""); // Clear search bar
     }
+  }, [allProducts, categories, addItem, setSearchResult, getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
+
+  // When barcode not found - open add product modal instead
+  const handleBarcodeNotFound = useCallback((barcode: string) => {
+    const nextBarcode = getNextBarcode();
+    setNewProductName(barcode);
+    setNewProductBarcode(nextBarcode);
+    setShowAddProductModal(true);
+    setSearchValue(""); // Clear search bar
   }, [allProducts, categories, addItem, setSearchResult, getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
 
   // Register the search handler

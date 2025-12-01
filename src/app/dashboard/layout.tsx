@@ -19,7 +19,7 @@ import {
 import { Package } from "lucide-react";
 import Image from "next/image";
 
-function SearchBar() {
+function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
   const { 
     searchValue, 
     setSearchValue, 
@@ -36,6 +36,18 @@ function SearchBar() {
     if (e.key === "Enter") {
       triggerSearch();
     }
+    // Close sidebar on any input
+    if (onCloseSidebar) {
+      onCloseSidebar();
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+    // Close sidebar on any input
+    if (onCloseSidebar) {
+      onCloseSidebar();
+    }
   };
 
   return (
@@ -48,7 +60,7 @@ function SearchBar() {
               type="text"
               placeholder="Buscar producto..."
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={handleChange}
               onKeyDown={handleKeyDown}
               className="pl-10 h-9"
               data-testid="input-header-search"
@@ -60,27 +72,6 @@ function SearchBar() {
         </div>
       </div>
 
-      {/* Not Found Dialog - Barcode */}
-      <Dialog open={searchResult !== null && !searchResult.found && searchResult?.type === "barcode"} onOpenChange={() => setSearchResult(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Código de Barras No Encontrado</DialogTitle>
-            <DialogDescription>
-              No se encontró ningún producto con el código: <strong>{searchResult?.searchedBarcode}</strong>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-4">
-            <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center">
-              <Package className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                El código ingresado no está registrado en el sistema.
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Found Dialog */}
       <Dialog open={searchResult !== null && searchResult.found} onOpenChange={() => setSearchResult(null)}>
@@ -253,7 +244,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               <img src="/images/logo_salvadorx.png" alt="Logo SalvadoreX" className="h-8" />
             </div>
 
-            {showSearchBar && <SearchBar />}
+            {showSearchBar && <SearchBar onCloseSidebar={() => setMobileMenuOpen(false)} />}
 
             <div className="flex-1"></div>
             <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
