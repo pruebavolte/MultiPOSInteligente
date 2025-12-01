@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-12-01 - Enhanced POS module with category positioning and smart search
+**Last Updated**: 2025-12-01 - Added cascade barcode lookup system (client DB → global DB → external APIs)
 
 ## User Preferences
 
@@ -41,10 +41,11 @@ Database Choice: Supabase (con acceso automático desde la aplicación)
 6. `sale_items` - Line items for sales
 7. `orders` - Digital menu orders
 8. `order_items` - Line items for orders
-9. `variant_types` - Types of variants (Tamaño, Topping, Extra) **NEW**
-10. `product_variants` - Product variations with price modifiers **NEW**
-11. `sale_item_variants` - Tracks variants selected in POS sales **NEW**
+9. `variant_types` - Types of variants (Tamaño, Topping, Extra)
+10. `product_variants` - Product variations with price modifiers
+11. `sale_item_variants` - Tracks variants selected in POS sales
 12. `tenant_config` - Multi-tenant configuration
+13. `global_products` - Shared barcode database with external API cache **NEW**
 
 **Test Data Included:**
 - Admin user: admin@salvadorex.test
@@ -79,12 +80,21 @@ IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 - ✅ Product management
 - ✅ Category organization with flexible positioning (left, top, bottom, hidden)
 - ✅ Smart dual-mode search (barcode vs text detection)
+- ✅ **Cascade barcode lookup** (client DB → global DB → external APIs)
 - ✅ Best sellers filter integrated in category dropdown
-- ✅ Quick product creation modal with auto-focus logic
+- ✅ Quick product creation modal with auto-focus logic and description field
 - ✅ Sales transactions (CASH/CARD)
 - ✅ Customer tracking
 - ✅ Inventory management
 - ✅ Sidebar auto-closes when interacting with POS
+
+### Cascade Barcode Lookup System
+When scanning an unknown barcode in the POS:
+1. **Client DB** - First searches in the user's products table
+2. **Global DB** - If not found, searches in the shared `global_products` table
+3. **External APIs** - If not found, queries Open Food Facts and UPC Item DB
+4. **Auto-save** - Results from external APIs are saved to `global_products` for future lookups
+5. **Pre-fill** - Modal shows product info (name, price, description, image) with source indicator
 
 ### Digital Menu
 - ✅ Public menu sharing
