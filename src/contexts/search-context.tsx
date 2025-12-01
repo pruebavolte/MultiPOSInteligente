@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, ReactNode, useRef } f
 
 interface SearchResult {
   found: boolean;
-  type?: "barcode" | "name_search"; // Type of search
+  type?: "barcode" | "name_search";
   product?: {
     id: string;
     name: string;
@@ -16,6 +16,8 @@ interface SearchResult {
   };
   searchedBarcode: string;
 }
+
+type CategoryPosition = "hidden" | "left" | "top" | "bottom";
 
 interface SearchContextType {
   searchValue: string;
@@ -31,6 +33,12 @@ interface SearchContextType {
   setNewProductName: (name: string) => void;
   newProductBarcode: string;
   setNewProductBarcode: (barcode: string) => void;
+  searchType: "barcode" | "name" | null;
+  setSearchType: (type: "barcode" | "name" | null) => void;
+  categoryPosition: CategoryPosition;
+  setCategoryPosition: (position: CategoryPosition) => void;
+  selectedCategory: string | null;
+  setSelectedCategory: (category: string | null) => void;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -41,7 +49,17 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [newProductName, setNewProductName] = useState("");
   const [newProductBarcode, setNewProductBarcode] = useState("");
+  const [searchType, setSearchType] = useState<"barcode" | "name" | null>(null);
+  const [categoryPosition, setCategoryPositionState] = useState<CategoryPosition>("hidden");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const searchHandlerRef = useRef<((query: string, isNumberSearch: boolean) => void) | null>(null);
+
+  const setCategoryPosition = useCallback((position: CategoryPosition) => {
+    setCategoryPositionState(position);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("categoryPosition", position);
+    }
+  }, []);
 
   const registerSearchHandler = useCallback((handler: (query: string, isNumberSearch: boolean) => void) => {
     searchHandlerRef.current = handler;
@@ -53,8 +71,8 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 
   const triggerSearch = useCallback(() => {
     if (searchValue.trim() && searchHandlerRef.current) {
-      // Check if search is numeric (number search) or text (name search)
       const isNumberSearch = /^\d+$/.test(searchValue.trim());
+      setSearchType(isNumberSearch ? "barcode" : "name");
       searchHandlerRef.current(searchValue.trim(), isNumberSearch);
     }
   }, [searchValue]);
@@ -75,6 +93,12 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         setNewProductName,
         newProductBarcode,
         setNewProductBarcode,
+        searchType,
+        setSearchType,
+        categoryPosition,
+        setCategoryPosition,
+        selectedCategory,
+        setSelectedCategory,
       }}
     >
       {children}

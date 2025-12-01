@@ -14,8 +14,7 @@ import { Product } from "@/types/database";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mic, ShoppingCart, X, Grid3x3, TrendingUp } from "lucide-react";
+import { Mic, ShoppingCart, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getProductWithVariants } from "@/lib/services/supabase";
@@ -37,7 +36,6 @@ export default function POSPage() {
   const [selectedProductForVariants, setSelectedProductForVariants] = useState<Product | null>(null);
   const [receiptViewerOpen, setReceiptViewerOpen] = useState(false);
   const [lastSaleId, setLastSaleId] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const prevCartCountRef = useRef(0);
 
@@ -51,6 +49,9 @@ export default function POSPage() {
     setNewProductBarcode,
     searchValue,
     setSearchValue,
+    categoryPosition,
+    selectedCategory,
+    setSelectedCategory,
   } = useSearch();
 
   useEffect(() => {
@@ -59,6 +60,10 @@ export default function POSPage() {
       setCategories(data || []);
     };
     fetchCategories();
+
+    const savedPosition = localStorage.getItem("categoryPosition");
+    if (savedPosition) {
+    }
   }, []);
 
   const { products: allProducts, loading: productsLoading } = useProducts();
@@ -76,7 +81,6 @@ export default function POSPage() {
     completeSale,
   } = useCart();
 
-  // Open add product modal with pre-filled data
   const openAddProductModal = useCallback((name: string, barcode: string) => {
     setNewProductName(name);
     setNewProductBarcode(barcode);
@@ -84,10 +88,8 @@ export default function POSPage() {
     setSearchValue("");
   }, [setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
 
-  // Handle search (barcode or name search)
   const handleSearch = useCallback((query: string, isNumberSearch: boolean) => {
     if (isNumberSearch) {
-      // Number search: search by barcode
       const product = allProducts.find(
         (p) => p.barcode === query || p.sku === query
       );
@@ -111,16 +113,13 @@ export default function POSPage() {
           searchedBarcode: query,
         });
       } else {
-        // Barcode not found - open add product modal with EXACT searched barcode
         openAddProductModal("", query);
       }
     } else {
-      // Text search: open add product modal with name pre-filled, empty barcode
       openAddProductModal(query, "");
     }
   }, [allProducts, categories, addItem, setSearchResult, openAddProductModal]);
 
-  // Register the search handler
   useEffect(() => {
     registerSearchHandler(handleSearch);
     return () => unregisterSearchHandler();
@@ -240,13 +239,25 @@ export default function POSPage() {
     }
   };
 
-  const filteredProducts = allProducts.filter(product => {
-    const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-    return matchesCategory;
+  const sortedProducts = [...allProducts].sort((a, b) => {
+    return a.name.localeCompare(b.name);
   });
 
-  // Get best sellers (top 6 products)
-  const bestSellers = allProducts.slice(0, 6);
+  const bestSellers = sortedProducts.slice(0, 10);
+  const remainingProducts = sortedProducts.slice(10);
+  const orderedProducts = [...bestSellers, ...remainingProducts];
+
+  const filteredProducts = orderedProducts.filter(product => {
+    if (selectedCategory === "best-sellers") {
+      return bestSellers.some(bs => bs.id === product.id);
+    }
+    if (!selectedCategory) return true;
+    return product.category_id === selectedCategory;
+  });
+
+  const handleCategoryClick = (categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+  };
 
   const categoryCounts: { [key: string]: number } = {};
   allProducts.forEach((product) => {
@@ -255,127 +266,162 @@ export default function POSPage() {
     }
   });
 
+  const CategoryButtons = () => (
+    <div className="flex flex-wrap gap-2 p-2">
+      <Button
+        variant={selectedCategory === null ? "default" : "outline"}
+        size="lg"
+        onClick={() => handleCategoryClick(null)}
+        className="min-h-[48px] text-base"
+        data-testid="button-category-all"
+      >
+        Todos ({allProducts.length})
+      </Button>
+      <Button
+        variant={selectedCategory === "best-sellers" ? "default" : "outline"}
+        size="lg"
+        onClick={() => handleCategoryClick("best-sellers")}
+        className="min-h-[48px] text-base"
+        data-testid="button-category-best-sellers"
+      >
+        Más vendidos
+      </Button>
+      {categories.map((category) => (
+        <Button
+          key={category.id}
+          variant={selectedCategory === category.id ? "default" : "outline"}
+          size="lg"
+          onClick={() => handleCategoryClick(category.id)}
+          className="min-h-[48px] text-base"
+          data-testid={`button-category-${category.id}`}
+        >
+          {category.name} ({categoryCounts[category.id] || 0})
+        </Button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="w-full h-[calc(100vh-4rem)] flex flex-col">
-      {/* Top Bar - Categories Combobox and Best Sellers */}
-      <div className="flex-shrink-0 border-b bg-background px-4 py-3 space-y-2">
-        {/* Categories Combobox and Best Sellers */}
-        <div className="flex items-center gap-2">
-          <div className="w-48">
-            <Select value={selectedCategory || "all"} onValueChange={(val) => setSelectedCategory(val === "all" ? null : val)}>
-              <SelectTrigger data-testid="select-categories">
-                <SelectValue placeholder="Seleccionar categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
-                  <div className="flex items-center gap-1">
-                    <Grid3x3 className="h-3 w-3" />
-                    <span>Todos</span>
-                  </div>
-                </SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    <span>{category.name}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {categoryPosition === "top" && (
+        <div className="flex-shrink-0 border-b bg-background overflow-x-auto">
+          <ScrollArea className="w-full">
+            <CategoryButtons />
+          </ScrollArea>
+        </div>
+      )}
+
+      <div className="flex-1 flex min-h-0">
+        {categoryPosition === "left" && (
+          <div className="w-48 flex-shrink-0 border-r bg-background overflow-y-auto">
+            <div className="flex flex-col gap-2 p-2">
+              <Button
+                variant={selectedCategory === null ? "default" : "outline"}
+                size="lg"
+                onClick={() => handleCategoryClick(null)}
+                className="w-full min-h-[48px] text-sm justify-start"
+                data-testid="button-category-all-left"
+              >
+                Todos ({allProducts.length})
+              </Button>
+              <Button
+                variant={selectedCategory === "best-sellers" ? "default" : "outline"}
+                size="lg"
+                onClick={() => handleCategoryClick("best-sellers")}
+                className="w-full min-h-[48px] text-sm justify-start"
+                data-testid="button-category-best-sellers-left"
+              >
+                Más vendidos
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category.id}
+                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  size="lg"
+                  onClick={() => handleCategoryClick(category.id)}
+                  className="w-full min-h-[48px] text-sm justify-start"
+                  data-testid={`button-category-left-${category.id}`}
+                >
+                  {category.name} ({categoryCounts[category.id] || 0})
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex-1 grid lg:grid-cols-[1fr_380px] min-h-0">
+          <div className="min-h-0 overflow-hidden flex flex-col">
+            {activeView === "products" ? (
+              <CategoryBrowser
+                products={filteredProducts}
+                onSelectProduct={handleSelectProduct}
+                loading={productsLoading}
+                hideCategories={true}
+              />
+            ) : (
+              <div className="h-full p-4">
+                <ElevenLabsVoiceAgent
+                  products={voiceProducts}
+                  onAddToCart={handleVoiceAddToCart}
+                  onPlaceOrder={handleVoicePlaceOrder}
+                  cart={voiceCartItems}
+                  language="es"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Best Sellers */}
-          {bestSellers.length > 0 && (
-            <div className="flex-1 flex items-center gap-2 overflow-x-auto">
-              <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground flex-shrink-0">
-                <TrendingUp className="h-3 w-3" />
-                <span>Más vendidos:</span>
-              </div>
-              <ScrollArea className="w-full">
-                <div className="flex gap-2 pb-1">
-                  {bestSellers.map((product) => (
-                    <Button
-                      key={product.id}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSelectProduct(product)}
-                      className="flex-shrink-0"
-                      data-testid={`button-best-seller-${product.id}`}
-                    >
-                      {product.name}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
-
-          <Button
-            variant={activeView === "voice" ? "default" : "outline"}
-            size="icon"
-            onClick={() => setActiveView(activeView === "voice" ? "products" : "voice")}
-            data-testid="button-toggle-voice"
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 grid lg:grid-cols-[1fr_380px] min-h-0">
-        {/* Left Column - Products */}
-        <div className="min-h-0 overflow-hidden">
-          {activeView === "products" ? (
-            <CategoryBrowser
-              products={filteredProducts}
-              onSelectProduct={handleSelectProduct}
-              loading={productsLoading}
-              hideCategories={true}
+          <div className="h-full hidden lg:block border-l">
+            <Cart
+              cart={cart}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeItem}
+              onUpdateItemDiscount={updateItemDiscount}
+              onUpdateGlobalDiscount={updateGlobalDiscount}
+              onClearCart={clearCart}
+              onCheckout={handleCheckout}
             />
-          ) : (
-            <div className="h-full p-4">
-              <ElevenLabsVoiceAgent
-                products={voiceProducts}
-                onAddToCart={handleVoiceAddToCart}
-                onPlaceOrder={handleVoicePlaceOrder}
-                cart={voiceCartItems}
-                language="es"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Right Column - Cart (desktop) */}
-        <div className="h-full hidden lg:block border-l">
-          <Cart
-            cart={cart}
-            onUpdateQuantity={updateQuantity}
-            onRemoveItem={removeItem}
-            onUpdateItemDiscount={updateItemDiscount}
-            onUpdateGlobalDiscount={updateGlobalDiscount}
-            onClearCart={clearCart}
-            onCheckout={handleCheckout}
-          />
+          </div>
         </div>
       </div>
 
-      {/* Floating Cart Button (mobile) */}
-      <Button
-        onClick={() => setCartSheetOpen(true)}
-        className={cn(
-          "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl z-50 lg:hidden",
-          "bg-primary hover:bg-primary/90 text-primary-foreground",
-          cartBounce && "animate-bounce"
-        )}
-        size="icon"
-      >
-        <ShoppingCart className="h-6 w-6" />
-        {cartItemCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
-            {cartItemCount > 99 ? "99+" : cartItemCount}
-          </span>
-        )}
-      </Button>
+      {categoryPosition === "bottom" && (
+        <div className="flex-shrink-0 border-t bg-background overflow-x-auto">
+          <ScrollArea className="w-full">
+            <CategoryButtons />
+          </ScrollArea>
+        </div>
+      )}
 
-      {/* Cart Sheet (mobile) */}
+      <div className="fixed bottom-6 right-6 flex gap-2 z-50 lg:hidden">
+        <Button
+          onClick={() => setActiveView(activeView === "voice" ? "products" : "voice")}
+          className={cn(
+            "h-14 w-14 rounded-full shadow-2xl",
+            activeView === "voice" ? "bg-primary" : "bg-secondary"
+          )}
+          size="icon"
+        >
+          <Mic className="h-6 w-6" />
+        </Button>
+        <Button
+          onClick={() => setCartSheetOpen(true)}
+          className={cn(
+            "h-14 w-14 rounded-full shadow-2xl",
+            "bg-primary hover:bg-primary/90 text-primary-foreground",
+            cartBounce && "animate-bounce"
+          )}
+          size="icon"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+              {cartItemCount > 99 ? "99+" : cartItemCount}
+            </span>
+          )}
+        </Button>
+      </div>
+
       <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
         <SheetContent side="right" className="w-full sm:w-[400px] p-0 [&>button]:hidden">
           <SheetHeader className="p-3 border-b">
@@ -403,7 +449,6 @@ export default function POSPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Payment Modal */}
       <PaymentModal
         open={paymentModalOpen}
         onOpenChange={setPaymentModalOpen}
@@ -412,7 +457,6 @@ export default function POSPage() {
         customers={customers}
       />
 
-      {/* Variant Selection Modal */}
       <VariantSelectionModal
         open={variantModalOpen}
         onOpenChange={setVariantModalOpen}
@@ -420,7 +464,6 @@ export default function POSPage() {
         onConfirm={handleVariantConfirm}
       />
 
-      {/* Receipt Viewer */}
       {lastSaleId && (
         <ReceiptViewer
           open={receiptViewerOpen}
