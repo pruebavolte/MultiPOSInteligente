@@ -10,6 +10,8 @@ interface SearchResult {
     price: number;
     image_url?: string;
     barcode?: string;
+    category?: string;
+    cost?: number;
   };
   searchedBarcode: string;
 }

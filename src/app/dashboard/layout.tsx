@@ -77,13 +77,14 @@ function SearchBar() {
 
       {/* Found Dialog */}
       <Dialog open={searchResult !== null && searchResult.found} onOpenChange={() => setSearchResult(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Producto Encontrado</DialogTitle>
           </DialogHeader>
           {searchResult?.product && (
-            <div className="flex flex-col items-center gap-4 py-4">
-              <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center overflow-hidden relative">
+            <div className="flex flex-col gap-4 py-4">
+              {/* Product Image */}
+              <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden relative mx-auto">
                 {searchResult.product.image_url ? (
                   <Image
                     src={searchResult.product.image_url}
@@ -92,17 +93,51 @@ function SearchBar() {
                     className="object-cover"
                   />
                 ) : (
-                  <Package className="h-12 w-12 text-muted-foreground" />
+                  <Package className="h-16 w-16 text-muted-foreground" />
                 )}
               </div>
-              <div className="text-center">
-                <h3 className="font-semibold text-lg">{searchResult.product.name}</h3>
-                <p className="text-2xl font-bold text-primary mt-2">
-                  ${searchResult.product.price.toFixed(2)}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Código: {searchResult.product.barcode}
-                </p>
+
+              {/* Product Details */}
+              <div className="space-y-3">
+                {/* Name */}
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Nombre del Producto</p>
+                  <h3 className="font-semibold text-lg">{searchResult.product.name}</h3>
+                </div>
+
+                {/* Barcode */}
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Código de Barras</p>
+                  <p className="font-mono text-sm bg-muted px-2 py-1 rounded">
+                    {searchResult.product.barcode}
+                  </p>
+                </div>
+
+                {/* Category */}
+                {searchResult.product.category && (
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Categoría</p>
+                    <p className="text-sm">{searchResult.product.category}</p>
+                  </div>
+                )}
+
+                {/* Price */}
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-1">Precio de Venta Promedio</p>
+                  <p className="text-2xl font-bold text-primary">
+                    ${searchResult.product.price.toFixed(2)}
+                  </p>
+                </div>
+
+                {/* Cost */}
+                {searchResult.product.cost && (
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Costo</p>
+                    <p className="text-sm text-muted-foreground">
+                      ${searchResult.product.cost.toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

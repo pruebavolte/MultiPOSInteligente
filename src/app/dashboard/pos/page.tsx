@@ -73,7 +73,10 @@ export default function POSPage() {
     );
 
     if (product) {
-      // Product found - add to cart and show success
+      // Get category name
+      const category = categories.find((c) => c.id === product.category_id);
+      
+      // Product found - show modal with details
       addItem(product, 1);
       toast.success(`${product.name} agregado al carrito`);
       setSearchResult({
@@ -84,6 +87,8 @@ export default function POSPage() {
           price: product.price,
           image_url: product.image_url || undefined,
           barcode: product.barcode || product.sku,
+          category: category?.name || "Sin categoría",
+          cost: product.cost,
         },
         searchedBarcode: barcode,
       });
@@ -94,7 +99,7 @@ export default function POSPage() {
         searchedBarcode: barcode,
       });
     }
-  }, [allProducts, addItem, setSearchResult]);
+  }, [allProducts, categories, addItem, setSearchResult]);
 
   // Register the search handler
   useEffect(() => {
