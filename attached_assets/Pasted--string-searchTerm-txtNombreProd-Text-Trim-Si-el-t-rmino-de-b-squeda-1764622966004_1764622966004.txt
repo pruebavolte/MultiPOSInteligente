@@ -1,0 +1,59 @@
+            string searchTerm = txtNombreProd.Text.Trim();
+
+            // Si el término de búsqueda no ha cambiado, mostramos la siguiente imagen
+            if (searchTerm == lastSearchTerm && imageUrls.Count > 0)
+            {
+                ShowNextImage();
+                return;
+            }
+
+            // Si el término de búsqueda ha cambiado, buscamos de nuevo en Google
+            lastSearchTerm = searchTerm;
+
+            // Reemplaza los espacios en blanco con el signo "+" para la búsqueda en Google
+            searchTerm = searchTerm.Replace(" ", "+");
+
+            // URL de búsqueda de Google Images
+            string googleImageUrl = $"https://www.google.com/search?q={searchTerm}&tbm=isch";
+
+            // Limpiar la lista de URLs anteriores
+            imageUrls.Clear();
+            currentImageIndex = 2;
+
+            // Cargar la página de Google Images en el control WebBrowser
+            webBrowser.Navigate(googleImageUrl);
+
+            // Esperar hasta que se cargue el documento completo
+            await WaitForPageLoad();
+
+            try
+            {
+                // Extraer imágenes del documento de la página cargada
+                var imgElements = webBrowser.Document.GetElementsByTagName("img");
+
+                if (imgElements.Count > 1)
+                {
+                  //  label4.Text = "Imágenes cargadas";
+
+                    // Agregar las URLs de las imágenes a la lista
+                    foreach (HtmlElement imgElement in imgElements)
+                    {
+                        string imgUrl = imgElement.GetAttribute("src");
+                        if (!string.IsNullOrEmpty(imgUrl))
+                        {
+                            imageUrls.Add(imgUrl);
+                        }
+                    }
+
+                    // Mostrar la primera imagen
+                    if (imageUrls.Count > 1)
+                    {
+                        pictureBox1.Load(imageUrls[1]);
+                    }
+                }
+                GuardarImagen();
+            }
+            catch (Exception ex)
+            {
+                //label4.Text = "Error al cargar imágenes: " + ex.Message;
+            }

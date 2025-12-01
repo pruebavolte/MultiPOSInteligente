@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Product } from "@/types/database";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Package, Grid3x3, GripVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Package, Grid3x3, GripVertical, Move, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
@@ -37,6 +38,7 @@ interface Category {
 interface CategoryBrowserProps {
   products: Product[];
   onSelectProduct: (product: Product) => void;
+  onEditProduct?: (product: Product) => void;
   loading?: boolean;
   selectedCategory?: string | null;
   onCategoryChange?: (categoryId: string | null) => void;
@@ -122,6 +124,7 @@ function usePinchZoom(
 interface SortableProductCardProps {
   product: Product;
   onSelectProduct: (product: Product) => void;
+  onEditProduct?: (product: Product) => void;
   config: {
     gridCols: string;
     imageHeight: string;
@@ -130,7 +133,7 @@ interface SortableProductCardProps {
   isDragging?: boolean;
 }
 
-function SortableProductCard({ product, onSelectProduct, config, isDragging }: SortableProductCardProps) {
+function SortableProductCard({ product, onSelectProduct, onEditProduct, config, isDragging }: SortableProductCardProps) {
   const {
     attributes,
     listeners,
@@ -155,17 +158,31 @@ function SortableProductCard({ product, onSelectProduct, config, isDragging }: S
       className={cn(
         "bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group relative",
         "border border-gray-100 dark:border-gray-700",
-        product.stock <= product.min_stock && "ring-2 ring-orange-400",
         isSortableDragging && "shadow-xl ring-2 ring-primary"
       )}
     >
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-1 left-1 z-10 p-1 bg-black/30 hover:bg-black/50 rounded cursor-grab active:cursor-grabbing touch-none"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <GripVertical className="h-4 w-4 text-white" />
+      <div className="absolute top-1 left-1 z-10 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex items-center gap-0.5 px-1.5 py-0.5 bg-black/60 hover:bg-black/80 rounded text-[10px] text-white cursor-grab active:cursor-grabbing touch-none"
+          onClick={(e) => e.stopPropagation()}
+          data-testid={`button-move-${product.id}`}
+        >
+          <Move className="h-3 w-3" />
+          <span>Mover</span>
+        </div>
+        <button
+          className="flex items-center gap-0.5 px-1.5 py-0.5 bg-black/60 hover:bg-black/80 rounded text-[10px] text-white"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditProduct?.(product);
+          }}
+          data-testid={`button-edit-${product.id}`}
+        >
+          <Pencil className="h-3 w-3" />
+          <span>Editar</span>
+        </button>
       </div>
 
       <div
@@ -187,12 +204,6 @@ function SortableProductCard({ product, onSelectProduct, config, isDragging }: S
           ) : (
             <div className="flex items-center justify-center w-full h-full text-gray-300">
               <Package className="h-12 w-12" />
-            </div>
-          )}
-
-          {product.stock <= product.min_stock && (
-            <div className="absolute top-1 right-1 bg-orange-500 text-white px-1.5 py-0.5 rounded-full text-[10px] font-medium">
-              Bajo
             </div>
           )}
         </div>
@@ -260,6 +271,7 @@ function ProductCardOverlay({ product, config }: { product: Product; config: Sor
 export function CategoryBrowser({
   products,
   onSelectProduct,
+  onEditProduct,
   loading = false,
   selectedCategory: externalSelectedCategory,
   onCategoryChange,
@@ -480,6 +492,7 @@ export function CategoryBrowser({
                       key={product.id}
                       product={product}
                       onSelectProduct={onSelectProduct}
+                      onEditProduct={onEditProduct}
                       config={config}
                     />
                   ))}

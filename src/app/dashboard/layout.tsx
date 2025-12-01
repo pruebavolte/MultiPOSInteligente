@@ -6,7 +6,7 @@ import { UserSync } from "@/components/auth/user-sync";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, X, Loader2, ChevronDown, ChevronUp, Grid3x3, TrendingUp, PanelLeft, ArrowUp, ArrowDown, Settings2 } from "lucide-react";
+import { Menu, Search, X, Loader2, ChevronDown, ChevronUp, Grid3x3, TrendingUp, PanelLeft, ArrowUp, ArrowDown, Settings2, Camera, Upload, Sparkles, ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SearchProvider, useSearch } from "@/contexts/search-context";
 import {
@@ -34,6 +34,7 @@ import { Package } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase/client";
+import { useImageSearch } from "@/hooks/use-image-search";
 
 interface Category {
   id: string;
@@ -69,10 +70,27 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
   const [productMinStock, setProductMinStock] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [productCategory, setProductCategory] = useState<string>("");
+  const [productImageUrl, setProductImageUrl] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const nameInputRef = useRef<HTMLInputElement>(null);
   const priceInputRef = useRef<HTMLInputElement>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
+
+  const { 
+    images: searchedImages, 
+    loading: searchingImages, 
+    searchImages, 
+    currentImageIndex, 
+    nextImage, 
+    previousImage,
+    clearImages 
+  } = useImageSearch();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -89,7 +107,11 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
       setProductStock("");
       setProductMinStock("");
       setProductCategory("");
+      setProductImageUrl("");
+      setImageFile(null);
+      clearImages();
       setShowAdvanced(false);
+      setIsCameraOpen(false);
       
       setTimeout(() => {
         if (searchType === "barcode") {
@@ -99,10 +121,150 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
         }
       }, 100);
     }
-  }, [showAddProductModal, searchType]);
+  }, [showAddProductModal, searchType, clearImages]);
 
   const generateBarcode = () => {
     return `${Date.now()}${Math.floor(Math.random() * 1000)}`.slice(-13);
+  };
+
+  const handleSearchImages = async () => {
+    if (!newProductName.trim()) {
+      toast.error("Ingresa un nombre de producto para buscar imágenes");
+      return;
+    }
+    await searchImages(newProductName);
+    if (searchedImages.length > 0) {
+      setProductImageUrl(searchedImages[0].url);
+    }
+  };
+
+  useEffect(() => {
+    if (searchedImages.length > 0 && !productImageUrl) {
+      setProductImageUrl(searchedImages[0].url);
+    }
+  }, [searchedImages, productImageUrl]);
+
+  const handleNextSearchImage = () => {
+    const next = nextImage();
+    if (next) {
+      setProductImageUrl(next.url);
+      setImageFile(null);
+    }
+  };
+
+  const handlePrevSearchImage = () => {
+    const prev = previousImage();
+    if (prev) {
+      setProductImageUrl(prev.url);
+      setImageFile(null);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error("Solo se permiten archivos de imagen");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("El archivo es demasiado grande (máximo 5MB)");
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProductImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setIsCameraOpen(true);
+    } catch (error) {
+      toast.error("No se pudo acceder a la cámara");
+      console.error("Camera error:", error);
+    }
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0);
+        const imageUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setProductImageUrl(imageUrl);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+            setImageFile(file);
+          }
+        }, 'image/jpeg', 0.8);
+      }
+      stopCamera();
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsCameraOpen(false);
+  };
+
+  const generateAIImage = async () => {
+    if (!newProductName.trim()) {
+      toast.error("Ingresa un nombre de producto para generar imagen");
+      return;
+    }
+    setIsGeneratingAI(true);
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName: newProductName }),
+      });
+      const data = await response.json();
+      if (data.success && data.imageUrl) {
+        setProductImageUrl(data.imageUrl);
+        setImageFile(null);
+        toast.success("Imagen generada exitosamente");
+      } else if (data.fallback && data.imageUrl) {
+        setProductImageUrl(data.imageUrl);
+        setImageFile(null);
+        toast.info("Se usó una imagen de referencia");
+      } else {
+        toast.error(data.error || "Error al generar imagen");
+      }
+    } catch (error) {
+      toast.error("Error al generar imagen con IA");
+      console.error("AI Image error:", error);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const removeImage = () => {
+    setProductImageUrl("");
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSaveProduct = async () => {
@@ -118,6 +280,27 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
     setIsSaving(true);
     try {
       const finalBarcode = newProductBarcode.trim() || generateBarcode();
+      
+      let finalImageUrl = productImageUrl;
+      
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', imageFile);
+        formData.append('path', `products/${finalBarcode}_${Date.now()}`);
+        
+        const uploadResponse = await fetch('/api/upload-image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          if (uploadData.url) {
+            finalImageUrl = uploadData.url;
+          }
+        }
+      }
+      
       const productData = {
         name: newProductName.trim() || `Producto ${finalBarcode}`,
         barcode: finalBarcode,
@@ -127,6 +310,7 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
         stock: productStock ? parseInt(productStock) : 0,
         min_stock: productMinStock ? parseInt(productMinStock) : 0,
         category_id: productCategory || null,
+        image_url: finalImageUrl || null,
         active: true,
         available_in_digital_menu: false,
         available_in_pos: true,
@@ -149,6 +333,8 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
       setNewProductBarcode("");
       setProductPrice("");
       setProductCost("");
+      setProductImageUrl("");
+      setImageFile(null);
       setSearchType(null);
       window.location.reload();
     } catch (error) {
@@ -380,6 +566,166 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
 
             {showAdvanced && (
               <div className="space-y-4 p-3 bg-muted/50 rounded-lg">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium mb-2 flex items-center gap-1">
+                    <ImageIcon className="h-3 w-3" />
+                    Imagen del Producto
+                  </p>
+                  
+                  {isCameraOpen ? (
+                    <div className="space-y-2">
+                      <div className="relative w-full h-48 bg-black rounded-lg overflow-hidden">
+                        <video 
+                          ref={videoRef} 
+                          autoPlay 
+                          playsInline 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          type="button" 
+                          size="sm" 
+                          onClick={capturePhoto}
+                          className="flex-1"
+                          data-testid="button-capture-photo"
+                        >
+                          <Camera className="h-4 w-4 mr-1" />
+                          Capturar
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={stopCamera}
+                          data-testid="button-cancel-camera"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                      <canvas ref={canvasRef} className="hidden" />
+                    </div>
+                  ) : productImageUrl ? (
+                    <div className="space-y-2">
+                      <div className="relative w-full h-32 bg-muted rounded-lg overflow-hidden">
+                        <Image
+                          src={productImageUrl}
+                          alt="Vista previa"
+                          fill
+                          className="object-contain"
+                          unoptimized={productImageUrl.startsWith('data:')}
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={removeImage}
+                          data-testid="button-remove-image"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      {searchedImages.length > 1 && (
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={handlePrevSearchImage}
+                            data-testid="button-prev-image"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <span className="text-xs text-muted-foreground">
+                            {currentImageIndex + 1} / {searchedImages.length}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={handleNextSearchImage}
+                            data-testid="button-next-image"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full h-24 border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
+                      <p className="text-xs text-muted-foreground">Sin imagen</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSearchImages}
+                      disabled={searchingImages || !newProductName.trim()}
+                      className="text-xs"
+                      data-testid="button-search-images"
+                    >
+                      {searchingImages ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Search className="h-3 w-3 mr-1" />
+                      )}
+                      Buscar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={startCamera}
+                      className="text-xs"
+                      data-testid="button-open-camera"
+                    >
+                      <Camera className="h-3 w-3 mr-1" />
+                      Cámara
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs"
+                      data-testid="button-upload-file"
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      Archivo
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAIImage}
+                      disabled={isGeneratingAI || !newProductName.trim()}
+                      className="text-xs"
+                      data-testid="button-generate-ai"
+                    >
+                      {isGeneratingAI ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 mr-1" />
+                      )}
+                      IA
+                    </Button>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    data-testid="input-file-upload"
+                  />
+                </div>
+
                 <div>
                   <p className="text-xs text-muted-foreground font-medium mb-2">Me Cuesta (Costo)</p>
                   <Input 

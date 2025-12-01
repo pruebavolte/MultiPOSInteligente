@@ -10,6 +10,7 @@ import { Cart } from "@/components/pos/cart";
 import { PaymentModal } from "@/components/pos/payment-modal";
 import { VariantSelectionModal } from "@/components/pos/variant-selection-modal";
 import { ReceiptViewer } from "@/components/pos/receipt-viewer";
+import { EditProductModal } from "@/components/pos/edit-product-modal";
 import { Product } from "@/types/database";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,8 @@ export default function POSPage() {
   const [receiptViewerOpen, setReceiptViewerOpen] = useState(false);
   const [lastSaleId, setLastSaleId] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const prevCartCountRef = useRef(0);
 
   const { 
@@ -179,6 +182,15 @@ export default function POSPage() {
     }
     addItem(product, 1);
     toast.success(`${product.name} agregado`);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setProductToEdit(product);
+    setEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    window.location.reload();
   };
 
   const handleVariantConfirm = (
@@ -351,6 +363,7 @@ export default function POSPage() {
               <CategoryBrowser
                 products={filteredProducts}
                 onSelectProduct={handleSelectProduct}
+                onEditProduct={handleEditProduct}
                 loading={productsLoading}
                 hideCategories={true}
               />
@@ -467,6 +480,13 @@ export default function POSPage() {
           saleId={lastSaleId}
         />
       )}
+
+      <EditProductModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        product={productToEdit}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }
