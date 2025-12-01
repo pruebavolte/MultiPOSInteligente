@@ -209,13 +209,13 @@ export default function AdminManagementPage() {
                   <Avatar>
                     <AvatarImage src={user.image || undefined} />
                     <AvatarFallback>
-                      {user.firstName[0]}
-                      {user.lastName[0]}
+                      {(user.firstName || user.email)[0]}
+                      {(user.lastName || user.email)[1] || user.email[1]}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-semibold">
-                      {user.firstName} {user.lastName}
+                      {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
                     </div>
                     <div className="text-sm text-muted-foreground flex items-center gap-4">
                       <span className="flex items-center gap-1">
