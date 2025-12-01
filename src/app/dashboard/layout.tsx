@@ -6,7 +6,7 @@ import { UserSync } from "@/components/auth/user-sync";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Search } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SearchProvider, useSearch } from "@/contexts/search-context";
 import {
@@ -20,7 +20,17 @@ import { Package } from "lucide-react";
 import Image from "next/image";
 
 function SearchBar() {
-  const { searchValue, setSearchValue, triggerSearch, searchResult, setSearchResult } = useSearch();
+  const { 
+    searchValue, 
+    setSearchValue, 
+    triggerSearch, 
+    searchResult, 
+    setSearchResult,
+    showAddProductModal,
+    setShowAddProductModal,
+    newProductName,
+    newProductBarcode,
+  } = useSearch();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -36,7 +46,7 @@ function SearchBar() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Buscar por código de barras..."
+              placeholder="Buscar producto..."
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -50,13 +60,13 @@ function SearchBar() {
         </div>
       </div>
 
-      {/* Not Found Dialog */}
-      <Dialog open={searchResult !== null && !searchResult.found} onOpenChange={() => setSearchResult(null)}>
+      {/* Not Found Dialog - Barcode */}
+      <Dialog open={searchResult !== null && !searchResult.found && searchResult?.type === "barcode"} onOpenChange={() => setSearchResult(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Producto No Encontrado</DialogTitle>
+            <DialogTitle>Código de Barras No Encontrado</DialogTitle>
             <DialogDescription>
-              No se encontró ningún producto con el código de barras: <strong>{searchResult?.searchedBarcode}</strong>
+              No se encontró ningún producto con el código: <strong>{searchResult?.searchedBarcode}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
@@ -65,10 +75,7 @@ function SearchBar() {
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                El código de barras ingresado no está registrado en el sistema.
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Puede agregar este producto desde el módulo de Inventario.
+                El código ingresado no está registrado en el sistema.
               </p>
             </div>
           </div>
@@ -141,6 +148,54 @@ function SearchBar() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Product Modal - Text Search */}
+      <Dialog open={showAddProductModal} onOpenChange={setShowAddProductModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Agregar Nuevo Producto</DialogTitle>
+            <DialogDescription>
+              Nombre: <strong>{newProductName}</strong> | Código: <strong>{newProductBarcode}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <p className="text-xs text-muted-foreground font-medium mb-2">Nombre del Producto</p>
+              <Input value={newProductName} disabled className="bg-muted" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium mb-2">Código de Barras (Auto-generado)</p>
+              <Input value={newProductBarcode} disabled className="bg-muted font-mono" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium mb-2">Precio de Venta</p>
+              <Input 
+                type="number" 
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                autoFocus
+                data-testid="input-product-price"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setShowAddProductModal(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                className="flex-1"
+                data-testid="button-add-product"
+              >
+                Agregar Producto
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

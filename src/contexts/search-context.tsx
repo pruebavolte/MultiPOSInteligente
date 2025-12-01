@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, ReactNode, useRef } f
 
 interface SearchResult {
   found: boolean;
+  type?: "barcode" | "name_search"; // Type of search
   product?: {
     id: string;
     name: string;
@@ -22,8 +23,14 @@ interface SearchContextType {
   searchResult: SearchResult | null;
   setSearchResult: (result: SearchResult | null) => void;
   triggerSearch: () => void;
-  registerSearchHandler: (handler: (barcode: string) => void) => void;
+  registerSearchHandler: (handler: (query: string, isNumberSearch: boolean) => void) => void;
   unregisterSearchHandler: () => void;
+  showAddProductModal: boolean;
+  setShowAddProductModal: (show: boolean) => void;
+  newProductName: string;
+  setNewProductName: (name: string) => void;
+  newProductBarcode: string;
+  setNewProductBarcode: (barcode: string) => void;
 }
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -31,9 +38,12 @@ const SearchContext = createContext<SearchContextType | undefined>(undefined);
 export function SearchProvider({ children }: { children: ReactNode }) {
   const [searchValue, setSearchValue] = useState("");
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-  const searchHandlerRef = useRef<((barcode: string) => void) | null>(null);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductBarcode, setNewProductBarcode] = useState("");
+  const searchHandlerRef = useRef<((query: string, isNumberSearch: boolean) => void) | null>(null);
 
-  const registerSearchHandler = useCallback((handler: (barcode: string) => void) => {
+  const registerSearchHandler = useCallback((handler: (query: string, isNumberSearch: boolean) => void) => {
     searchHandlerRef.current = handler;
   }, []);
 
@@ -43,7 +53,9 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 
   const triggerSearch = useCallback(() => {
     if (searchValue.trim() && searchHandlerRef.current) {
-      searchHandlerRef.current(searchValue.trim());
+      // Check if search is numeric (number search) or text (name search)
+      const isNumberSearch = /^\d+$/.test(searchValue.trim());
+      searchHandlerRef.current(searchValue.trim(), isNumberSearch);
     }
   }, [searchValue]);
 
@@ -57,6 +69,12 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         triggerSearch,
         registerSearchHandler,
         unregisterSearchHandler,
+        showAddProductModal,
+        setShowAddProductModal,
+        newProductName,
+        setNewProductName,
+        newProductBarcode,
+        setNewProductBarcode,
       }}
     >
       {children}

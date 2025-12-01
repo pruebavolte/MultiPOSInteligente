@@ -41,7 +41,17 @@ export default function POSPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const prevCartCountRef = useRef(0);
 
-  const { registerSearchHandler, unregisterSearchHandler, setSearchResult } = useSearch();
+  const { 
+    registerSearchHandler, 
+    unregisterSearchHandler, 
+    setSearchResult,
+    showAddProductModal,
+    setShowAddProductModal,
+    setNewProductName,
+    setNewProductBarcode,
+    searchValue,
+    setSearchValue,
+  } = useSearch();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -66,46 +76,66 @@ export default function POSPage() {
     completeSale,
   } = useCart();
 
-  // Handle barcode search
-  const handleBarcodeSearch = useCallback((barcode: string) => {
-    const product = allProducts.find(
-      (p) => p.barcode === barcode || p.sku === barcode
-    );
+  // Generate next barcode based on product count
+  const getNextBarcode = useCallback(() => {
+    const maxId = allProducts.length > 0 
+      ? Math.max(...allProducts.map(p => {
+          const id = parseInt(p.id, 10);
+          return isNaN(id) ? 0 : id;
+        })) 
+      : 0;
+    return String(maxId + 1);
+  }, [allProducts]);
 
-    if (product) {
-      // Get category name
-      const category = categories.find((c) => c.id === product.category_id);
-      
-      // Product found - show modal with details
-      addItem(product, 1);
-      toast.success(`${product.name} agregado al carrito`);
-      setSearchResult({
-        found: true,
-        product: {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          image_url: product.image_url || undefined,
-          barcode: product.barcode || product.sku,
-          category: category?.name || "Sin categoría",
-          cost: product.cost,
-        },
-        searchedBarcode: barcode,
-      });
+  // Handle search (barcode or name search)
+  const handleSearch = useCallback((query: string, isNumberSearch: boolean) => {
+    if (isNumberSearch) {
+      // Number search: search by barcode
+      const product = allProducts.find(
+        (p) => p.barcode === query || p.sku === query
+      );
+
+      if (product) {
+        const category = categories.find((c) => c.id === product.category_id);
+        addItem(product, 1);
+        toast.success(`${product.name} agregado al carrito`);
+        setSearchResult({
+          found: true,
+          type: "barcode",
+          product: {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image_url: product.image_url || undefined,
+            barcode: product.barcode || product.sku,
+            category: category?.name || "Sin categoría",
+            cost: product.cost,
+          },
+          searchedBarcode: query,
+        });
+      } else {
+        // Barcode not found - show "not found" dialog
+        setSearchResult({
+          found: false,
+          type: "barcode",
+          searchedBarcode: query,
+        });
+      }
     } else {
-      // Product not found - show dialog
-      setSearchResult({
-        found: false,
-        searchedBarcode: barcode,
-      });
+      // Text search: open add product modal with name pre-filled
+      const nextBarcode = getNextBarcode();
+      setNewProductName(query);
+      setNewProductBarcode(nextBarcode);
+      setShowAddProductModal(true);
+      setSearchValue(""); // Clear search bar
     }
-  }, [allProducts, categories, addItem, setSearchResult]);
+  }, [allProducts, categories, addItem, setSearchResult, getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
 
   // Register the search handler
   useEffect(() => {
-    registerSearchHandler(handleBarcodeSearch);
+    registerSearchHandler(handleSearch);
     return () => unregisterSearchHandler();
-  }, [handleBarcodeSearch, registerSearchHandler, unregisterSearchHandler]);
+  }, [handleSearch, registerSearchHandler, unregisterSearchHandler]);
 
   const cartItemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
