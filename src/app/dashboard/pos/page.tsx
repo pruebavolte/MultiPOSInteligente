@@ -402,7 +402,7 @@ export default function POSPage() {
         </div>
       )}
 
-      <div className="fixed bottom-6 right-6 flex gap-2 z-50 lg:hidden">
+      <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
         <Button
           onClick={() => setActiveView(activeView === "voice" ? "products" : "voice")}
           className={cn(
@@ -410,17 +410,19 @@ export default function POSPage() {
             activeView === "voice" ? "bg-primary" : "bg-secondary"
           )}
           size="icon"
+          data-testid="button-toggle-voice"
         >
           <Mic className="h-6 w-6" />
         </Button>
         <Button
           onClick={() => setCartSheetOpen(true)}
           className={cn(
-            "h-14 w-14 rounded-full shadow-2xl",
+            "h-14 w-14 rounded-full shadow-2xl lg:hidden",
             "bg-primary hover:bg-primary/90 text-primary-foreground",
             cartBounce && "animate-bounce"
           )}
           size="icon"
+          data-testid="button-open-cart-mobile"
         >
           <ShoppingCart className="h-6 w-6" />
           {cartItemCount > 0 && (
