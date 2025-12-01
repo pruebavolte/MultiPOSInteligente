@@ -56,9 +56,11 @@ import { cn } from "@/lib/utils";
 import { useLanguage, LANGUAGES } from "@/contexts/language-context";
 import { useCustomerMenuTranslations } from "@/lib/translations/customer-menu";
 import { getProductPriceDisplays } from "@/lib/currency";
-import { Currency } from "@/types/database";
+import { Currency, Product as DatabaseProduct } from "@/types/database";
 import { ElevenLabsVoiceAgent } from "@/components/menu-digital/elevenlabs-voice-agent";
 import { QRModal } from "@/components/menu-digital/qr-modal";
+import { VariantSelectionModal } from "@/components/pos/variant-selection-modal";
+import { getProductWithVariants } from "@/lib/services/supabase";
 
 interface Product {
   id: string;
@@ -68,6 +70,7 @@ interface Product {
   currency: string;
   image_url?: string;
   category_id?: string;
+  has_variants?: boolean;
   categories?: {
     id: string;
     name: string;
@@ -76,6 +79,13 @@ interface Product {
 
 interface CartItem extends Product {
   quantity: number;
+  selectedVariants?: Array<{
+    variant_id: string;
+    variant_name: string;
+    variant_type: string;
+    price_applied: number;
+  }>;
+  unitPriceWithVariants?: number;
 }
 
 type ImageSize = "small" | "medium" | "large";
@@ -110,6 +120,8 @@ export default function MenuPage() {
   const [checkoutStep, setCheckoutStep] = useState<"review" | "payment">("review");
   const [paymentMethod, setPaymentMethod] = useState<string>("cash");
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [selectedProductForVariants, setSelectedProductForVariants] = useState<DatabaseProduct | null>(null);
 
   // Generate menu URL
   const menuUrl = typeof window !== "undefined"
@@ -196,13 +208,25 @@ export default function MenuPage() {
     });
   }, [products, selectedCategory, searchTerm]);
 
-  const addToCart = (product: Product) => {
-    const existingItem = cart.find((item) => item.id === product.id);
+  const addToCart = async (product: Product) => {
+    // Check if product has variants
+    if (product.has_variants) {
+      // Fetch product with variants
+      const response = await getProductWithVariants(product.id);
+      if (response.success && response.data && response.data.variants && response.data.variants.length > 0) {
+        setSelectedProductForVariants(response.data);
+        setVariantModalOpen(true);
+        return;
+      }
+    }
+
+    // No variants, add directly
+    const existingItem = cart.find((item) => item.id === product.id && !item.selectedVariants);
 
     if (existingItem) {
       setCart(
         cart.map((item) =>
-          item.id === product.id
+          item.id === product.id && !item.selectedVariants
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
@@ -210,6 +234,39 @@ export default function MenuPage() {
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+
+    toast.success(`${product.name} ${t.addedToCart}`);
+  };
+
+  // Handler for variant selection confirmation
+  const handleVariantConfirm = (
+    product: DatabaseProduct,
+    selectedVariants: Array<{
+      variant_id: string;
+      variant_name: string;
+      variant_type: string;
+      price_applied: number;
+    }>,
+    quantity: number,
+    totalPrice: number
+  ) => {
+    const unitPriceWithVariants = totalPrice / quantity;
+
+    // Always add as new item for items with variants
+    setCart([...cart, {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      currency: product.currency || "MXN",
+      image_url: product.image_url,
+      category_id: product.category_id,
+      has_variants: product.has_variants,
+      categories: product.category,
+      quantity,
+      selectedVariants,
+      unitPriceWithVariants,
+    }]);
 
     toast.success(`${product.name} ${t.addedToCart}`);
   };
@@ -232,7 +289,10 @@ export default function MenuPage() {
   };
 
   const cartTotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => {
+      const unitPrice = item.unitPriceWithVariants || item.price;
+      return sum + unitPrice * item.quantity;
+    },
     0
   );
 
@@ -1325,6 +1385,14 @@ export default function MenuPage() {
         restaurantName={language === "es" ? "Menú Digital" : "Digital Menu"}
         language={language}
         canEdit={false}
+      />
+
+      {/* Variant Selection Modal */}
+      <VariantSelectionModal
+        open={variantModalOpen}
+        onOpenChange={setVariantModalOpen}
+        product={selectedProductForVariants}
+        onConfirm={handleVariantConfirm}
       />
     </>
   );

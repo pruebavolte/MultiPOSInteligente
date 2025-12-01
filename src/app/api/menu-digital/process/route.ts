@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createProduct, getCategories, createCategory } from "@/lib/services/supabase";
+import { createProduct, getCategories, createCategory, getOrCreateVariantType } from "@/lib/services/supabase";
 import { Product, Category } from "@/types/database";
 import { auth } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/lib/supabase/users";
@@ -223,23 +223,78 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(bytes);
         const base64 = buffer.toString("base64");
 
-        // Create the prompt for menu extraction
-        const prompt = `Analiza esta imagen de un menú de restaurante y extrae TODOS los productos que veas.
+        // Create the prompt for menu extraction with variants detection
+        const prompt = `Analiza esta imagen de un menú de restaurante y extrae TODOS los productos que veas, incluyendo sus VARIANTES (tamaños, porciones, toppings, extras, etc.).
 
 Para cada producto, proporciona la siguiente información en formato JSON:
-- name: nombre del producto (string)
+- name: nombre del producto base (string)
 - description: descripción breve del producto (string, puede ser vacío)
-- price: precio del producto (número, si no está visible usa 0)
+- price: precio base del producto (número, si tiene variantes usa el precio de la variante por defecto)
 - category: categoría del producto como "Entradas", "Platos Principales", "Bebidas", "Postres", etc. (string)
+- variants: array de variantes del producto (opcional, solo si tiene variantes)
 
-IMPORTANTE:
-- Extrae TODOS los productos que veas en la imagen
-- Si hay precios en la imagen, úsalos exactamente como aparecen
-- Si NO hay precio visible, usa 0
-- Devuelve SOLO un array JSON válido, sin texto adicional
-- El formato debe ser exactamente: [{"name": "...", "description": "...", "price": 0, "category": "..."}]
+DETECCIÓN DE VARIANTES:
+Si un producto tiene múltiples opciones de tamaño, porciones, o precios diferentes:
 
-Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adicionales.`;
+EJEMPLO 1 - Tamaños con precios absolutos:
+"Licuado de plátano: 1 litro $100, 1/2 litro $60"
+→ Crear variante tipo "Tamaño" con opciones:
+  - "1 litro" (precio absoluto: 100, default: true)
+  - "1/2 litro" (precio absoluto: 60, default: false)
+
+EJEMPLO 2 - Toppings o extras con costo adicional:
+"Pizza Margarita $150, extras: pepperoni +$20, champiñones +$15"
+→ Crear variante tipo "Extra" con opciones:
+  - "Pepperoni" (modificador: +20)
+  - "Champiñones" (modificador: +15)
+
+EJEMPLO 3 - Toppings sin costo:
+"Smoothie $80, toppings: granola, chía, coco (gratis)"
+→ Crear variante tipo "Topping" con opciones:
+  - "Granola" (modificador: 0)
+  - "Chía" (modificador: 0)
+  - "Coco" (modificador: 0)
+
+FORMATO JSON de variantes:
+{
+  "name": "Licuado de plátano",
+  "description": "Licuado cremoso",
+  "price": 100,
+  "category": "Bebidas",
+  "variants": [
+    {
+      "type": "Tamaño",
+      "options": [
+        {"name": "1 litro", "price": 100, "is_absolute": true, "is_default": true},
+        {"name": "1/2 litro", "price": 60, "is_absolute": true, "is_default": false}
+      ]
+    },
+    {
+      "type": "Topping",
+      "options": [
+        {"name": "Granola", "price": 0, "is_absolute": false, "is_default": false},
+        {"name": "Nuez", "price": 10, "is_absolute": false, "is_default": false}
+      ]
+    }
+  ]
+}
+
+TIPOS DE VARIANTES COMUNES:
+- "Tamaño" o "Porción": cuando hay diferentes tamaños (chico/mediano/grande, 1L/500ml, etc.)
+- "Topping": ingredientes que se pueden agregar (granola, nuez, fruta, etc.)
+- "Extra": complementos adicionales (queso extra, aguacate, etc.)
+- "Preparación": forma de preparación (frito/asado, con/sin picante, etc.)
+
+REGLAS IMPORTANTES:
+1. Si una opción tiene precio ABSOLUTO (precio total del producto), usa is_absolute: true
+2. Si una opción tiene MODIFICADOR (+$X o -$X), usa is_absolute: false
+3. La primera opción de cada tipo de variante debe ser is_default: true
+4. Si NO hay variantes, omite el campo "variants" (no incluyas array vacío)
+5. Extrae TODOS los productos que veas en la imagen
+6. Si hay precios en la imagen, úsalos exactamente como aparecen
+7. Si NO hay precio visible, usa 0
+
+Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones adicionales.`;
 
         // Call OpenRouter API
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -445,6 +500,9 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
           // Update existing product to be available in digital menu
           console.log(`📝 Updating existing product: ${productData.name}`);
 
+          // Check if product has variants
+          const hasVariants = productData.variants && Array.isArray(productData.variants) && productData.variants.length > 0;
+
           const { error } = await supabaseAdmin
             .from("products")
             // @ts-expect-error - Type mismatch with Supabase generated types
@@ -454,6 +512,7 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
               description: productData.description || existingProduct.description,
               category_id: categoryId,
               active: true,
+              has_variants: hasVariants,
             })
             .eq("id", existingProduct.id);
 
@@ -464,6 +523,66 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
           } else {
             productsUpdated++;
             console.log(`✓ Updated product: ${productData.name}`);
+
+            // Create variants if they exist and product doesn't have them yet
+            if (hasVariants && existingProduct.id) {
+              // First, check if variants already exist
+              const { data: existingVariants } = await supabaseAdmin
+                .from("product_variants")
+                .select("id")
+                .eq("product_id", existingProduct.id);
+
+              if (!existingVariants || existingVariants.length === 0) {
+                console.log(`🔧 Adding ${productData.variants.length} variant type(s) to existing product "${productData.name}"`);
+
+                for (const variantGroup of productData.variants) {
+                  try {
+                    // Get or create variant type
+                    const variantTypeResult = await getOrCreateVariantType(
+                      variantGroup.type,
+                      userData.id
+                    );
+
+                    if (!variantTypeResult.success || !variantTypeResult.data) {
+                      console.error(`Error creating variant type "${variantGroup.type}":`, variantTypeResult.error);
+                      continue;
+                    }
+
+                    const variantTypeId = variantTypeResult.data.id;
+
+                    // Create each variant option
+                    if (variantGroup.options && Array.isArray(variantGroup.options)) {
+                      for (let i = 0; i < variantGroup.options.length; i++) {
+                        const option = variantGroup.options[i];
+
+                        const { error: variantError } = await supabaseAdmin
+                          .from("product_variants")
+                          .insert([{
+                            product_id: existingProduct.id,
+                            variant_type_id: variantTypeId,
+                            name: option.name,
+                            price_modifier: parseFloat(option.price) || 0,
+                            is_absolute_price: option.is_absolute || false,
+                            is_default: option.is_default || false,
+                            active: true,
+                            sort_order: i,
+                          }]);
+
+                        if (variantError) {
+                          console.error(`    ✗ Error creating variant "${option.name}":`, variantError.message);
+                        } else {
+                          console.log(`    ✓ Added variant: ${option.name}`);
+                        }
+                      }
+                    }
+                  } catch (variantError) {
+                    console.error(`Error processing variant group "${variantGroup.type}":`, variantError);
+                  }
+                }
+              } else {
+                console.log(`  ℹ Product already has ${existingVariants.length} variant(s), skipping`);
+              }
+            }
           }
         } else {
           // Create new product
@@ -492,6 +611,9 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
           // Generate a simple SKU
           const sku = `MENU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+          // Check if product has variants
+          const hasVariants = productData.variants && Array.isArray(productData.variants) && productData.variants.length > 0;
+
           // Create product object with unified multi-channel system
           const newProduct = {
             sku,
@@ -513,6 +635,7 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
             available_in_pos: false, // Not available in POS by default
             available_in_digital_menu: true, // Available in digital menu
             track_inventory: false, // Don't track inventory for scanned menu items
+            has_variants: hasVariants, // Flag to indicate if product has variants
           };
 
           // Save to database using supabaseAdmin directly
@@ -529,7 +652,59 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
             errors.push(errorMsg);
           } else {
             productsAdded++;
-            console.log(`✓ Created product: ${productData.name} (ID: ${(createdProduct as any)?.id || 'unknown'})${imageUrl ? " (with image)" : ""}`);
+            const productId = (createdProduct as any)?.id;
+            console.log(`✓ Created product: ${productData.name} (ID: ${productId || 'unknown'})${imageUrl ? " (with image)" : ""}`);
+
+            // Create variants if they exist
+            if (hasVariants && productId) {
+              console.log(`🔧 Creating ${productData.variants.length} variant type(s) for "${productData.name}"`);
+
+              for (const variantGroup of productData.variants) {
+                try {
+                  // Get or create variant type
+                  const variantTypeResult = await getOrCreateVariantType(
+                    variantGroup.type,
+                    userData.id
+                  );
+
+                  if (!variantTypeResult.success || !variantTypeResult.data) {
+                    console.error(`Error creating variant type "${variantGroup.type}":`, variantTypeResult.error);
+                    continue;
+                  }
+
+                  const variantTypeId = variantTypeResult.data.id;
+                  console.log(`  ✓ Variant type "${variantGroup.type}" ready (ID: ${variantTypeId})`);
+
+                  // Create each variant option
+                  if (variantGroup.options && Array.isArray(variantGroup.options)) {
+                    for (let i = 0; i < variantGroup.options.length; i++) {
+                      const option = variantGroup.options[i];
+
+                      const { error: variantError } = await supabaseAdmin
+                        .from("product_variants")
+                        .insert([{
+                          product_id: productId,
+                          variant_type_id: variantTypeId,
+                          name: option.name,
+                          price_modifier: parseFloat(option.price) || 0,
+                          is_absolute_price: option.is_absolute || false,
+                          is_default: option.is_default || false,
+                          active: true,
+                          sort_order: i,
+                        }]);
+
+                      if (variantError) {
+                        console.error(`    ✗ Error creating variant "${option.name}":`, variantError.message);
+                      } else {
+                        console.log(`    ✓ Created variant: ${option.name} (${option.is_absolute ? `$${option.price}` : `${option.price >= 0 ? '+' : ''}$${option.price}`})`);
+                      }
+                    }
+                  }
+                } catch (variantError) {
+                  console.error(`Error processing variant group "${variantGroup.type}":`, variantError);
+                }
+              }
+            }
           }
         }
       } catch (error) {

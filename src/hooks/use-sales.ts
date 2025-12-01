@@ -224,6 +224,7 @@ export function useCart() {
             unit_price: unitPrice,
             discount: item.discount,
             subtotal: unitPrice * item.quantity * (1 - item.discount / 100),
+            selectedVariants: item.selectedVariants, // Include variants
           };
         });
 

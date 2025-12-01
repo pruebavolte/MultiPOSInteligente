@@ -531,15 +531,51 @@ export async function createSaleWithItems(
 
     // Create sale items
     const saleItems = items.map((item) => ({
-      ...item,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      discount: item.discount,
+      subtotal: item.subtotal,
       sale_id: saleData.id,
     }));
 
-    const { error: itemsError } = await supabase
+    const { data: insertedSaleItems, error: itemsError } = await supabase
       .from("sale_items")
-      .insert(saleItems);
+      .insert(saleItems)
+      .select();
 
     if (itemsError) throw itemsError;
+
+    // Create sale item variants (if any items have variants)
+    if (insertedSaleItems && insertedSaleItems.length > 0) {
+      const variantsToInsert: any[] = [];
+
+      items.forEach((item: any, index) => {
+        if (item.selectedVariants && item.selectedVariants.length > 0) {
+          const saleItemId = insertedSaleItems[index]?.id;
+          if (saleItemId) {
+            item.selectedVariants.forEach((variant: any) => {
+              variantsToInsert.push({
+                sale_item_id: saleItemId,
+                variant_id: variant.variant_id,
+                price_applied: variant.price_applied,
+              });
+            });
+          }
+        }
+      });
+
+      if (variantsToInsert.length > 0) {
+        const { error: variantsError } = await supabase
+          .from("sale_item_variants")
+          .insert(variantsToInsert);
+
+        if (variantsError) {
+          console.error("Error inserting sale item variants:", variantsError);
+          // Don't throw - variants are optional, sale should still complete
+        }
+      }
+    }
 
     // Update product stock
     for (const item of items) {
