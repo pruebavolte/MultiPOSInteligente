@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode, useRef } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from "react";
 
 interface SearchResult {
   found: boolean;
@@ -53,6 +53,13 @@ export function SearchProvider({ children }: { children: ReactNode }) {
   const [categoryPosition, setCategoryPositionState] = useState<CategoryPosition>("hidden");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const searchHandlerRef = useRef<((query: string, isNumberSearch: boolean) => void) | null>(null);
+
+  useEffect(() => {
+    const savedPosition = localStorage.getItem("categoryPosition") as CategoryPosition | null;
+    if (savedPosition && ["hidden", "left", "top", "bottom"].includes(savedPosition)) {
+      setCategoryPositionState(savedPosition);
+    }
+  }, []);
 
   const setCategoryPosition = useCallback((position: CategoryPosition) => {
     setCategoryPositionState(position);

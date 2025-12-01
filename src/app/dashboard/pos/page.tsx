@@ -60,10 +60,6 @@ export default function POSPage() {
       setCategories(data || []);
     };
     fetchCategories();
-
-    const savedPosition = localStorage.getItem("categoryPosition");
-    if (savedPosition) {
-    }
   }, []);
 
   const { products: allProducts, loading: productsLoading } = useProducts();
