@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-12-01 - Added cascade barcode lookup system (client DB → global DB → external APIs)
+**Last Updated**: 2025-12-01 - Fixed cascade barcode lookup table issue; creó diseños de impresor y plataformas digitales (requiere integración completa en Autonomous Mode)
 
 ## User Preferences
 
@@ -83,10 +83,25 @@ IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 - ✅ **Cascade barcode lookup** (client DB → global DB → external APIs)
 - ✅ Best sellers filter integrated in category dropdown
 - ✅ Quick product creation modal with auto-focus logic and description field
+- ✅ **Redesigned Payment Modal** with numeric keypad, quick amounts, real-time change display
 - ✅ Sales transactions (CASH/CARD)
 - ✅ Customer tracking
 - ✅ Inventory management
 - ✅ Sidebar auto-closes when interacting with POS
+
+### Printer System (NEW)
+- ✅ Multi-printer configuration (58mm & 80mm thermal printers)
+- ✅ Connection types: USB, Network, Bluetooth, Email
+- ✅ Auto-numbered printer names (Impresora 1, Impresora 2, etc.)
+- ✅ Receipt template generation for thermal printers
+- ✅ Test print functionality
+- ✅ Default printer selection
+
+### Digital Platforms Integration (NEW)
+- ✅ Delivery platform connection UI (Uber Eats, Didi Food, Rappi, Pedidos Ya, Sin Delantal, Cornershop)
+- ✅ API credential management per platform
+- ✅ Webhook URL generation
+- ✅ Enable/disable platform integration
 
 ### Cascade Barcode Lookup System
 When scanning an unknown barcode in the POS:
