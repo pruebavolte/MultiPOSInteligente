@@ -148,6 +148,86 @@ async function searchUPCItemDB(barcode: string): Promise<{
   }
 }
 
+async function searchEANDB(barcode: string): Promise<{
+  name: string;
+  brand?: string;
+  category?: string;
+  image_url?: string;
+  description?: string;
+} | null> {
+  try {
+    const response = await fetch(
+      `https://ean-db.com/api/v1/product/${barcode}`,
+      {
+        headers: {
+          "Accept": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data.product?.name) {
+      return null;
+    }
+
+    return {
+      name: data.product.name,
+      brand: data.product.brand,
+      category: data.product.category?.name,
+      image_url: data.product.image,
+      description: data.product.description,
+    };
+  } catch (error) {
+    console.error("Error fetching from EAN-DB:", error);
+    return null;
+  }
+}
+
+async function searchUPCDatabase(barcode: string): Promise<{
+  name: string;
+  brand?: string;
+  category?: string;
+  image_url?: string;
+  description?: string;
+} | null> {
+  try {
+    const response = await fetch(
+      `https://api.upcdatabase.org/product/${barcode}`,
+      {
+        headers: {
+          "Accept": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+
+    if (!data.title) {
+      return null;
+    }
+
+    return {
+      name: data.title,
+      brand: data.brand,
+      category: data.category,
+      image_url: data.images?.[0],
+      description: data.description,
+    };
+  } catch (error) {
+    console.error("Error fetching from UPC Database:", error);
+    return null;
+  }
+}
+
 async function saveToGlobalProducts(
   barcode: string,
   productData: {
@@ -240,17 +320,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(result);
     }
 
+    console.log(`[Barcode Lookup] Searching external APIs for: ${cleanBarcode}`);
+    
     let externalProduct = await searchOpenFoodFacts(cleanBarcode);
     let source = "open_food_facts";
+    let sourceName = "Open Food Facts";
     let confidence = 0.8;
 
     if (!externalProduct) {
+      console.log("[Barcode Lookup] Not found in Open Food Facts, trying UPC Item DB...");
       externalProduct = await searchUPCItemDB(cleanBarcode);
       source = "upc_item_db";
+      sourceName = "UPC Item DB";
+      confidence = 0.7;
+    }
+
+    if (!externalProduct) {
+      console.log("[Barcode Lookup] Not found in UPC Item DB, trying EAN-DB...");
+      externalProduct = await searchEANDB(cleanBarcode);
+      source = "ean_db";
+      sourceName = "EAN Database";
+      confidence = 0.75;
+    }
+
+    if (!externalProduct) {
+      console.log("[Barcode Lookup] Not found in EAN-DB, trying UPC Database...");
+      externalProduct = await searchUPCDatabase(cleanBarcode);
+      source = "upc_database";
+      sourceName = "UPC Database";
       confidence = 0.7;
     }
 
     if (externalProduct) {
+      console.log(`[Barcode Lookup] Found in ${sourceName}:`, externalProduct.name);
+      
       const savedProduct = await saveToGlobalProducts(
         cleanBarcode,
         externalProduct,
@@ -271,10 +374,12 @@ export async function POST(request: NextRequest) {
           image_url: externalProduct.image_url,
           confidence,
         },
-        message: `Producto encontrado en ${source === "open_food_facts" ? "Open Food Facts" : "UPC Database"}. Guardado para futuras búsquedas.`,
+        message: `Producto encontrado en ${sourceName}. Guardado para futuras búsquedas.`,
       };
       return NextResponse.json(result);
     }
+    
+    console.log("[Barcode Lookup] Product not found in any external API");
 
     const result: BarcodeLookupResult = {
       source: "not_found",
