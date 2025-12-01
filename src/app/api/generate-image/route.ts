@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a detailed prompt for food image generation
-    const imagePrompt = prompt || `Create a professional, appetizing photo of ${productName} dish. The image should show restaurant quality presentation, well-plated food, natural lighting, high resolution, professional food photography style. Make it look delicious and appealing.`;
+    // Create a detailed prompt for product image generation
+    const imagePrompt = prompt || `Create a professional, high-quality photo of ${productName}. The image should show restaurant/cafe quality presentation, natural lighting, high resolution, professional photography style. Make it look appealing and appetizing.`;
 
     console.log(`🎨 Generating image with prompt: "${imagePrompt}"`);
 

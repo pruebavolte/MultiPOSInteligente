@@ -64,10 +64,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ images: fallbackImages });
     }
 
-    // Search for food/dish images on Pexels
-    const searchQuery = `${query} food dish plate restaurant`;
+    // Search for images on Pexels using the product name directly
     const response = await fetch(
-      `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&per_page=10&orientation=landscape`,
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=10&orientation=landscape`,
       {
         headers: {
           Authorization: PEXELS_API_KEY,

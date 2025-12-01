@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Product } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ interface EditProductModalProps {
 
 export function EditProductModal({ open, onOpenChange, product, onSuccess }: EditProductModalProps) {
   const [productName, setProductName] = useState("");
+  const [productDescription, setProductDescription] = useState("");
   const [productBarcode, setProductBarcode] = useState("");
   const [productPrice, setProductPrice] = useState("");
   const [productCost, setProductCost] = useState("");
@@ -68,6 +70,7 @@ export function EditProductModal({ open, onOpenChange, product, onSuccess }: Edi
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const { 
     images: searchedImages, 
@@ -90,6 +93,7 @@ export function EditProductModal({ open, onOpenChange, product, onSuccess }: Edi
   useEffect(() => {
     if (open && product) {
       setProductName(product.name || "");
+      setProductDescription(product.description || "");
       setProductBarcode(product.barcode || "");
       setProductPrice(product.price?.toString() || "");
       setProductCost(product.cost?.toString() || "");
@@ -121,6 +125,13 @@ export function EditProductModal({ open, onOpenChange, product, onSuccess }: Edi
       setProductImageUrl(searchedImages[0].url);
     }
   }, [searchedImages, productImageUrl]);
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      descriptionRef.current.style.height = 'auto';
+      descriptionRef.current.style.height = descriptionRef.current.scrollHeight + 'px';
+    }
+  }, [productDescription]);
 
   const handleNextSearchImage = () => {
     const next = nextImage();
@@ -283,6 +294,7 @@ export function EditProductModal({ open, onOpenChange, product, onSuccess }: Edi
       
       const productData = {
         name: productName.trim(),
+        description: productDescription.trim() || null,
         barcode: productBarcode.trim() || product.barcode,
         sku: productBarcode.trim() || product.sku,
         price: parseFloat(productPrice),
@@ -330,6 +342,18 @@ export function EditProductModal({ open, onOpenChange, product, onSuccess }: Edi
               onChange={(e) => setProductName(e.target.value)}
               placeholder="Nombre del producto"
               data-testid="input-edit-product-name"
+            />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium mb-2">Descripción</p>
+            <Textarea 
+              ref={descriptionRef}
+              value={productDescription} 
+              onChange={(e) => setProductDescription(e.target.value)}
+              placeholder="preparado con ..."
+              className="min-h-[60px] resize-none overflow-hidden"
+              rows={3}
+              data-testid="input-edit-product-description"
             />
           </div>
           <div>
