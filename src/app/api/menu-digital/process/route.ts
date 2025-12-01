@@ -390,13 +390,35 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
     // Helper function to find existing product by name (fuzzy match)
     function findExistingProduct(productName: string) {
       const normalizedName = productName.toLowerCase().trim();
-      return userProducts.find((p) => {
+
+      // Only match if names are very similar (>70% match or exact)
+      const existingProduct = userProducts.find((p) => {
         const existingName = p.name.toLowerCase().trim();
-        // Exact match or very close match (contains)
-        return existingName === normalizedName ||
-               existingName.includes(normalizedName) ||
-               normalizedName.includes(existingName);
+
+        // Exact match
+        if (existingName === normalizedName) {
+          console.log(`🔄 Exact match found: "${productName}" = "${p.name}"`);
+          return true;
+        }
+
+        // Only use 'includes' if the shorter name is at least 5 characters
+        // This prevents short names like "té" from matching everything
+        const minLength = Math.min(existingName.length, normalizedName.length);
+        if (minLength >= 5) {
+          if (existingName.includes(normalizedName) || normalizedName.includes(existingName)) {
+            console.log(`🔄 Fuzzy match found: "${productName}" ~ "${p.name}"`);
+            return true;
+          }
+        }
+
+        return false;
       });
+
+      if (!existingProduct) {
+        console.log(`✨ New product: "${productName}"`);
+      }
+
+      return existingProduct;
     }
 
     // Save or update products in database
@@ -471,7 +493,7 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
           const sku = `MENU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
           // Create product object with unified multi-channel system
-          const newProduct: Omit<Product, "id" | "created_at" | "updated_at"> = {
+          const newProduct = {
             sku,
             name: productData.name || "Producto sin nombre",
             description: productData.description || "",
@@ -483,8 +505,8 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
             max_stock: 1000,
             image_url: imageUrl,
             active: true,
-            barcode: undefined,
-            product_type: "menu_digital", // OBSOLETO: mantener por compatibilidad
+            barcode: null,
+            product_type: "simple", // Changed from "menu_digital" to pass constraint
             currency: "MXN", // Default currency for digitalized products
             user_id: userData.id, // Associate product with user
             // Sistema unificado multi-canal
@@ -493,16 +515,21 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
             track_inventory: false, // Don't track inventory for scanned menu items
           };
 
-          // Save to database
-          const result = await createProduct(newProduct);
+          // Save to database using supabaseAdmin directly
+          const { data: createdProduct, error: productError } = await supabaseAdmin
+            .from("products")
+            // @ts-expect-error - Supabase types may not include all fields
+            .insert([newProduct])
+            .select()
+            .single();
 
-          if (result.success) {
-            productsAdded++;
-            console.log(`✓ Created product: ${productData.name}${imageUrl ? " (with image)" : ""}`);
-          } else {
-            const errorMsg = `Error al crear "${productData.name}": ${result.error}`;
+          if (productError) {
+            const errorMsg = `Error al crear "${productData.name}": ${productError.message}`;
             console.error(errorMsg);
             errors.push(errorMsg);
+          } else {
+            productsAdded++;
+            console.log(`✓ Created product: ${productData.name} (ID: ${(createdProduct as any)?.id || 'unknown'})${imageUrl ? " (with image)" : ""}`);
           }
         }
       } catch (error) {

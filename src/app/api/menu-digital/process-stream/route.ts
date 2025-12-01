@@ -31,17 +31,38 @@ async function generateProductImage(
   description?: string,
   controller?: ReadableStreamDefaultController
 ): Promise<string | null> {
+  console.log(`\n=== IMAGE GENERATION DEBUG ===`);
+  console.log(`Product: "${productName}"`);
+  console.log(`OPENROUTER_API_KEY exists: ${!!OPENROUTER_API_KEY}`);
+  console.log(`IMAGE_GENERATION_MODEL: ${IMAGE_GENERATION_MODEL}`);
+
   if (!OPENROUTER_API_KEY) {
-    console.log(`No OpenRouter API key configured, skipping image generation for "${productName}"`);
+    console.error(`❌ No OpenRouter API key configured, skipping image generation for "${productName}"`);
     return null;
   }
 
   try {
-    console.log(`🎨 Generating image for: ${productName}`);
+    console.log(`🎨 Starting image generation for: ${productName}`);
 
     const prompt = description
       ? `Create a professional, appetizing photo of ${productName}, ${description}. The image should show restaurant quality presentation, well-plated food, natural lighting, high resolution, professional food photography style. Make it look delicious and appealing.`
       : `Create a professional, appetizing photo of ${productName} dish. The image should show restaurant quality presentation, well-plated food, natural lighting, high resolution, professional food photography style. Make it look delicious and appealing.`;
+
+    console.log(`📝 Prompt length: ${prompt.length} characters`);
+
+    // Use chat completions with Gemini image generation model
+    const requestBody = {
+      model: IMAGE_GENERATION_MODEL,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    };
+
+    console.log(`📤 Sending request to OpenRouter...`);
+    console.log(`Request body:`, JSON.stringify(requestBody, null, 2));
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -51,63 +72,95 @@ async function generateProductImage(
         "X-Title": "MultiPOS - Menu Digital",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: IMAGE_GENERATION_MODEL,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
+      body: JSON.stringify(requestBody),
     });
 
+    console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+
     if (!response.ok) {
-      console.error(`OpenRouter image generation error for "${productName}":`, response.status);
+      const errorText = await response.text();
+      console.error(`❌ OpenRouter image generation error for "${productName}":`, {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText.substring(0, 500)
+      });
       return null;
     }
 
     const data = await response.json();
+    console.log(`📊 Response data structure:`, JSON.stringify(data, null, 2).substring(0, 1000));
 
-    if (data.choices && data.choices.length > 0) {
-      const message = data.choices[0].message;
+    // Handle OpenAI-style images API response
+    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+      const imageData = data.data[0];
+      console.log(`Image response format: ${imageData.url ? 'URL' : imageData.b64_json ? 'base64' : 'unknown'}`);
 
-      if (message.images && message.images.length > 0) {
-        const imageData = message.images[0];
-
-        console.log(`Image data type: ${typeof imageData}`);
-
-        let imageDataUrl: string;
-        if (typeof imageData === 'string') {
-          imageDataUrl = imageData;
-        } else if (imageData && typeof imageData === 'object') {
-          // Handle Gemini's response format: {type: "image_url", image_url: {url: "..."}}
-          if ('image_url' in imageData && imageData.image_url && typeof imageData.image_url === 'object' && 'url' in imageData.image_url) {
-            imageDataUrl = imageData.image_url.url as string;
-          } else if ('url' in imageData) {
-            imageDataUrl = imageData.url as string;
-          } else if ('data' in imageData) {
-            imageDataUrl = imageData.data as string;
-          } else {
-            console.error(`Unexpected image format for "${productName}":`, JSON.stringify(imageData).substring(0, 200));
-            return null;
-          }
-        } else {
-          console.error(`Unexpected image format for "${productName}":`, JSON.stringify(imageData).substring(0, 200));
-          return null;
-        }
-
-        console.log(`✓ Generated image for "${productName}"`);
+      if (imageData.url) {
+        console.log(`✅ Successfully generated image for "${productName}"`);
+        console.log(`Image URL: ${imageData.url.substring(0, 100)}...`);
+        return imageData.url;
+      } else if (imageData.b64_json) {
+        const imageDataUrl = `data:image/png;base64,${imageData.b64_json}`;
+        console.log(`✅ Successfully generated image for "${productName}" (base64)`);
         return imageDataUrl;
       }
     }
 
-    console.log(`No image generated for "${productName}"`);
+    // Fallback: Try the old chat completions format
+    if (data.choices && data.choices.length > 0) {
+      const message = data.choices[0].message;
+      console.log(`Message has images: ${!!(message.images && message.images.length > 0)}`);
+
+      if (message.images && message.images.length > 0) {
+        const imageData = message.images[0];
+        console.log(`Image data type: ${typeof imageData}`);
+        console.log(`Image data preview:`, JSON.stringify(imageData).substring(0, 200));
+
+        let imageDataUrl: string;
+        if (typeof imageData === 'string') {
+          imageDataUrl = imageData;
+          console.log(`✓ Image is a string (data URL or URL)`);
+        } else if (imageData && typeof imageData === 'object') {
+          // Handle Gemini's response format: {type: "image_url", image_url: {url: "..."}}
+          if ('image_url' in imageData && imageData.image_url && typeof imageData.image_url === 'object' && 'url' in imageData.image_url) {
+            imageDataUrl = imageData.image_url.url as string;
+            console.log(`✓ Extracted from image_url.url`);
+          } else if ('url' in imageData) {
+            imageDataUrl = imageData.url as string;
+            console.log(`✓ Extracted from url`);
+          } else if ('data' in imageData) {
+            imageDataUrl = imageData.data as string;
+            console.log(`✓ Extracted from data`);
+          } else {
+            console.error(`❌ Unexpected image format for "${productName}":`, JSON.stringify(imageData).substring(0, 200));
+            return null;
+          }
+        } else {
+          console.error(`❌ Unexpected image type for "${productName}":`, JSON.stringify(imageData).substring(0, 200));
+          return null;
+        }
+
+        console.log(`✅ Successfully generated image for "${productName}"`);
+        console.log(`Image URL preview: ${imageDataUrl.substring(0, 100)}...`);
+        return imageDataUrl;
+      } else {
+        console.warn(`⚠️ No images in message for "${productName}"`);
+      }
+    } else {
+      console.warn(`⚠️ No data or choices in response for "${productName}"`);
+    }
+
+    console.log(`❌ No image generated for "${productName}"`);
     return null;
   } catch (error) {
-    console.error(`Error generating image for "${productName}":`, error);
+    console.error(`❌ Error generating image for "${productName}":`, error);
+    if (error instanceof Error) {
+      console.error(`Error message: ${error.message}`);
+      console.error(`Error stack:`, error.stack);
+    }
     return null;
+  } finally {
+    console.log(`=== END IMAGE GENERATION DEBUG ===\n`);
   }
 }
 
@@ -387,12 +440,35 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
 
         function findExistingProduct(productName: string) {
           const normalizedName = productName.toLowerCase().trim();
-          return userProducts.find((p) => {
+
+          // Only match if names are very similar (>70% match or exact)
+          const existingProduct = userProducts.find((p) => {
             const existingName = p.name.toLowerCase().trim();
-            return existingName === normalizedName ||
-                   existingName.includes(normalizedName) ||
-                   normalizedName.includes(existingName);
+
+            // Exact match
+            if (existingName === normalizedName) {
+              console.log(`🔄 Exact match found: "${productName}" = "${p.name}"`);
+              return true;
+            }
+
+            // Only use 'includes' if the shorter name is at least 5 characters
+            // This prevents short names like "té" from matching everything
+            const minLength = Math.min(existingName.length, normalizedName.length);
+            if (minLength >= 5) {
+              if (existingName.includes(normalizedName) || normalizedName.includes(existingName)) {
+                console.log(`🔄 Fuzzy match found: "${productName}" ~ "${p.name}"`);
+                return true;
+              }
+            }
+
+            return false;
           });
+
+          if (!existingProduct) {
+            console.log(`✨ New product: "${productName}"`);
+          }
+
+          return existingProduct;
         }
 
         // Save products
@@ -473,16 +549,9 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
                 }
               }
 
-              sendEvent(controller, 'product_saved', {
-                productName: productData.name,
-                current: i + 1,
-                total: allProducts.length,
-                type: 'created'
-              });
-
               const sku = `MENU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-              const newProduct: Omit<Product, "id" | "created_at" | "updated_at"> = {
+              const newProduct = {
                 sku,
                 name: productData.name || "Producto sin nombre",
                 description: productData.description || "",
@@ -494,8 +563,8 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
                 max_stock: 1000,
                 image_url: imageUrl,
                 active: true,
-                barcode: undefined,
-                product_type: "menu_digital",
+                barcode: null,
+                product_type: "simple", // Changed from "menu_digital" to pass constraint
                 currency: "MXN",
                 user_id: userData.id,
                 available_in_pos: false,
@@ -507,38 +576,100 @@ Responde ÚNICAMENTE con el array JSON, sin markdown, sin explicaciones adiciona
               const productVariants = productData.variants || [];
 
               if (productVariants.length > 0) {
-                // Create product with variants
-                const variantsFormatted = productVariants.map((v: any) => ({
-                  variant_type_name: v.type || "Tamaño",
-                  name: v.name,
-                  price_modifier: parseFloat(v.price_modifier) || 0,
-                  is_absolute_price: v.is_absolute_price || false,
-                  is_default: false,
-                }));
+                // Create product with variants using supabaseAdmin directly
+                try {
+                  // Create product first
+                  const { data: createdProduct, error: productError } = await supabaseAdmin
+                    .from("products")
+                    // @ts-expect-error - Supabase types may not include all fields
+                    .insert([{ ...newProduct, has_variants: true }])
+                    .select()
+                    .single();
 
-                const result = await createProductWithVariants(
-                  newProduct,
-                  variantsFormatted,
-                  userData.id
-                );
+                  if (productError) {
+                    console.error(`Error creating product "${productData.name}":`, productError);
+                    errors.push(`Error al crear "${productData.name}": ${productError.message}`);
+                    continue;
+                  }
 
-                if (result.success) {
+                  console.log(`✓ Created product: ${productData.name} (ID: ${(createdProduct as any)?.id || 'unknown'})`);
+
+                  // Create variants
+                  for (const variant of productVariants) {
+                    // Get or create variant type
+                    const variantTypeResult = await getOrCreateVariantType(
+                      variant.type || "Tamaño",
+                      userData.id
+                    );
+
+                    if (!variantTypeResult.success || !variantTypeResult.data) {
+                      console.error(`Error creating variant type for "${productData.name}":`, variantTypeResult.error);
+                      continue;
+                    }
+
+                    // Create product variant
+                    const { error: variantError } = await supabaseAdmin
+                      .from("product_variants")
+                      // @ts-expect-error - Supabase types may not include all fields
+                      .insert([{
+                        product_id: (createdProduct as any).id,
+                        variant_type_id: variantTypeResult.data.id,
+                        name: variant.name,
+                        price_modifier: parseFloat(variant.price_modifier) || 0,
+                        is_absolute_price: variant.is_absolute_price || false,
+                        is_default: false,
+                        active: true,
+                        sort_order: 0,
+                      }]);
+
+                    if (variantError) {
+                      console.error(`Error creating variant for "${productData.name}":`, variantError);
+                    }
+                  }
+
                   productsAdded++;
                   sendEvent(controller, 'variants_created', {
                     productName: productData.name,
                     variantCount: productVariants.length
                   });
-                } else {
-                  errors.push(`Error al crear "${productData.name}" con variantes: ${result.error}`);
+                  sendEvent(controller, 'product_saved', {
+                    productName: productData.name,
+                    current: i + 1,
+                    total: allProducts.length,
+                    type: 'created'
+                  });
+                } catch (error) {
+                  const errorMsg = `Error al crear "${productData.name}" con variantes: ${error}`;
+                  console.error(errorMsg);
+                  errors.push(errorMsg);
                 }
               } else {
-                // Create product without variants
-                const result = await createProduct(newProduct);
+                // Create product without variants using supabaseAdmin directly
+                try {
+                  const { data: createdProduct, error: productError } = await supabaseAdmin
+                    .from("products")
+                    // @ts-expect-error - Supabase types may not include all fields
+                    .insert([newProduct])
+                    .select()
+                    .single();
 
-                if (result.success) {
-                  productsAdded++;
-                } else {
-                  errors.push(`Error al crear "${productData.name}": ${result.error}`);
+                  if (productError) {
+                    console.error(`Error creating product "${productData.name}":`, productError);
+                    errors.push(`Error al crear "${productData.name}": ${productError.message}`);
+                  } else {
+                    productsAdded++;
+                    console.log(`✓ Created product: ${productData.name} (ID: ${(createdProduct as any)?.id || 'unknown'})`);
+                    sendEvent(controller, 'product_saved', {
+                      productName: productData.name,
+                      current: i + 1,
+                      total: allProducts.length,
+                      type: 'created'
+                    });
+                  }
+                } catch (error) {
+                  const errorMsg = `Error al crear "${productData.name}": ${error}`;
+                  console.error(errorMsg);
+                  errors.push(errorMsg);
                 }
               }
             }
