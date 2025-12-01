@@ -169,3 +169,41 @@ export interface CartItemVariant {
 export interface SaleItemWithVariants extends SaleItem {
   selected_variants?: SaleItemVariant[];
 }
+
+// Global Products (shared barcode database)
+export interface GlobalProduct {
+  id: string;
+  barcode: string;
+  name: string;
+  average_price: number;
+  currency: string;
+  category?: string;
+  brand?: string;
+  description?: string;
+  image_url?: string;
+  source: string; // "open_food_facts" | "upc_database" | "ai_lookup" | "manual"
+  source_confidence: number; // 0.0 - 1.0
+  lookup_count: number;
+  last_verified_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Barcode Lookup Response
+export type BarcodeSourceType = "tenant" | "global" | "external" | "not_found";
+
+export interface BarcodeLookupResult {
+  source: BarcodeSourceType;
+  product?: {
+    barcode: string;
+    name: string;
+    price: number;
+    currency: string;
+    category?: string;
+    brand?: string;
+    description?: string;
+    image_url?: string;
+    confidence?: number;
+  };
+  message?: string;
+}
