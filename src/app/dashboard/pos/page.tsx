@@ -76,25 +76,13 @@ export default function POSPage() {
     completeSale,
   } = useCart();
 
-  // Generate next barcode based on product count
-  const getNextBarcode = useCallback(() => {
-    const maxId = allProducts.length > 0 
-      ? Math.max(...allProducts.map(p => {
-          const id = parseInt(p.id, 10);
-          return isNaN(id) ? 0 : id;
-        })) 
-      : 0;
-    return String(maxId + 1);
-  }, [allProducts]);
-
   // Open add product modal with pre-filled data
-  const openAddProductModal = useCallback((nameOrBarcode: string) => {
-    const nextBarcode = getNextBarcode();
-    setNewProductName(nameOrBarcode);
-    setNewProductBarcode(nextBarcode);
+  const openAddProductModal = useCallback((name: string, barcode: string) => {
+    setNewProductName(name);
+    setNewProductBarcode(barcode);
     setShowAddProductModal(true);
     setSearchValue("");
-  }, [getNextBarcode, setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
+  }, [setNewProductName, setNewProductBarcode, setShowAddProductModal, setSearchValue]);
 
   // Handle search (barcode or name search)
   const handleSearch = useCallback((query: string, isNumberSearch: boolean) => {
@@ -123,12 +111,12 @@ export default function POSPage() {
           searchedBarcode: query,
         });
       } else {
-        // Barcode not found - open add product modal with barcode as name
-        openAddProductModal(query);
+        // Barcode not found - open add product modal with EXACT searched barcode
+        openAddProductModal("", query);
       }
     } else {
-      // Text search: open add product modal with name pre-filled
-      openAddProductModal(query);
+      // Text search: open add product modal with name pre-filled, empty barcode
+      openAddProductModal(query, "");
     }
   }, [allProducts, categories, addItem, setSearchResult, openAddProductModal]);
 

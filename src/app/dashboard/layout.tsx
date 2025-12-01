@@ -6,7 +6,7 @@ import { UserSync } from "@/components/auth/user-sync";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, X } from "lucide-react";
+import { Menu, Search, X, Loader2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { SearchProvider, useSearch } from "@/contexts/search-context";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Package } from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
   const { 
@@ -29,8 +30,71 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
     showAddProductModal,
     setShowAddProductModal,
     newProductName,
+    setNewProductName,
     newProductBarcode,
+    setNewProductBarcode,
   } = useSearch();
+
+  const [productPrice, setProductPrice] = useState("");
+  const [productCost, setProductCost] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (showAddProductModal) {
+      setProductPrice("");
+      setProductCost("");
+    }
+  }, [showAddProductModal]);
+
+  const handleSaveProduct = async () => {
+    if (!newProductName.trim() && !newProductBarcode.trim()) {
+      toast.error("Debe ingresar al menos un nombre o código de barras");
+      return;
+    }
+    if (!productPrice || parseFloat(productPrice) <= 0) {
+      toast.error("Debe ingresar un precio válido");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const productData = {
+        name: newProductName.trim() || `Producto ${newProductBarcode}`,
+        barcode: newProductBarcode.trim() || undefined,
+        sku: newProductBarcode.trim() || `SKU-${Date.now()}`,
+        price: parseFloat(productPrice),
+        cost: productCost ? parseFloat(productCost) : 0,
+        stock: 0,
+        min_stock: 0,
+        active: true,
+        available_in_digital_menu: false,
+        available_in_pos: true,
+      };
+
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Error al guardar producto");
+      }
+
+      toast.success("Producto guardado exitosamente");
+      setShowAddProductModal(false);
+      setNewProductName("");
+      setNewProductBarcode("");
+      setProductPrice("");
+      setProductCost("");
+      window.location.reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error al guardar producto");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -148,22 +212,35 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
           <DialogHeader>
             <DialogTitle>Agregar Nuevo Producto</DialogTitle>
             <DialogDescription>
-              Nombre: <strong>{newProductName}</strong> | Código: <strong>{newProductBarcode}</strong>
+              Complete los datos del nuevo producto
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <p className="text-xs text-muted-foreground font-medium mb-2">Nombre del Producto</p>
-              <Input value={newProductName} disabled className="bg-muted" />
+              <Input 
+                value={newProductName} 
+                onChange={(e) => setNewProductName(e.target.value)}
+                placeholder="Nombre del producto"
+                data-testid="input-product-name"
+              />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground font-medium mb-2">Código de Barras (Auto-generado)</p>
-              <Input value={newProductBarcode} disabled className="bg-muted font-mono" />
+              <p className="text-xs text-muted-foreground font-medium mb-2">Código de Barras</p>
+              <Input 
+                value={newProductBarcode} 
+                onChange={(e) => setNewProductBarcode(e.target.value)}
+                placeholder="Código de barras"
+                className="font-mono"
+                data-testid="input-product-barcode"
+              />
             </div>
             <div>
               <p className="text-xs text-muted-foreground font-medium mb-2">Precio de Venta</p>
               <Input 
                 type="number" 
+                value={productPrice}
+                onChange={(e) => setProductPrice(e.target.value)}
                 placeholder="0.00"
                 step="0.01"
                 min="0"
@@ -171,19 +248,41 @@ function SearchBar({ onCloseSidebar }: { onCloseSidebar?: () => void }) {
                 data-testid="input-product-price"
               />
             </div>
+            <div>
+              <p className="text-xs text-muted-foreground font-medium mb-2">Me Cuesta</p>
+              <Input 
+                type="number" 
+                value={productCost}
+                onChange={(e) => setProductCost(e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                data-testid="input-product-cost"
+              />
+            </div>
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 className="flex-1"
                 onClick={() => setShowAddProductModal(false)}
+                disabled={isSaving}
               >
                 Cancelar
               </Button>
               <Button 
                 className="flex-1"
+                onClick={handleSaveProduct}
+                disabled={isSaving}
                 data-testid="button-add-product"
               >
-                Agregar Producto
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  "Agregar Producto"
+                )}
               </Button>
             </div>
           </div>
