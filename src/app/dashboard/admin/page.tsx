@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, UserCog, Mail, Calendar, Loader2, Search } from "lucide-react";
+import { Shield, UserCog, Mail, Calendar, Loader2, Search, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface User {
@@ -118,206 +118,229 @@ export default function AdminManagementPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+    <div className="w-full h-full overflow-auto">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold flex items-center gap-2" data-testid="text-admin-title">
             <Shield className="h-8 w-8 text-primary" />
             Administración de Usuarios
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground">
             Gestiona los roles y permisos de los usuarios del sistema
           </p>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Administradores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">{adminCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Usuarios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-muted-foreground">{userCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Clientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{customerCount}</div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card data-testid="card-total-users">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Total Usuarios
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{users.length}</div>
+            </CardContent>
+          </Card>
+          <Card data-testid="card-admins">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Administradores
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{adminCount}</div>
+            </CardContent>
+          </Card>
+          <Card data-testid="card-users">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <UserCog className="h-4 w-4" />
+                Usuarios
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-muted-foreground">{userCount}</div>
+            </CardContent>
+          </Card>
+          <Card data-testid="card-customers">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Clientes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{customerCount}</div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Buscar Usuarios</CardTitle>
-          <CardDescription>
-            Busca por nombre o correo electrónico
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar usuarios..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+        {/* Search */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Buscar Usuarios</CardTitle>
+            <CardDescription>
+              Busca por nombre o correo electrónico
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuarios..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-users"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Users List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Usuarios</CardTitle>
-          <CardDescription>
-            {filteredUsers.length} usuario{filteredUsers.length !== 1 && "s"} encontrado
-            {filteredUsers.length !== 1 && "s"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar>
-                    <AvatarImage src={user.image || undefined} />
-                    <AvatarFallback>
-                      {(user.firstName || user.email)[0]}
-                      {(user.lastName || user.email)[1] || user.email[1]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-semibold">
-                      {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
-                    </div>
-                    <div className="text-sm text-muted-foreground flex items-center gap-4">
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {user.email}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(user.createdAt).toLocaleDateString("es-ES")}
-                      </span>
-                    </div>
-                  </div>
+        {/* Users List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Lista de Usuarios</CardTitle>
+            <CardDescription>
+              {filteredUsers.length} usuario{filteredUsers.length !== 1 && "s"} encontrado
+              {filteredUsers.length !== 1 && "s"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {filteredUsers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No se encontraron usuarios
                 </div>
-                <div className="flex items-center gap-3">
-                  <Badge
-                    variant={user.role === "ADMIN" ? "default" : user.role === "CUSTOMER" ? "outline" : "secondary"}
+              ) : (
+                filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover-elevate transition-all"
+                    data-testid={`user-row-${user.id}`}
                   >
-                    {user.role === "ADMIN" ? "Administrador" : user.role === "CUSTOMER" ? "Cliente" : "Usuario"}
-                  </Badge>
-                  <Dialog open={isDialogOpen && selectedUser?.id === user.id} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setSelectedRole(user.role);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <UserCog className="h-4 w-4 mr-2" />
-                        Cambiar Rol
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Cambiar Rol de Usuario</DialogTitle>
-                        <DialogDescription>
-                          Cambiar el rol de {user.firstName} {user.lastName}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label>Usuario</Label>
-                          <Input value={user.email} disabled />
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <Avatar>
+                        <AvatarImage src={user.image || undefined} />
+                        <AvatarFallback>
+                          {(user.firstName || user.email)[0]}
+                          {(user.lastName || user.email)[1] || user.email[1]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold truncate">
+                          {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
                         </div>
-                        <div className="space-y-2">
-                          <Label>Rol Actual</Label>
-                          <Badge
-                            variant={user.role === "ADMIN" ? "default" : user.role === "CUSTOMER" ? "outline" : "secondary"}
-                            className="w-fit"
-                          >
-                            {user.role === "ADMIN" ? "Administrador" : user.role === "CUSTOMER" ? "Cliente" : "Usuario"}
-                          </Badge>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Nuevo Rol</Label>
-                          <Select
-                            value={selectedRole}
-                            onValueChange={(value: "ADMIN" | "USER" | "CUSTOMER") => setSelectedRole(value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="ADMIN">Administrador</SelectItem>
-                              <SelectItem value="USER">Usuario</SelectItem>
-                              <SelectItem value="CUSTOMER">Cliente (Solo Menú)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <div className="text-sm text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
+                          <span className="flex items-center gap-1 truncate">
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{user.email}</span>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3 shrink-0" />
+                            {new Date(user.createdAt).toLocaleDateString("es-ES")}
+                          </span>
                         </div>
                       </div>
-                      <DialogFooter className="gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsDialogOpen(false)}
-                          disabled={updating}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          onClick={() => handleUpdateRole(user.email, selectedRole)}
-                          disabled={updating || selectedRole === user.role}
-                        >
-                          {updating ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Actualizando...
-                            </>
-                          ) : (
-                            "Actualizar Rol"
-                          )}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                    </div>
+                    <div className="flex items-center gap-3 sm:shrink-0">
+                      <Badge
+                        variant={user.role === "ADMIN" ? "default" : user.role === "CUSTOMER" ? "outline" : "secondary"}
+                        data-testid={`badge-role-${user.id}`}
+                      >
+                        {user.role === "ADMIN" ? "Administrador" : user.role === "CUSTOMER" ? "Cliente" : "Usuario"}
+                      </Badge>
+                      <Dialog open={isDialogOpen && selectedUser?.id === user.id} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setSelectedRole(user.role);
+                              setIsDialogOpen(true);
+                            }}
+                            data-testid={`button-change-role-${user.id}`}
+                          >
+                            <UserCog className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Cambiar Rol</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Cambiar Rol de Usuario</DialogTitle>
+                            <DialogDescription>
+                              Cambiar el rol de {user.firstName} {user.lastName}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label>Usuario</Label>
+                              <Input value={user.email} disabled />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Rol Actual</Label>
+                              <Badge
+                                variant={user.role === "ADMIN" ? "default" : user.role === "CUSTOMER" ? "outline" : "secondary"}
+                                className="w-fit"
+                              >
+                                {user.role === "ADMIN" ? "Administrador" : user.role === "CUSTOMER" ? "Cliente" : "Usuario"}
+                              </Badge>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Nuevo Rol</Label>
+                              <Select
+                                value={selectedRole}
+                                onValueChange={(value: "ADMIN" | "USER" | "CUSTOMER") => setSelectedRole(value)}
+                              >
+                                <SelectTrigger data-testid="select-new-role">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ADMIN">Administrador</SelectItem>
+                                  <SelectItem value="USER">Usuario</SelectItem>
+                                  <SelectItem value="CUSTOMER">Cliente (Solo Menú)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <DialogFooter className="gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsDialogOpen(false)}
+                              disabled={updating}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              onClick={() => handleUpdateRole(user.email, selectedRole)}
+                              disabled={updating || selectedRole === user.role}
+                              data-testid="button-update-role"
+                            >
+                              {updating ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Actualizando...
+                                </>
+                              ) : (
+                                "Actualizar Rol"
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
