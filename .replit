@@ -24,6 +24,10 @@ localPort = 35371
 externalPort = 6000
 
 [[ports]]
+localPort = 35419
+externalPort = 8008
+
+[[ports]]
 localPort = 35575
 externalPort = 6800
 
@@ -93,4 +97,5 @@ NEXT_PUBLIC_SUPABASE_URL = "https://ycwdsecikgpojdpzffpf.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inljd2RzZWNpa2dwb2pkcHpmZnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0Njg4OTUsImV4cCI6MjA3ODA0NDg5NX0.vb24zAqdzKKNEdtWND1emnl-RxCNrc-_RxnyCft23Zw"
 OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet"
 IMAGE_GENERATION_MODEL = "google/gemini-2.5-flash-image-preview"
-MERCADOPAGO_REDIRECT_URI = "https://af7ad8c5-eddf-4888-8e69-3274eb62b09e-00-35c0aw0acrtx5.picard.replit.dev/api/oauth/mercadopago/callback"
+MERCADOPAGO_REDIRECT_URI = "https://www.systeminternational.app/api/oauth/mercadopago/callback"
+NEXT_PUBLIC_APP_URL = "https://www.systeminternational.app"
