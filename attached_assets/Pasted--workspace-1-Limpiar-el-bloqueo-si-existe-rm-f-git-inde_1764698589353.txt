@@ -1,0 +1,378 @@
+~/workspace$ # 1. Limpiar el bloqueo si existe
+rm -f .git/index.lock
+
+# 2. Ver qué archivos cambiaron
+git status
+
+# 3. Agregar todos los archivos EXCEPTO .md (como pediste)
+git add --all
+git reset HEAD *.md
+git reset HEAD design_guidelines.md
+
+# 4. Verificar qué se va a subir
+git status
+
+# 5. Hacer commit
+git commit -m "feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual"
+
+# 6. Subir al repositorio
+git push
+On branch main
+Your branch is ahead of 'origin/main' by 21 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+    modified:   .replit
+
+no changes added to commit (use "git add" and/or "git commit -a")
+On branch main
+Your branch is ahead of 'origin/main' by 21 commits.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+    modified:   .replit
+
+[main f5fc503] feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual
+ 1 file changed, 4 deletions(-)
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ git add --all
+git reset HEAD design_guidelines.md
+git commit -m "feat: Nuevos módulos POS"
+git push
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ rm -f .git/index.lock
+~/workspace$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git add --all
+~/workspace$ git reset HEAD *.md
+~/workspace$ git reset HEAD design_guidelines.md
+~/workspace$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git commit -m "feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual"
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git push
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ 
+~/workspace$ git add --all
+git reset HEAD design_guidelines.md
+git commit -m "feat: Nuevos módulos POS"
+git push
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ ^C
+~/workspace$ # Opción 1: Traer cambios del remoto y poner tus commits encima (RECOMENDADO)
+git pull --rebase origin main
+
+# Luego subir
+git push
+remote: Enumerating objects: 61, done.
+remote: Counting objects: 100% (61/61), done.
+remote: Compressing objects: 100% (18/18), done.
+remote: Total 46 (delta 34), reused 39 (delta 27), pack-reused 0 (from 0)
+Unpacking objects: 100% (46/46), 14.24 KiB | 1.58 MiB/s, done.
+From https://github.com/pruebavolte/MultiPOSInteligente
+ * branch            main       -> FETCH_HEAD
+   2804ba4..8cf0d8c  main       -> origin/main
+CONFLICT (modify/delete): replit.md deleted in HEAD and modified in bc76852 (Add integration for physical payment terminals to process card transactions).  Version bc76852 (Add integration for physical payment terminals to process card transactions) of replit.md left in tree.
+error: could not apply bc76852... Add integration for physical payment terminals to process card transactions
+hint: Resolve all conflicts manually, mark them as resolved with
+hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
+hint: You can instead skip this commit: run "git rebase --skip".
+hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+hint: Disable this message with "git config set advice.mergeConflict false"
+Could not apply bc76852... # Add integration for physical payment terminals to process card transactions
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ git rebase --continue
+git push
+replit.md: needs merge
+You must edit all merge conflicts and then
+mark them as resolved using git add
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ git push --force
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ git push --force
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ # 1. Limpiar el bloqueo si existe
+rm -f .git/index.lock
+
+# 2. Ver qué archivos cambiaron
+git status
+
+# 3. Agregar todos los archivos EXCEPTO .md (como pediste)
+git add --all
+git reset HEAD *.md
+git reset HEAD design_guidelines.md
+
+# 4. Verificar qué se va a subir
+git status
+
+# 5. Hacer commit
+git commit -m "feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual"
+
+# 6. Subir al repositorio
+git push
+interactive rebase in progress; onto 8cf0d8c
+Last commands done (7 commands done):
+   pick d24abc0 # Improve payment processing and demo mode functionality
+   pick bc76852 # Add integration for physical payment terminals to process card transactions
+  (see more in file .git/rebase-merge/done)
+Next commands to do (16 remaining commands):
+   pick 2cea035 # Simplify payment terminal connection and device management for users
+   pick 64b5840 # Saved progress at the end of the loop # empty
+  (use "git rebase --edit-todo" to view and edit)
+You are currently rebasing branch 'main' on '8cf0d8c'.
+  (fix conflicts and then run "git rebase --continue")
+  (use "git rebase --skip" to skip this patch)
+  (use "git rebase --abort" to check out the original branch)
+
+Unmerged paths:
+  (use "git restore --staged <file>..." to unstage)
+  (use "git add/rm <file>..." as appropriate to mark resolution)
+    deleted by us:   replit.md
+
+no changes added to commit (use "git add" and/or "git commit -a")
+interactive rebase in progress; onto 8cf0d8c
+Last commands done (7 commands done):
+   pick d24abc0 # Improve payment processing and demo mode functionality
+   pick bc76852 # Add integration for physical payment terminals to process card transactions
+  (see more in file .git/rebase-merge/done)
+Next commands to do (16 remaining commands):
+   pick 2cea035 # Simplify payment terminal connection and device management for users
+   pick 64b5840 # Saved progress at the end of the loop # empty
+  (use "git rebase --edit-todo" to view and edit)
+You are currently rebasing branch 'main' on '8cf0d8c'.
+  (all conflicts fixed: run "git rebase --continue")
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+    replit.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+interactive rebase in progress; onto 8cf0d8c
+Last commands done (7 commands done):
+   pick d24abc0 # Improve payment processing and demo mode functionality
+   pick bc76852 # Add integration for physical payment terminals to process card transactions
+  (see more in file .git/rebase-merge/done)
+Next commands to do (16 remaining commands):
+   pick 2cea035 # Simplify payment terminal connection and device management for users
+   pick 64b5840 # Saved progress at the end of the loop # empty
+  (use "git rebase --edit-todo" to view and edit)
+You are currently rebasing branch 'main' on '8cf0d8c'.
+  (all conflicts fixed: run "git rebase --continue")
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+    replit.md
+
+nothing added to commit but untracked files present (use "git add" to track)
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ git add --all
+git reset HEAD design_guidelines.md
+git commit -m "feat: Nuevos módulos POS"
+git push
+[detached HEAD 45af097] feat: Nuevos módulos POS
+ 1 file changed, 220 insertions(+)
+ create mode 100644 replit.md
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ # Opción 1: Traer cambios del remoto y poner tus commits encima (RECOMENDADO)
+git pull --rebase origin main
+
+# Luego subir
+git push
+From https://github.com/pruebavolte/MultiPOSInteligente
+ * branch            main       -> FETCH_HEAD
+fatal: It seems that there is already a rebase-merge directory, and
+I wonder if you are in the middle of another rebase.  If that is the
+case, please try
+    git rebase (--continue | --abort | --skip)
+If that is not the case, please
+    rm -fr ".git/rebase-merge"
+and run me again.  I am stopping in case you still have something
+valuable there.
+
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ git push --force
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ git add --all
+git reset HEAD design_guidelines.md
+git commit -m "feat: Nuevos módulos POS"
+git push
+interactive rebase in progress; onto 8cf0d8c
+Last commands done (7 commands done):
+   pick d24abc0 # Improve payment processing and demo mode functionality
+   pick bc76852 # Add integration for physical payment terminals to process card transactions
+  (see more in file .git/rebase-merge/done)
+Next commands to do (16 remaining commands):
+   pick 2cea035 # Simplify payment terminal connection and device management for users
+   pick 64b5840 # Saved progress at the end of the loop # empty
+  (use "git rebase --edit-todo" to view and edit)
+You are currently editing a commit while rebasing branch 'main' on '8cf0d8c'.
+  (use "git commit --amend" to amend the current commit)
+  (use "git rebase --continue" once you are satisfied with your changes)
+
+nothing to commit, working tree clean
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
+
+    git push origin HEAD:<name-of-remote-branch>
+
+~/workspace$ # 1. Guardar cambios locales temporalmente
+git stash
+
+# 2. Traer cambios del remoto
+git pull origin main
+
+# 3. Recuperar tus cambios locales
+git stash pop
+
+# 4. Agregar todos los cambios (EXCLUYENDO .md)
+git add --all
+git reset HEAD '*.md' 'replit.md' 2>/dev/null || true
+
+# 5. Hacer commit
+git commit -m "feat: Corte de Caja y Reportes avanzados"
+
+# 6. Subir al remoto
+git push origin main
+Saved working directory and index state WIP on (no branch): 45af097 feat: Nuevos módulos POS
+From https://github.com/pruebavolte/MultiPOSInteligente
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+interactive rebase in progress; onto 8cf0d8c
+Last commands done (7 commands done):
+   pick d24abc0 # Improve payment processing and demo mode functionality
+   pick bc76852 # Add integration for physical payment terminals to process card transactions
+  (see more in file /home/runner/workspace/.git/rebase-merge/done)
+Next commands to do (16 remaining commands):
+   pick 2cea035 # Simplify payment terminal connection and device management for users
+   pick 64b5840 # Saved progress at the end of the loop # empty
+  (use "git rebase --edit-todo" to view and edit)
+You are currently editing a commit while rebasing branch 'main' on '8cf0d8c'.
+  (use "git commit --amend" to amend the current commit)
+  (use "git rebase --continue" once you are satisfied with your changes)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+    modified:   src/components/dashboard/sidebar.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+    attached_assets/imagen_1764696727659.png
+    src/app/api/caja/
+    src/app/api/reportes/
+    src/app/dashboard/corte/
+    src/app/dashboard/reportes/
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Dropped refs/stash@{0} (22af2ceaa5dcb8b96ab6a36de5d7bb5b28e2e7b4)
+[detached HEAD eb0a59e] feat: Corte de Caja y Reportes avanzados
+ 7 files changed, 1096 insertions(+), 1 deletion(-)
+ create mode 100644 attached_assets/imagen_1764696727659.png
+ create mode 100644 src/app/api/caja/movimientos/route.ts
+ create mode 100644 src/app/api/caja/turno/route.ts
+ create mode 100644 src/app/api/reportes/route.ts
+ create mode 100644 src/app/dashboard/corte/page.tsx
+ create mode 100644 src/app/dashboard/reportes/page.tsx
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because a pushed branch tip is behind its remote
+hint: counterpart. If you want to integrate the remote changes, use 'git pull'
+hint: before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ ^C
+~/workspace$ 
