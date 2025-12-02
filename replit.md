@@ -103,14 +103,17 @@ IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 - ✅ **Auto-complete**: Automatically completes sale when terminal payment is approved
 - ✅ **Link terminal prompt**: First-time users see option to connect their terminal
 
-### Payment Terminals (NEW)
+### Payment Terminals (OAuth-based Connection)
 - ✅ Support for **Mercado Pago Point** and **Clip** terminals
+- ✅ **OAuth 2.0 flow** - Single-click connection, no manual tokens required
 - ✅ Configuration page at `/dashboard/settings/terminals`
 - ✅ Step-by-step accordion instructions for easy setup
 - ✅ Terminal discovery and device listing
 - ✅ Test connection functionality
 - ✅ Default terminal selection
 - ✅ Demo mode for testing without real terminals
+- ✅ Secure server-side token storage in `terminal_connections` table
+- ✅ Automatic token refresh (180-day validity)
 - ✅ Automatic payment flow:
   1. User selects "Tarjeta" in payment modal
   2. System sends amount to configured terminal
@@ -120,6 +123,17 @@ IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 - ✅ Real-time status indicators (Processing, Approved, Rejected, Error)
 - ✅ Authorization code display on successful payments
 - ✅ Quick access from Settings page with gradient icon
+
+**OAuth API Endpoints:**
+- `GET /api/oauth/mercadopago/connect` - Initiates OAuth flow
+- `GET /api/oauth/mercadopago/callback` - Handles OAuth response
+- `GET /api/terminals/connection` - Check connection status
+- `GET /api/terminals/devices` - List connected devices
+
+**Required: Register OAuth Redirect URL in Mercado Pago Developer Portal:**
+```
+https://[your-domain]/api/oauth/mercadopago/callback
+```
 
 ### Printer System
 - ✅ Multi-printer configuration (58mm & 80mm thermal printers)
