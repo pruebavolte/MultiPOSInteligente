@@ -62,6 +62,7 @@ import { QRModal } from "@/components/menu-digital/qr-modal";
 import { VariantSelectionModal } from "@/components/pos/variant-selection-modal";
 import { getProductWithVariants } from "@/lib/services/supabase";
 import { CurrencySelector, useSelectedCurrency } from "@/components/menu-digital/currency-selector";
+import { CurrencyPreferenceDialog, useCurrencyPreferenceDialog } from "@/components/menu-digital/currency-preference-dialog";
 import { convertCurrency, getCurrencySymbol, formatPrice } from "@/lib/currency";
 import { CurrencyCode } from "@/contexts/language-context";
 
@@ -102,6 +103,7 @@ export default function MenuPage() {
 
   // Currency selector with persistence
   const { selectedCurrency, setSelectedCurrency } = useSelectedCurrency("MXN");
+  const { showDialog: showCurrencyDialog, setShowDialog: setShowCurrencyDialog } = useCurrencyPreferenceDialog();
 
   // Get local currency based on selected language (fallback)
   const localCurrency = useMemo(() => {
@@ -1377,6 +1379,14 @@ export default function MenuPage() {
         onOpenChange={setVariantModalOpen}
         product={selectedProductForVariants}
         onConfirm={handleVariantConfirm}
+      />
+
+      {/* Currency Preference Dialog */}
+      <CurrencyPreferenceDialog
+        open={showCurrencyDialog}
+        onOpenChange={setShowCurrencyDialog}
+        onCurrencySelect={setSelectedCurrency}
+        language={language}
       />
     </>
   );

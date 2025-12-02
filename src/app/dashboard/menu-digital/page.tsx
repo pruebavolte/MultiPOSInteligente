@@ -31,9 +31,12 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLanguage, LANGUAGES } from "@/contexts/language-context";
 import { useMenuDigitalTranslations } from "@/lib/translations/menu-digital";
-import { getProductPriceDisplays } from "@/lib/currency";
+import { getProductPriceDisplays, convertCurrency, getCurrencySymbol } from "@/lib/currency";
 import { Currency } from "@/types/database";
 import { useRouter } from "next/navigation";
+import { CurrencySelector, useSelectedCurrency } from "@/components/menu-digital/currency-selector";
+import { CurrencyPreferenceDialog, useCurrencyPreferenceDialog } from "@/components/menu-digital/currency-preference-dialog";
+import { CurrencyCode } from "@/contexts/language-context";
 
 type ImageSize = "small" | "medium" | "large";
 
@@ -43,7 +46,11 @@ export default function MenuDigitalPage() {
   const t = useMenuDigitalTranslations(language);
   const { user } = useCurrentUser();
 
-  // Get local currency based on selected language
+  // Currency management with preference dialog
+  const { selectedCurrency, setSelectedCurrency } = useSelectedCurrency("MXN");
+  const { showDialog: showCurrencyDialog, setShowDialog: setShowCurrencyDialog } = useCurrencyPreferenceDialog();
+
+  // Get local currency based on selected language (fallback)
   const currentLanguageData = LANGUAGES.find(l => l.code === language);
   const localCurrency = currentLanguageData?.currency || "MXN";
 
@@ -262,6 +269,11 @@ export default function MenuDigitalPage() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <LanguageSelector />
+            <CurrencySelector
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={setSelectedCurrency}
+              language={language}
+            />
             {!isSelectionMode && (
               <>
 
@@ -488,11 +500,13 @@ export default function MenuDigitalPage() {
                   if (viewMode === "grid") {
                     const isSelected = selectedProducts.has(product.id);
                     const productCurrency = (product.currency || "MXN") as Currency;
-                    const priceDisplays = getProductPriceDisplays(
+                    const convertedPrice = convertCurrency(
                       product.price,
-                      productCurrency,
-                      localCurrency
+                      productCurrency as CurrencyCode,
+                      selectedCurrency
                     );
+                    const currencySymbol = getCurrencySymbol(selectedCurrency);
+                    const decimals = selectedCurrency === "JPY" ? 0 : 2;
 
                     return (
                       <Card
@@ -569,42 +583,29 @@ export default function MenuDigitalPage() {
                         {/* Content Section */}
                         <CardContent className="p-5 space-y-3">
 
-                          {/* Price Section - Redesigned */}
+                          {/* Price Section - Single Currency Display */}
                           <div className="pt-2 border-t space-y-2">
-                            {/* Primary Price - Large and Bold */}
+                            {/* Price in Selected Currency */}
                             <div className="flex items-baseline gap-2">
                               <span className="text-3xl font-black text-primary">
-                                {priceDisplays.primary.symbol}{priceDisplays.primary.amount.toFixed(productCurrency === "JPY" ? 0 : 2)}
+                                {currencySymbol}{convertedPrice.toFixed(decimals)}
                               </span>
                               <span className="text-sm font-semibold text-primary/70">
-                                {priceDisplays.primary.currency}
+                                {selectedCurrency}
                               </span>
                             </div>
 
-                            {/* Secondary and Local Prices - Compact Grid */}
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                              {/* MXN or USD (opposite of primary) */}
-                              <div className="flex flex-col bg-muted/50 rounded-md px-2 py-1.5">
-                                <span className="text-xs text-muted-foreground font-medium">
-                                  {priceDisplays.secondary.currency}
+                            {/* Original Price (if different currency) */}
+                            {productCurrency !== selectedCurrency && (
+                              <div className="flex items-baseline gap-1 text-xs text-muted-foreground">
+                                <span>
+                                  {language === "es" ? "Precio original:" : "Original price:"}
                                 </span>
-                                <span className="text-sm font-bold text-foreground">
-                                  {priceDisplays.secondary.symbol}{priceDisplays.secondary.amount.toFixed(priceDisplays.secondary.currency === "JPY" ? 0 : 2)}
+                                <span className="font-medium">
+                                  {getCurrencySymbol(productCurrency as CurrencyCode)}{product.price.toFixed(productCurrency === "JPY" ? 0 : 2)} {productCurrency}
                                 </span>
                               </div>
-
-                              {/* Local Currency (if different) */}
-                              {priceDisplays.local && (
-                                <div className="flex flex-col bg-accent/50 rounded-md px-2 py-1.5 border-2 border-accent">
-                                  <span className="text-xs text-muted-foreground font-medium">
-                                    {priceDisplays.local.currency}
-                                  </span>
-                                  <span className="text-sm font-bold text-foreground">
-                                    {priceDisplays.local.symbol}{priceDisplays.local.amount.toFixed(priceDisplays.local.currency === "JPY" ? 0 : 2)}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -612,11 +613,13 @@ export default function MenuDigitalPage() {
                   } else {
                     const isSelected = selectedProducts.has(product.id);
                     const productCurrency = (product.currency || "MXN") as Currency;
-                    const priceDisplays = getProductPriceDisplays(
+                    const convertedPrice = convertCurrency(
                       product.price,
-                      productCurrency,
-                      localCurrency
+                      productCurrency as CurrencyCode,
+                      selectedCurrency
                     );
+                    const currencySymbol = getCurrencySymbol(selectedCurrency);
+                    const decimals = selectedCurrency === "JPY" ? 0 : 2;
 
                     return (
                       <div
@@ -674,40 +677,31 @@ export default function MenuDigitalPage() {
 
                         {/* Price Section */}
                         <div className="flex-shrink-0 space-y-2">
-                          {/* Primary Price */}
+                          {/* Price in Selected Currency */}
                           <div className="text-right">
                             <div className="flex items-baseline justify-end gap-1.5">
                               <span className="text-2xl font-black text-primary">
-                                {priceDisplays.primary.symbol}{priceDisplays.primary.amount.toFixed(productCurrency === "JPY" ? 0 : 2)}
+                                {currencySymbol}{convertedPrice.toFixed(decimals)}
                               </span>
                               <span className="text-xs font-semibold text-primary/70">
-                                {priceDisplays.primary.currency}
+                                {selectedCurrency}
                               </span>
                             </div>
                           </div>
 
-                          {/* Secondary and Local */}
-                          <div className="flex gap-2 justify-end">
-                            <div className="bg-muted/50 rounded-md px-2 py-1 min-w-[70px]">
-                              <div className="text-[10px] text-muted-foreground font-medium text-center">
-                                {priceDisplays.secondary.currency}
-                              </div>
-                              <div className="text-xs font-bold text-foreground text-center">
-                                {priceDisplays.secondary.symbol}{priceDisplays.secondary.amount.toFixed(priceDisplays.secondary.currency === "JPY" ? 0 : 2)}
+                          {/* Original Price (if different) */}
+                          {productCurrency !== selectedCurrency && (
+                            <div className="text-right">
+                              <div className="bg-muted/50 rounded-md px-2 py-1">
+                                <div className="text-[10px] text-muted-foreground font-medium">
+                                  {language === "es" ? "Original" : "Original"}
+                                </div>
+                                <div className="text-xs font-bold text-foreground">
+                                  {getCurrencySymbol(productCurrency as CurrencyCode)}{product.price.toFixed(productCurrency === "JPY" ? 0 : 2)} {productCurrency}
+                                </div>
                               </div>
                             </div>
-
-                            {priceDisplays.local && (
-                              <div className="bg-accent/50 rounded-md px-2 py-1 border-2 border-accent min-w-[70px]">
-                                <div className="text-[10px] text-muted-foreground font-medium text-center">
-                                  {priceDisplays.local.currency}
-                                </div>
-                                <div className="text-xs font-bold text-foreground text-center">
-                                  {priceDisplays.local.symbol}{priceDisplays.local.amount.toFixed(priceDisplays.local.currency === "JPY" ? 0 : 2)}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
 
                         {/* Actions Menu */}
@@ -811,6 +805,14 @@ export default function MenuDigitalPage() {
         categories={allCategories}
         onSuccess={handleProductSuccess}
         onCategoryCreated={refreshCategories}
+      />
+
+      {/* Currency Preference Dialog */}
+      <CurrencyPreferenceDialog
+        open={showCurrencyDialog}
+        onOpenChange={setShowCurrencyDialog}
+        onCurrencySelect={setSelectedCurrency}
+        language={language}
       />
 
       {/* Delete Confirmation Dialog */}
