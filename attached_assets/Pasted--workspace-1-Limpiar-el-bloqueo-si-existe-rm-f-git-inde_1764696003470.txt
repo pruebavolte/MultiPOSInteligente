@@ -1,0 +1,115 @@
+~/workspace$ # 1. Limpiar el bloqueo si existe
+rm -f .git/index.lock
+
+# 2. Ver qué archivos cambiaron
+git status
+
+# 3. Agregar todos los archivos EXCEPTO .md (como pediste)
+git add --all
+git reset HEAD *.md
+git reset HEAD design_guidelines.md
+
+# 4. Verificar qué se va a subir
+git status
+
+# 5. Hacer commit
+git commit -m "feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual"
+
+# 6. Subir al repositorio
+git push
+On branch main
+Your branch is ahead of 'origin/main' by 21 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+    modified:   .replit
+
+no changes added to commit (use "git add" and/or "git commit -a")
+On branch main
+Your branch is ahead of 'origin/main' by 21 commits.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+    modified:   .replit
+
+[main f5fc503] feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual
+ 1 file changed, 4 deletions(-)
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ git add --all
+git reset HEAD design_guidelines.md
+git commit -m "feat: Nuevos módulos POS"
+git push
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ rm -f .git/index.lock
+~/workspace$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git add --all
+~/workspace$ git reset HEAD *.md
+~/workspace$ git reset HEAD design_guidelines.md
+~/workspace$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git commit -m "feat: Implementar módulos POS - Corte de Caja, Reportes, Devoluciones, Fila Virtual"
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+~/workspace$ git push
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ 
+~/workspace$ git add --all
+git reset HEAD design_guidelines.md
+git commit -m "feat: Nuevos módulos POS"
+git push
+On branch main
+Your branch is ahead of 'origin/main' by 22 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+To https://github.com/pruebavolte/MultiPOSInteligente
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/pruebavolte/MultiPOSInteligente'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+~/workspace$ ^C
+~/workspace$ 
