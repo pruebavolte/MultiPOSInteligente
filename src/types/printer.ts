@@ -70,3 +70,88 @@ export const DELIVERY_PLATFORMS: Omit<DeliveryPlatform, 'apiKey' | 'storeId' | '
   { id: "pedidos_ya", name: "Pedidos Ya", icon: "pedidosYa", color: "#D72B61" },
   { id: "cornershop", name: "Cornershop", icon: "cornershop", color: "#FF5A5F" },
 ];
+
+// Payment Terminal Types
+export type TerminalProvider = "mercadopago" | "clip";
+export type TerminalStatus = "disconnected" | "connecting" | "connected" | "error";
+export type PaymentIntentStatus = "pending" | "processing" | "approved" | "rejected" | "cancelled" | "error";
+
+export interface PaymentTerminal {
+  id: string;
+  provider: TerminalProvider;
+  name: string;
+  deviceId: string;
+  accessToken?: string;
+  isConnected: boolean;
+  isDefault: boolean;
+  enabled: boolean;
+  lastConnected?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentIntent {
+  id: string;
+  terminalId: string;
+  amount: number;
+  externalReference?: string;
+  status: PaymentIntentStatus;
+  paymentId?: string;
+  authorizationCode?: string;
+  errorMessage?: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+export interface TerminalDevice {
+  id: string;
+  posId?: string;
+  storeId?: string;
+  externalPosId?: string;
+  operatingMode?: string;
+  model?: string;
+}
+
+export interface TerminalProviderInfo {
+  id: TerminalProvider;
+  name: string;
+  description: string;
+  color: string;
+  logo: string;
+  apiDocsUrl: string;
+  features: string[];
+}
+
+export const TERMINAL_PROVIDERS: TerminalProviderInfo[] = [
+  {
+    id: "mercadopago",
+    name: "Mercado Pago Point",
+    description: "Terminal inteligente de Mercado Pago para cobros con tarjeta",
+    color: "#009EE3",
+    logo: "mercadopago",
+    apiDocsUrl: "https://www.mercadopago.com.mx/developers/es/docs/mp-point",
+    features: [
+      "Cobro automático desde POS",
+      "Soporte para crédito y débito",
+      "Pagos sin contacto (NFC)",
+      "Impresión de comprobante en terminal",
+    ],
+  },
+  {
+    id: "clip",
+    name: "Clip",
+    description: "La terminal de pagos más usada en México",
+    color: "#FF6B00",
+    logo: "clip",
+    apiDocsUrl: "https://developer.clip.mx/",
+    features: [
+      "Integración con punto de venta",
+      "Todos los métodos de pago",
+      "Procesamiento en tiempo real",
+      "Depósitos rápidos",
+    ],
+  },
+];
+
+// User preference for terminal linking prompt
+export type TerminalLinkPreference = "ask" | "never_ask" | null;
