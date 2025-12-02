@@ -31,6 +31,7 @@ import {
     Printer,
     ChevronRight,
     Truck,
+    CreditCard,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -165,8 +166,26 @@ export default function SettingsPage() {
                     </p>
                 </div>
 
-                {/* Quick Access - Platforms & Printers */}
-                <div className="grid gap-4 md:grid-cols-2">
+                {/* Quick Access - Terminals, Platforms & Printers */}
+                <div className="grid gap-4 md:grid-cols-3">
+                    <Link href="/dashboard/settings/terminals" data-testid="link-terminals-config">
+                        <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
+                            <CardContent className="flex items-center justify-between p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                                        <CreditCard className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Terminales</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Mercado Pago, Clip
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        </Card>
+                    </Link>
                     <Link href="/dashboard/settings/platforms" data-testid="link-platforms-config">
                         <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
                             <CardContent className="flex items-center justify-between p-6">
@@ -177,7 +196,7 @@ export default function SettingsPage() {
                                     <div>
                                         <h3 className="font-semibold text-lg">Plataformas</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Uber Eats, Didi Food, Rappi y más
+                                            Uber Eats, Didi Food, Rappi
                                         </p>
                                     </div>
                                 </div>
@@ -195,7 +214,7 @@ export default function SettingsPage() {
                                     <div>
                                         <h3 className="font-semibold text-lg">Impresoras</h3>
                                         <p className="text-sm text-muted-foreground">
-                                            Configurar impresoras térmicas 58mm y 80mm
+                                            Térmicas 58mm y 80mm
                                         </p>
                                     </div>
                                 </div>
