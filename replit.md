@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-12-02 - OAuth-based terminal connection (Mercado Pago Point) - users connect with a single click, no manual token entry required; secure server-side token storage in terminal_connections table; automatic token refresh; simplified terminal settings page at /dashboard/settings/terminals
+**Last Updated**: 2025-12-02 - Virtual Queue System (Fila Virtual) - customers scan QR codes, join queue with phone number, get browser push notifications when called; cashier dashboard manages queue with "Siguiente" button; real-time position and estimated wait time display
 
 ## User Preferences
 
@@ -164,6 +164,34 @@ https://[your-domain]/api/oauth/mercadopago/callback
 - ✅ Filter by status and source (POS, Uber Eats, Didi Food, Rappi)
 - ✅ 5-second auto-refresh polling
 - ✅ Demo data fallback when tables don't exist
+
+### Virtual Queue System (Fila Virtual)
+- ✅ Public customer page at `/fila/[userId]` - no authentication required
+- ✅ QR code generation on cashier dashboard for easy customer access
+- ✅ Customer registration with phone number (required), name and email (optional)
+- ✅ Real-time queue position and estimated wait time display
+- ✅ Browser push notifications when customer's turn arrives
+- ✅ Cashier dashboard at `/dashboard/fila` with:
+  - Queue statistics (waiting count, average wait time, served today)
+  - Customer list with name, phone, and position
+  - "Siguiente" button to call next customer
+  - "Terminé de atender" to complete service
+  - Downloadable/printable QR code
+- ✅ 5-second auto-refresh polling for status updates
+- ✅ Daily queue number reset (starts from 1 each day)
+- ✅ Average wait time calculation based on historical data
+
+**Virtual Queue API Endpoints:**
+- `POST /api/queue` - Customer joins queue (public, requires userId in body)
+- `GET /api/queue/status?entryId=[id]` - Check customer status (public)
+- `GET /api/queue?status=all` - Get all queue entries (protected)
+- `PATCH /api/queue {action: "next"}` - Call next customer (protected)
+- `PATCH /api/queue {action: "complete", entryId: "id"}` - Complete service (protected)
+
+**Public Routes (no auth required):**
+- `/fila/*` - Customer queue pages
+- `/api/queue` - POST to join queue
+- `/api/queue/status` - GET to check status
 
 ### Cascade Barcode Lookup System
 When scanning an unknown barcode in the POS:
