@@ -555,10 +555,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                       for (let i = 0; i < variantGroup.options.length; i++) {
                         const option = variantGroup.options[i];
 
-                        const { error: variantError } = await supabaseAdmin
-                          .from("product_variants")
-                          // @ts-expect-error - Supabase types may not include all fields
-                          .insert([{
+                        const variantData = {
                             product_id: existingProduct.id,
                             variant_type_id: variantTypeId,
                             name: option.name,
@@ -567,7 +564,10 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                             is_default: option.is_default || false,
                             active: true,
                             sort_order: i,
-                          }]);
+                          };
+                        const { error: variantError } = await supabaseAdmin
+                          .from("product_variants")
+                          .insert([variantData] as any);
 
                         if (variantError) {
                           console.error(`    ✗ Error creating variant "${option.name}":`, variantError.message);
@@ -681,10 +681,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                     for (let i = 0; i < variantGroup.options.length; i++) {
                       const option = variantGroup.options[i];
 
-                      const { error: variantError } = await supabaseAdmin
-                        .from("product_variants")
-                        // @ts-expect-error - Supabase types may not include all fields
-                        .insert([{
+                      const variantData = {
                           product_id: productId,
                           variant_type_id: variantTypeId,
                           name: option.name,
@@ -693,7 +690,10 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                           is_default: option.is_default || false,
                           active: true,
                           sort_order: i,
-                        }]);
+                        };
+                      const { error: variantError } = await supabaseAdmin
+                        .from("product_variants")
+                        .insert([variantData] as any);
 
                       if (variantError) {
                         console.error(`    ✗ Error creating variant "${option.name}":`, variantError.message);
