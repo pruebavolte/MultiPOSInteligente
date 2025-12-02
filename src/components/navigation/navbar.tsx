@@ -18,7 +18,7 @@ const Navbar = () => {
                         <Link href="#" className={buttonVariants({ size: "sm" })}>
                             Agendar Demo
                         </Link>
-                        <Link href="/login">
+                        <Link href="/login" className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700">
                             Iniciar sesion
                         </Link>
                     </div>
