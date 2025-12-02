@@ -82,10 +82,22 @@ const platformLogos: Record<string, () => React.ReactElement> = {
       <text x="12" y="16" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">PY</text>
     </svg>
   ),
+  pedidos_ya: () => (
+    <svg className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <text x="12" y="16" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">PY</text>
+    </svg>
+  ),
   cornershop: () => (
     <svg className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
       <circle cx="12" cy="12" r="10"/>
       <text x="12" y="16" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">CS</text>
+    </svg>
+  ),
+  sin_delantal: () => (
+    <svg className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <text x="12" y="16" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold">SD</text>
     </svg>
   ),
 };
