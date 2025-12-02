@@ -19,15 +19,28 @@ export async function GET(request: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    const { data: connection, error } = await supabase
-      .from("terminal_connections")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("provider", "mercadopago")
-      .single();
+    let connection = null;
+    let fetchError = null;
 
-    if (error && error.code !== "PGRST116") {
-      console.error("[Get Connection Error]", error);
+    try {
+      const { data, error } = await supabase
+        .from("terminal_connections")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("provider", "mercadopago")
+        .single();
+      
+      connection = data;
+      fetchError = error;
+    } catch (e: any) {
+      fetchError = e;
+    }
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      if (fetchError.code === "PGRST205" || fetchError.code === "PGRST202") {
+        return NextResponse.json({ connected: false });
+      }
+      console.error("[Get Connection Error]", fetchError);
       return NextResponse.json({ error: "Error al obtener conexión" }, { status: 500 });
     }
 

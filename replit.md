@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-12-02 - Payment terminal integration (Mercado Pago Point, Clip) with automatic payment processing; terminal configuration page at /dashboard/settings/terminals; Kitchen Display module (/dashboard/cocina) with real-time orders; redesigned payment modal with numpad validation and terminal status; complete printer system (58mm/80mm)
+**Last Updated**: 2025-12-02 - OAuth-based terminal connection (Mercado Pago Point) - users connect with a single click, no manual token entry required; secure server-side token storage in terminal_connections table; automatic token refresh; simplified terminal settings page at /dashboard/settings/terminals
 
 ## User Preferences
 
