@@ -18,6 +18,7 @@ import {
     Ticket,
     UtensilsCrossed,
     Users,
+    Wallet,
 } from "lucide-react";
 import {
     Sheet,
@@ -31,6 +32,7 @@ import { OrdersNavItem } from "@/components/dashboard/orders-nav-item";
 const navigation = [
     { name: "POS", href: "/dashboard/pos", icon: ShoppingCart },
     { name: "Cocina", href: "/dashboard/cocina", icon: UtensilsCrossed },
+    { name: "Corte de Caja", href: "/dashboard/corte", icon: Wallet },
     { name: "Fila Virtual", href: "/dashboard/fila", icon: Users },
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Inventario", href: "/dashboard/inventory", icon: Package },

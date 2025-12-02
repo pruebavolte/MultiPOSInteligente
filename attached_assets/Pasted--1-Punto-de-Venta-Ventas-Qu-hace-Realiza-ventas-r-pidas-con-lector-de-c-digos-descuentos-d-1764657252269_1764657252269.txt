@@ -1,0 +1,127 @@
+🔹 1. Punto de Venta (Ventas)
+
+Qué hace: Realiza ventas rápidas con lector de códigos, descuentos, devoluciones y promociones.
+
+Botones claves: “Nueva Venta”, “Cobrar”, “Cancelar”, “Buscar Producto”, “Aplicar Descuento”.
+
+Utilidad: Es el centro operativo del sistema, permite cobrar, imprimir tickets y registrar ventas.
+
+🔹 2. Productos / Inventario
+
+Qué hace: Administra artículos, existencias, precios y categorías.
+
+Botones claves: “Agregar Producto”, “Editar”, “Eliminar”, “Importar desde Excel”, “Ajuste de Inventario”.
+
+Utilidad: Controla el stock, clasifica productos, actualiza precios y unidades.
+
+🔹 3. Clientes
+
+Qué hace: Registra clientes frecuentes y consulta su historial.
+
+Botones claves: “Nuevo Cliente”, “Editar”, “Eliminar”, “Buscar”, “Historial de Compras”.
+
+Utilidad: Facilita promociones personalizadas y seguimiento de consumo.
+
+🔹 4. Corte de Caja
+
+Qué hace: Realiza arqueos y cierres de turno.
+
+Botones claves: “Nuevo Corte”, “Ver Cortes”, “Imprimir”, “Exportar”.
+
+Utilidad: Muestra ingresos, retiros, ventas y forma de pago.
+
+🔹 5. Reportes
+
+Qué hace: Genera reportes de ventas, productos, cortes, clientes, movimientos.
+
+Botones claves: “Ventas por Día”, “Más Vendidos”, “Por Usuario”, “Exportar PDF/Excel”.
+
+Utilidad: Facilita análisis financiero y control del negocio.
+
+🔹 6. Recargas Electrónicas
+
+Qué hace: Permite vender tiempo aire de compañías como Telcel, Movistar, AT&T, Unefon, etc.
+
+Botones claves: “Nueva Recarga”, “Historial”, “Saldo Disponible”.
+
+Utilidad: Añade un servicio extra que genera ingresos sin inventario.
+
+🔹 7. Pago de Servicios
+
+Qué hace: Paga servicios como luz, agua, predial, etc., desde el mismo sistema.
+
+Botones claves: “Buscar Servicio”, “Pagar”, “Imprimir Comprobante”.
+
+Utilidad: Aumenta visitas al negocio ofreciendo múltiples servicios.
+
+🔹 8. Pulso Eleventa
+
+Qué hace: Muestra indicadores clave en línea como ventas en tiempo real y alertas.
+
+Botones claves: Panel en línea con gráficas y notificaciones.
+
+Utilidad: Permite supervisar el negocio desde cualquier lugar.
+
+🔹 9. Configuración
+
+Qué hace: Ajusta parámetros del sistema como impuestos, monedas, dispositivos, etc.
+
+Botones claves: “Impresora”, “Monedas”, “Tickets”, “Usuarios”, “Seguridad”.
+
+Utilidad: Personaliza el sistema a las necesidades del negocio.
+
+🔹 10. Usuarios y Permisos
+
+Qué hace: Crea usuarios y define lo que pueden o no hacer dentro del sistema.
+
+Botones claves: “Nuevo Usuario”, “Permisos”, “Cambiar Contraseña”.
+
+Utilidad: Controla el acceso a funciones delicadas.
+
+🔹 11. Vales / Créditos
+
+Qué hace: Permite vender a crédito y emitir vales.
+
+Botones claves: “Emitir Vale”, “Abonar”, “Estado de Cuenta”.
+
+Utilidad: Ofrece flexibilidad de pago al cliente.
+
+🔹 12. Facturación CFDI (en línea)
+
+Qué hace: Emite facturas electrónicas directamente desde ventas.
+
+Botones claves: “Facturar Venta”, “Historial CFDI”, “Cancelar”.
+
+Utilidad: Cumple con requisitos fiscales fácilmente.
+
+🔹 13. Respaldos
+
+Qué hace: Realiza copias de seguridad automáticas o manuales.
+
+Botones claves: “Crear Respaldo”, “Restaurar”, “Programar”.
+
+Utilidad: Protege la información ante fallos o pérdidas.
+
+🔹 14. Base de Datos / Importación
+
+Qué hace: Permite importar productos, precios o clientes desde Excel.
+
+Botones claves: “Importar desde Archivo”, “Exportar”.
+
+Utilidad: Ahorra tiempo al cargar grandes cantidades de datos.
+
+🔹 15. Notas de Crédito y Devoluciones
+
+Qué hace: Administra devoluciones de productos y generación de notas de crédito.
+
+Botones claves: “Nueva Devolución”, “Aplicar a Venta”.
+
+Utilidad: Controla errores o cambios sin afectar mal los reportes.
+
+🔹 16. Versiones y Actualizaciones
+
+Qué hace: Muestra la versión instalada y gestiona actualizaciones.
+
+Botones claves: “Buscar Actualizaciones”, “Actualizar Ahora”.
+
+Utilidad: Mantiene el sistema seguro y con nuevas funciones.

@@ -41,11 +41,11 @@ interface Order {
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
-  user: {
+  user?: {
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -199,7 +199,7 @@ export default function AdminOrdersPage() {
                         </Badge>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <User className="h-3 w-3" />
-                          {order.user.firstName} {order.user.lastName}
+                          {order.user?.firstName || "Cliente"} {order.user?.lastName || ""}
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
@@ -286,12 +286,12 @@ export default function AdminOrdersPage() {
                   <div className="space-y-1 text-sm">
                     <div>
                       <span className="font-semibold">Nombre:</span>{" "}
-                      {selectedOrder.user.firstName}{" "}
-                      {selectedOrder.user.lastName}
+                      {selectedOrder.user?.firstName || "Cliente"}{" "}
+                      {selectedOrder.user?.lastName || ""}
                     </div>
                     <div>
                       <span className="font-semibold">Email:</span>{" "}
-                      {selectedOrder.user.email}
+                      {selectedOrder.user?.email || "No disponible"}
                     </div>
                   </div>
                 </CardContent>
