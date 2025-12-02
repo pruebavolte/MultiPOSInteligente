@@ -53,23 +53,29 @@ export async function GET(request: NextRequest) {
 
     const redirectUri = MP_REDIRECT_URI || `${request.nextUrl.origin}/api/oauth/mercadopago/callback`;
 
+    const tokenRequestBody: Record<string, string> = {
+      client_id: MP_CLIENT_ID,
+      client_secret: MP_CLIENT_SECRET,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+    };
+
+    if (stateData.codeVerifier) {
+      tokenRequestBody.code_verifier = stateData.codeVerifier;
+    }
+
     const tokenResponse = await fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: MP_CLIENT_ID,
-        client_secret: MP_CLIENT_SECRET,
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri,
-      }),
+      body: JSON.stringify(tokenRequestBody),
     });
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error("[Token Exchange Error]", errorText);
+      const errorData = await tokenResponse.json().catch(() => ({}));
+      console.error("[Token Exchange Error]", JSON.stringify(errorData));
       return NextResponse.redirect(
-        new URL("/dashboard/settings/terminals?error=token_exchange_failed", request.url)
+        new URL(`/dashboard/settings/terminals?error=token_exchange_failed&details=${encodeURIComponent(errorData.message || '')}`, request.url)
       );
     }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth-wrapper";
+import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,16 @@ function getPublicUrl(request: NextRequest): string {
   return `${request.nextUrl.origin}/api/oauth/mercadopago/callback`;
 }
 
+function generateCodeVerifier(): string {
+  const buffer = crypto.randomBytes(32);
+  return buffer.toString("base64url");
+}
+
+function generateCodeChallenge(verifier: string): string {
+  const hash = crypto.createHash("sha256").update(verifier).digest();
+  return hash.toString("base64url");
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser();
@@ -43,10 +54,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const codeVerifier = generateCodeVerifier();
+    const codeChallenge = generateCodeChallenge(codeVerifier);
+
     const state = Buffer.from(JSON.stringify({
       userId: user.id,
       timestamp: Date.now(),
-      nonce: Math.random().toString(36).substring(7)
+      nonce: Math.random().toString(36).substring(7),
+      codeVerifier
     })).toString("base64");
 
     const redirectUri = getPublicUrl(request);
@@ -57,6 +72,8 @@ export async function GET(request: NextRequest) {
     authUrl.searchParams.set("platform_id", "mp");
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("state", state);
+    authUrl.searchParams.set("code_challenge", codeChallenge);
+    authUrl.searchParams.set("code_challenge_method", "S256");
 
     return NextResponse.json({
       authUrl: authUrl.toString(),
