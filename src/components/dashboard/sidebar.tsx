@@ -16,6 +16,7 @@ import {
     PackageX,
     Soup,
     Ticket,
+    UtensilsCrossed,
 } from "lucide-react";
 import {
     Sheet,
@@ -28,6 +29,7 @@ import { OrdersNavItem } from "@/components/dashboard/orders-nav-item";
 
 const navigation = [
     { name: "POS", href: "/dashboard/pos", icon: ShoppingCart },
+    { name: "Cocina", href: "/dashboard/cocina", icon: UtensilsCrossed },
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Inventario", href: "/dashboard/inventory", icon: Package },
     { name: "Ingredientes", href: "/dashboard/ingredients", icon: Soup },

@@ -155,6 +155,57 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['order_items']['Row'], 'id'>;
         Update: Partial<Database['public']['Tables']['order_items']['Insert']>;
       };
+      kitchen_orders: {
+        Row: {
+          id: string;
+          order_number: string;
+          source: 'pos' | 'uber_eats' | 'didi_food' | 'rappi' | 'pedidos_ya' | 'sin_delantal' | 'cornershop';
+          external_order_id: string | null;
+          table_number: string | null;
+          customer_name: string | null;
+          service_type: 'dine_in' | 'takeout' | 'delivery';
+          status: 'pending' | 'in_progress' | 'ready' | 'delivered' | 'cancelled';
+          total: number;
+          notes: string | null;
+          user_id: string;
+          created_at: string;
+          updated_at: string;
+          started_at: string | null;
+          ready_at: string | null;
+          delivered_at: string | null;
+        };
+        Insert: Omit<Database['public']['Tables']['kitchen_orders']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['kitchen_orders']['Insert']>;
+      };
+      kitchen_order_items: {
+        Row: {
+          id: string;
+          kitchen_order_id: string;
+          product_name: string;
+          quantity: number;
+          unit_price: number;
+          modifiers: string | null;
+          notes: string | null;
+        };
+        Insert: Omit<Database['public']['Tables']['kitchen_order_items']['Row'], 'id'>;
+        Update: Partial<Database['public']['Tables']['kitchen_order_items']['Insert']>;
+      };
+      platform_integrations: {
+        Row: {
+          id: string;
+          user_id: string;
+          platform: string;
+          api_key: string | null;
+          api_secret: string | null;
+          store_id: string | null;
+          webhook_secret: string | null;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['platform_integrations']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Database['public']['Tables']['platform_integrations']['Insert']>;
+      };
     };
     Views: {
       low_stock_products: {
