@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Customer } from "@/types/database";
 import {
   Dialog,
@@ -88,7 +88,8 @@ export function PaymentModal({
   const [currentIntent, setCurrentIntent] = useState<PaymentIntent | null>(null);
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
   const [terminalConnected, setTerminalConnected] = useState(false);
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isCompletingRef = useRef(false);
 
   const amountPaid = parseFloat(inputValue) || 0;
   const remaining = Math.max(0, total - amountPaid);
@@ -104,14 +105,45 @@ export function PaymentModal({
       setCurrentIntent(null);
       setShowLinkPrompt(false);
       setTerminalConnected(hasConfiguredTerminal());
+      isCompletingRef.current = false;
     }
     
     return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
     };
   }, [open]);
+
+  // Auto-complete sale when payment is approved
+  useEffect(() => {
+    if (terminalState === "approved" && !isCompletingRef.current) {
+      isCompletingRef.current = true;
+      
+      // Clear any remaining polling
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+      
+      // Auto-complete the sale after a short delay to show approval status
+      const completeTimer = setTimeout(async () => {
+        try {
+          setLoading(true);
+          await onComplete("card", customerId || undefined, total);
+          onOpenChange(false);
+        } catch (error) {
+          console.error("Error al completar pago automático:", error);
+          isCompletingRef.current = false;
+        } finally {
+          setLoading(false);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(completeTimer);
+    }
+  }, [terminalState, onComplete, customerId, total, onOpenChange]);
 
   useEffect(() => {
     if (paymentMethod === "card" && !hasConfiguredTerminal() && shouldShowTerminalLinkPrompt()) {
@@ -161,34 +193,32 @@ export function PaymentModal({
     setInputValue(total.toFixed(2));
   }, [total]);
 
+  const stopPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  }, []);
+
   const pollPaymentStatus = useCallback(async (intentId: string) => {
     try {
       const updatedIntent = await checkPaymentStatus(intentId);
       setCurrentIntent(updatedIntent);
       
       if (updatedIntent.status === "approved") {
+        stopPolling();
         setTerminalState("approved");
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
       } else if (updatedIntent.status === "rejected" || updatedIntent.status === "cancelled") {
+        stopPolling();
         setTerminalState("rejected");
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
       } else if (updatedIntent.status === "error") {
+        stopPolling();
         setTerminalState("error");
-        if (pollingInterval) {
-          clearInterval(pollingInterval);
-          setPollingInterval(null);
-        }
       }
     } catch (error) {
       console.error("Error polling payment status:", error);
     }
-  }, [pollingInterval]);
+  }, [stopPolling]);
 
   const handleCardPayment = async () => {
     if (!hasConfiguredTerminal()) {
@@ -206,8 +236,10 @@ export function PaymentModal({
       if (intent.status === "approved") {
         setTerminalState("approved");
       } else if (intent.status === "processing") {
-        const interval = setInterval(() => pollPaymentStatus(intent.id), 2000);
-        setPollingInterval(interval);
+        // Clear any existing polling first
+        stopPolling();
+        // Start new polling
+        pollingIntervalRef.current = setInterval(() => pollPaymentStatus(intent.id), 2000);
       } else if (intent.status === "rejected" || intent.status === "cancelled") {
         setTerminalState("rejected");
       } else if (intent.status === "error") {
@@ -262,10 +294,8 @@ export function PaymentModal({
   const handleRetryPayment = () => {
     setTerminalState("idle");
     setCurrentIntent(null);
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
-    }
+    isCompletingRef.current = false;
+    stopPolling();
   };
 
   const defaultTerminal = getDefaultTerminal();

@@ -11,6 +11,22 @@ const TERMINALS_STORAGE_KEY = "pos_payment_terminals";
 const TERMINAL_PREFERENCE_KEY = "pos_terminal_link_preference";
 const PAYMENT_INTENTS_KEY = "pos_payment_intents";
 
+// Demo mode configuration - enables simulated payments without real API keys
+const DEMO_MODE_KEY = "pos_terminal_demo_mode";
+
+export function isDemoMode(): boolean {
+  if (typeof window === "undefined") return true;
+  // Default to demo mode if no real access token is configured
+  const terminals = getTerminals();
+  const hasRealToken = terminals.some(t => t.accessToken && t.accessToken.length > 20);
+  return !hasRealToken;
+}
+
+export function setDemoMode(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(DEMO_MODE_KEY, enabled ? "true" : "false");
+}
+
 export function getTerminals(): PaymentTerminal[] {
   if (typeof window === "undefined") return [];
   const stored = localStorage.getItem(TERMINALS_STORAGE_KEY);
@@ -171,6 +187,20 @@ export async function processPaymentWithTerminal(
   try {
     updatePaymentIntent(intent.id, { status: "processing" });
     
+    // Check if we're in demo mode (no real API tokens)
+    if (isDemoMode()) {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update intent to processing state
+      const updatedIntent = updatePaymentIntent(intent.id, {
+        status: "processing",
+        paymentId: `demo_${Date.now()}`,
+      });
+      
+      return updatedIntent || intent;
+    }
+    
     const response = await fetch('/api/terminals/payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -211,6 +241,9 @@ export async function processPaymentWithTerminal(
   }
 }
 
+// Track demo mode poll counts for simulated approval
+const demoPollCounts: Record<string, number> = {};
+
 export async function checkPaymentStatus(intentId: string): Promise<PaymentIntent> {
   const intent = getPaymentIntent(intentId);
   
@@ -222,6 +255,33 @@ export async function checkPaymentStatus(intentId: string): Promise<PaymentInten
   
   if (!terminal) {
     throw new Error("Terminal no encontrada");
+  }
+  
+  // Demo mode: simulate payment approval after 2-3 polls
+  if (isDemoMode()) {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Track poll count for this intent
+    demoPollCounts[intentId] = (demoPollCounts[intentId] || 0) + 1;
+    const pollCount = demoPollCounts[intentId];
+    
+    // Approve after 2-3 polls (simulates customer inserting card and completing payment)
+    if (pollCount >= 2) {
+      delete demoPollCounts[intentId];
+      
+      const authCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const updatedIntent = updatePaymentIntent(intentId, {
+        status: "approved",
+        authorizationCode: authCode,
+        paymentId: `demo_pay_${Date.now()}`,
+        completedAt: new Date().toISOString(),
+      });
+      
+      return updatedIntent || intent;
+    }
+    
+    // Still processing
+    return intent;
   }
   
   try {

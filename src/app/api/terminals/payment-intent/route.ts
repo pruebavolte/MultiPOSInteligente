@@ -1,10 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 const MERCADOPAGO_API_BASE = "https://api.mercadopago.com/point/integration-api";
+
+// Validation schema for payment intent request
+const paymentIntentSchema = z.object({
+  provider: z.enum(["mercadopago", "clip"]),
+  deviceId: z.string().min(1, "Device ID requerido"),
+  terminalId: z.string().optional(),
+  accessToken: z.string().optional(),
+  amount: z.number().positive("El monto debe ser positivo"),
+  externalReference: z.string().optional(),
+  intentId: z.string().optional(),
+});
+
+// Check if this is demo mode (no real API tokens)
+function isDemoMode(accessToken?: string): boolean {
+  return !accessToken || accessToken.length < 20 || accessToken.startsWith("demo_");
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    // Validate request body with Zod
+    const validationResult = paymentIntentSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Datos de solicitud inválidos",
+          message: validationResult.error.errors.map(e => e.message).join(", "),
+          status: "error",
+        },
+        { status: 400 }
+      );
+    }
+
     const { 
       provider, 
       deviceId, 
@@ -12,13 +43,18 @@ export async function POST(request: NextRequest) {
       amount, 
       externalReference,
       intentId,
-    } = body;
+    } = validationResult.data;
 
-    if (!provider || !deviceId || !accessToken || !amount) {
-      return NextResponse.json(
-        { error: "Faltan parámetros requeridos" },
-        { status: 400 }
-      );
+    // Demo mode: return simulated processing response
+    if (isDemoMode(accessToken)) {
+      return NextResponse.json({
+        status: "processing",
+        paymentIntentId: `demo_intent_${Date.now()}`,
+        deviceId: deviceId,
+        amount: amount,
+        demo: true,
+        message: "Modo demo: Esperando pago simulado en terminal...",
+      });
     }
 
     if (provider === "mercadopago") {
