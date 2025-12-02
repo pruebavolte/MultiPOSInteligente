@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-12-02 - Redesigned payment modal with numpad, quick amounts, real-time change calculation; complete printer system (58mm/80mm, USB/Network/Bluetooth/Email); digital platforms integration (Uber Eats, Didi Food, Rappi, Pedidos Ya, Sin Delantal, Cornershop)
+**Last Updated**: 2025-12-02 - Kitchen Display module (/dashboard/cocina) with real-time orders, color-coded status cards, webhook endpoints for Uber Eats/Didi Food/Rappi; redesigned payment modal with numpad validation; complete printer system (58mm/80mm)
 
 ## User Preferences
 
@@ -114,6 +114,20 @@ IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 - ✅ Webhook URL generation
 - ✅ Enable/disable platform integration
 - ✅ Platform connection status indicators
+- ✅ Webhook endpoints for automatic order receiving
+
+### Kitchen Display (Cocina)
+- ✅ Real-time order display at `/dashboard/cocina`
+- ✅ Color-coded status cards:
+  - Red/Orange: Pending orders (Pendientes)
+  - Yellow: In progress (En Preparación)
+  - Green: Ready (Listos)
+  - Gray: Delivered (Entregados)
+- ✅ Order details with items, quantities, modifiers
+- ✅ Status action buttons (Iniciar, Listo, Entregado)
+- ✅ Filter by status and source (POS, Uber Eats, Didi Food, Rappi)
+- ✅ 5-second auto-refresh polling
+- ✅ Demo data fallback when tables don't exist
 
 ### Cascade Barcode Lookup System
 When scanning an unknown barcode in the POS:
@@ -141,8 +155,22 @@ When scanning an unknown barcode in the POS:
 
 ## Important API Endpoints
 
+### Database Initialization
 - `GET /api/init-db?step=check` - Check database tables status
 - `GET /api/init-db?step=seed` - Populate test data (already done)
+- `GET /api/init-kitchen?action=check` - Check kitchen tables status
+- `GET /api/init-kitchen?action=sql` - Get SQL to create kitchen tables
+- `GET /api/init-kitchen?action=seed` - Populate sample kitchen orders
+
+### Kitchen Orders
+- `GET /api/kitchen/orders` - Get all kitchen orders
+- `POST /api/kitchen/orders` - Create new kitchen order
+- `PATCH /api/kitchen/orders` - Update order status
+
+### Webhooks (Digital Platforms)
+- `POST /api/webhooks/uber-eats` - Receive Uber Eats orders
+- `POST /api/webhooks/didi-food` - Receive Didi Food orders
+- `POST /api/webhooks/rappi` - Receive Rappi orders
 
 ## Future Enhancements (From Task List)
 
