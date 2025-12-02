@@ -16,13 +16,14 @@ function isPublicMenuRoute(request: Request) {
   return url.pathname === '/dashboard-user/menu' && url.searchParams.has('restaurantId');
 }
 
-// Check if the API route is for public menu access or queue
+// Check if the API route is for public menu access, queue, or OAuth callbacks
 function isPublicApiRoute(request: Request) {
   const url = new URL(request.url);
   return (url.pathname === '/api/menu-products' && url.searchParams.has('restaurantId')) ||
          url.pathname === '/api/orders' ||
          url.pathname === '/api/queue' ||
-         url.pathname === '/api/queue/status';
+         url.pathname === '/api/queue/status' ||
+         url.pathname === '/api/oauth/mercadopago/callback';
 }
 
 // Check if request is for a PWA asset (should be public)
