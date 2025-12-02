@@ -4,27 +4,19 @@ import { useState, useEffect } from "react";
 import { 
   ArrowLeft, 
   CreditCard, 
-  Plus, 
-  Trash2, 
   CheckCircle2, 
-  XCircle, 
   Loader2,
   ExternalLink,
-  Star,
   Wifi,
   WifiOff,
   RefreshCw,
-  Copy,
-  Check,
-  HelpCircle,
   Smartphone,
   Zap,
+  AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -34,695 +26,485 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { 
-  PaymentTerminal, 
-  TerminalProvider, 
-  TerminalDevice,
-  TERMINAL_PROVIDERS 
-} from "@/types/printer";
-import {
-  getTerminals,
-  addTerminal,
-  updateTerminal,
-  deleteTerminal,
-  testTerminalConnection,
-  fetchTerminalDevices,
-  getTerminalName,
-} from "@/lib/services/terminal-service";
+import { useSearchParams } from "next/navigation";
+
+interface TerminalConnection {
+  id: string;
+  provider: string;
+  status: string;
+  selected_device_id: string | null;
+  selected_device_name: string | null;
+  connected_at: string;
+  live_mode: boolean;
+}
+
+interface Device {
+  id: string;
+  pos_id: number;
+  store_id: string;
+  external_pos_id: string;
+  operating_mode: string;
+}
 
 export default function TerminalsSettingsPage() {
-  const [terminals, setTerminals] = useState<PaymentTerminal[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingTerminal, setEditingTerminal] = useState<PaymentTerminal | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<TerminalProvider>("mercadopago");
-  const [formData, setFormData] = useState({
-    accessToken: "",
-    deviceId: "",
-    isDefault: true,
-    enabled: true,
-  });
-  const [devices, setDevices] = useState<TerminalDevice[]>([]);
+  const searchParams = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+  const [connection, setConnection] = useState<TerminalConnection | null>(null);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [loadingDevices, setLoadingDevices] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState<string | null>(null);
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [copied, setCopied] = useState(false);
+  const [selectingDevice, setSelectingDevice] = useState<string | null>(null);
+  const [showDeviceDialog, setShowDeviceDialog] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
-    setTerminals(getTerminals());
-  }, []);
+    const connected = searchParams.get("connected");
+    const error = searchParams.get("error");
 
-  const handleAddTerminal = (provider: TerminalProvider) => {
-    setEditingTerminal(null);
-    setSelectedProvider(provider);
-    setFormData({
-      accessToken: "",
-      deviceId: "",
-      isDefault: terminals.length === 0,
-      enabled: true,
-    });
-    setDevices([]);
-    setStep(1);
-    setDialogOpen(true);
-  };
-
-  const handleEditTerminal = (terminal: PaymentTerminal) => {
-    setEditingTerminal(terminal);
-    setSelectedProvider(terminal.provider);
-    setFormData({
-      accessToken: terminal.accessToken || "",
-      deviceId: terminal.deviceId,
-      isDefault: terminal.isDefault,
-      enabled: terminal.enabled,
-    });
-    setStep(3);
-    setDialogOpen(true);
-  };
-
-  const handleFetchDevices = async () => {
-    if (!formData.accessToken) {
-      toast.error("Ingresa tu Access Token primero");
-      return;
+    if (connected === "mercadopago") {
+      toast.success("Cuenta de Mercado Pago conectada exitosamente");
+      window.history.replaceState({}, "", "/dashboard/settings/terminals");
     }
 
-    setLoadingDevices(true);
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        missing_params: "Faltan parámetros en la respuesta",
+        invalid_state: "Sesión inválida, intenta de nuevo",
+        expired: "La sesión expiró, intenta de nuevo",
+        not_configured: "Mercado Pago no está configurado",
+        token_exchange_failed: "Error al conectar con Mercado Pago",
+        save_failed: "Error al guardar la conexión",
+      };
+      toast.error(errorMessages[error] || `Error: ${error}`);
+      window.history.replaceState({}, "", "/dashboard/settings/terminals");
+    }
+
+    checkConnection();
+  }, [searchParams]);
+
+  const checkConnection = async () => {
+    setLoading(true);
     try {
-      const fetchedDevices = await fetchTerminalDevices(selectedProvider, formData.accessToken);
-      setDevices(fetchedDevices);
-      
-      if (fetchedDevices.length > 0) {
-        setStep(2);
-        toast.success(`Se encontraron ${fetchedDevices.length} dispositivos`);
-      } else if (selectedProvider === "clip") {
-        setStep(2);
-        toast.info("Ingresa el Device ID de tu terminal Clip manualmente");
+      const response = await fetch("/api/terminals/connection");
+      const data = await response.json();
+
+      if (data.connected) {
+        setConnection(data.connection);
+        if (!data.connection.selected_device_id) {
+          fetchDevices();
+        }
       } else {
-        toast.warning("No se encontraron dispositivos. Verifica que tu terminal esté enlazada a tu cuenta.");
+        setConnection(null);
       }
     } catch (error) {
-      toast.error("Error al obtener dispositivos. Verifica tu Access Token.");
+      console.error("Error checking connection:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const response = await fetch("/api/oauth/mercadopago/connect");
+      const data = await response.json();
+
+      if (data.demo_mode) {
+        setDemoMode(true);
+        toast.info("Mercado Pago no está configurado. Usando modo demo.");
+        setConnecting(false);
+        return;
+      }
+
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        toast.error(data.error || "Error al iniciar conexión");
+        setConnecting(false);
+      }
+    } catch (error) {
+      console.error("Error connecting:", error);
+      toast.error("Error al conectar");
+      setConnecting(false);
+    }
+  };
+
+  const fetchDevices = async () => {
+    setLoadingDevices(true);
+    try {
+      const response = await fetch("/api/terminals/devices");
+      const data = await response.json();
+
+      if (data.devices) {
+        setDevices(data.devices);
+        if (data.devices.length > 0) {
+          setShowDeviceDialog(true);
+        } else {
+          toast.info("No se encontraron terminales. Asegúrate de que tu terminal esté encendida y vinculada a tu cuenta de Mercado Pago.");
+        }
+      } else if (data.needsReconnection) {
+        toast.error("Tu conexión ha expirado. Por favor reconecta.");
+        setConnection(null);
+      }
+    } catch (error) {
+      console.error("Error fetching devices:", error);
+      toast.error("Error al obtener terminales");
     } finally {
       setLoadingDevices(false);
     }
   };
 
-  const handleSelectDevice = (deviceId: string) => {
-    setFormData({ ...formData, deviceId });
-    setStep(3);
-  };
-
-  const handleSave = async () => {
-    if (!formData.accessToken || !formData.deviceId) {
-      toast.error("Completa todos los campos requeridos");
-      return;
-    }
-
-    setSaving(true);
+  const handleSelectDevice = async (device: Device) => {
+    setSelectingDevice(device.id);
     try {
-      if (editingTerminal) {
-        updateTerminal(editingTerminal.id, {
-          accessToken: formData.accessToken,
-          deviceId: formData.deviceId,
-          isDefault: formData.isDefault,
-          enabled: formData.enabled,
-        });
-        toast.success("Terminal actualizada");
+      const response = await fetch("/api/terminals/devices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deviceId: device.id,
+          deviceName: `Terminal ${device.pos_id || device.id.slice(-6)}`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success("Terminal seleccionada correctamente");
+        setShowDeviceDialog(false);
+        checkConnection();
       } else {
-        addTerminal({
-          provider: selectedProvider,
-          name: getTerminalName(selectedProvider),
-          deviceId: formData.deviceId,
-          accessToken: formData.accessToken,
-          isConnected: true,
-          isDefault: formData.isDefault,
-          enabled: formData.enabled,
-        });
-        toast.success("Terminal agregada exitosamente");
-      }
-
-      setTerminals(getTerminals());
-      setDialogOpen(false);
-    } catch (error) {
-      toast.error("Error al guardar la terminal");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    if (deleteTerminal(id)) {
-      setTerminals(getTerminals());
-      toast.success("Terminal eliminada");
-    }
-  };
-
-  const handleTestConnection = async (terminal: PaymentTerminal) => {
-    setTesting(terminal.id);
-    try {
-      const isConnected = await testTerminalConnection(terminal);
-      if (isConnected) {
-        updateTerminal(terminal.id, { isConnected: true, lastConnected: new Date().toISOString() });
-        setTerminals(getTerminals());
-        toast.success("Conexión exitosa");
-      } else {
-        updateTerminal(terminal.id, { isConnected: false });
-        setTerminals(getTerminals());
-        toast.error("No se pudo conectar. Verifica tus credenciales.");
+        toast.error(data.error || "Error al seleccionar terminal");
       }
     } catch (error) {
-      toast.error("Error al probar conexión");
+      console.error("Error selecting device:", error);
+      toast.error("Error al seleccionar terminal");
     } finally {
-      setTesting(null);
+      setSelectingDevice(null);
     }
   };
 
-  const handleToggleEnabled = (terminal: PaymentTerminal) => {
-    updateTerminal(terminal.id, { enabled: !terminal.enabled });
-    setTerminals(getTerminals());
-    toast.success(terminal.enabled ? "Terminal desactivada" : "Terminal activada");
+  const handleDisconnect = async () => {
+    setDisconnecting(true);
+    try {
+      const response = await fetch("/api/terminals/connection", {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast.success("Cuenta desconectada");
+        setConnection(null);
+        setDevices([]);
+      } else {
+        toast.error("Error al desconectar");
+      }
+    } catch (error) {
+      console.error("Error disconnecting:", error);
+      toast.error("Error al desconectar");
+    } finally {
+      setDisconnecting(false);
+    }
   };
 
-  const handleSetDefault = (terminal: PaymentTerminal) => {
-    updateTerminal(terminal.id, { isDefault: true });
-    setTerminals(getTerminals());
-    toast.success("Terminal establecida como predeterminada");
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const providerInfo = TERMINAL_PROVIDERS.find(p => p.id === selectedProvider);
-  const hasTerminals = terminals.length > 0;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/settings" data-testid="link-back-settings">
-            <Button variant="ghost" size="icon">
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="p-4 border-b flex items-center gap-3">
+          <Link href="/dashboard/settings">
+            <Button variant="ghost" size="icon" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">Terminales de Pago</h1>
-            <p className="text-muted-foreground text-sm">
-              Conecta tu terminal bancaria para cobrar con tarjeta automáticamente
-            </p>
+          <div>
+            <h1 className="text-xl font-semibold">Terminales de Pago</h1>
+            <p className="text-sm text-muted-foreground">Conecta tu terminal para cobrar con tarjeta</p>
           </div>
         </div>
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
-        {!hasTerminals && (
-          <Card className="border-2 border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <CreditCard className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Conecta tu primera terminal</h3>
-              <p className="text-muted-foreground text-sm max-w-md mb-6">
-                Al conectar una terminal, podrás cobrar con tarjeta directamente desde el POS. 
-                El monto se enviará automáticamente a tu terminal.
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                {TERMINAL_PROVIDERS.map((provider) => (
-                  <Button
-                    key={provider.id}
-                    onClick={() => handleAddTerminal(provider.id)}
-                    className="gap-2"
-                    style={{ backgroundColor: provider.color }}
-                    data-testid={`button-add-${provider.id}`}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Conectar {provider.name}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+  return (
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b flex items-center gap-3">
+        <Link href="/dashboard/settings">
+          <Button variant="ghost" size="icon" data-testid="button-back">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-xl font-semibold">Terminales de Pago</h1>
+          <p className="text-sm text-muted-foreground">Conecta tu terminal para cobrar con tarjeta</p>
+        </div>
+      </div>
 
-        {hasTerminals && (
-          <>
-            <div className="flex justify-end gap-2">
-              {TERMINAL_PROVIDERS.map((provider) => (
-                <Button
-                  key={provider.id}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAddTerminal(provider.id)}
-                  className="gap-2"
-                  data-testid={`button-add-${provider.id}`}
-                >
-                  <Plus className="h-4 w-4" />
-                  {provider.name}
-                </Button>
-              ))}
-            </div>
-
-            <div className="grid gap-4">
-              {terminals.map((terminal) => {
-                const provider = TERMINAL_PROVIDERS.find(p => p.id === terminal.provider);
-                return (
-                  <Card 
-                    key={terminal.id} 
-                    className={cn(
-                      "transition-all",
-                      !terminal.enabled && "opacity-60"
-                    )}
-                    data-testid={`card-terminal-${terminal.id}`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex flex-col md:flex-row md:items-center gap-4">
-                        <div 
-                          className="h-12 w-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
-                          style={{ backgroundColor: provider?.color || "#666" }}
-                        >
-                          {terminal.provider === "mercadopago" ? "MP" : "C"}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-semibold truncate">{terminal.name}</h3>
-                            {terminal.isDefault && (
-                              <Badge variant="secondary" className="gap-1 shrink-0">
-                                <Star className="h-3 w-3" />
-                                Predeterminada
-                              </Badge>
-                            )}
-                            {terminal.isConnected ? (
-                              <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 gap-1 shrink-0">
-                                <Wifi className="h-3 w-3" />
-                                Conectada
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 gap-1 shrink-0">
-                                <WifiOff className="h-3 w-3" />
-                                Desconectada
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {provider?.name} · ID: {terminal.deviceId.substring(0, 20)}...
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleTestConnection(terminal)}
-                            disabled={testing === terminal.id}
-                            data-testid={`button-test-${terminal.id}`}
-                          >
-                            {testing === terminal.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <RefreshCw className="h-4 w-4" />
-                            )}
-                          </Button>
-                          
-                          <Switch
-                            checked={terminal.enabled}
-                            onCheckedChange={() => handleToggleEnabled(terminal)}
-                            data-testid={`switch-enabled-${terminal.id}`}
-                          />
-                          
-                          {!terminal.isDefault && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleSetDefault(terminal)}
-                              data-testid={`button-default-${terminal.id}`}
-                            >
-                              <Star className="h-4 w-4" />
-                            </Button>
-                          )}
-                          
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditTerminal(terminal)}
-                            data-testid={`button-edit-${terminal.id}`}
-                          >
-                            <CreditCard className="h-4 w-4" />
-                          </Button>
-                          
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(terminal.id)}
-                            className="text-destructive hover:text-destructive"
-                            data-testid={`button-delete-${terminal.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <HelpCircle className="h-5 w-5" />
-              ¿Cómo funciona?
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="font-bold text-primary">1</span>
-                </div>
-                <div>
-                  <p className="font-medium">Conecta tu terminal</p>
-                  <p className="text-sm text-muted-foreground">
-                    Solo necesitas tu Access Token de Mercado Pago o Clip
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="font-bold text-primary">2</span>
-                </div>
-                <div>
-                  <p className="font-medium">Selecciona "Tarjeta" al cobrar</p>
-                  <p className="text-sm text-muted-foreground">
-                    El monto se envía automáticamente a tu terminal
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="font-bold text-primary">3</span>
-                </div>
-                <div>
-                  <p className="font-medium">¡Listo!</p>
-                  <p className="text-sm text-muted-foreground">
-                    El cliente paga y el ticket se imprime automáticamente
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                <div 
-                  className="h-10 w-10 rounded-lg flex items-center justify-center text-white font-bold shrink-0"
-                  style={{ backgroundColor: providerInfo?.color }}
-                >
-                  {selectedProvider === "mercadopago" ? "MP" : "C"}
-                </div>
-                {editingTerminal ? "Editar Terminal" : `Conectar ${providerInfo?.name}`}
-              </DialogTitle>
-              <DialogDescription>
-                {step === 1 && "Paso 1: Ingresa tu Access Token para buscar tus dispositivos"}
-                {step === 2 && "Paso 2: Selecciona el dispositivo que quieres conectar"}
-                {step === 3 && "Paso 3: Confirma la configuración de tu terminal"}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="py-4">
-              {step === 1 && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Access Token de Producción</Label>
-                    <Input
-                      type="password"
-                      placeholder="APP_USR-xxxxxxxxx..."
-                      value={formData.accessToken}
-                      onChange={(e) => setFormData({ ...formData, accessToken: e.target.value })}
-                      data-testid="input-access-token"
-                    />
+      <div className="flex-1 p-4 overflow-auto">
+        {!connection ? (
+          <div className="max-w-lg mx-auto space-y-6">
+            <Card className="border-2 border-dashed">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <CreditCard className="h-8 w-8 text-white" />
                   </div>
                   
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="help">
-                      <AccordionTrigger className="text-sm">
-                        ¿Dónde encuentro mi Access Token?
-                      </AccordionTrigger>
-                      <AccordionContent className="space-y-3">
-                        {selectedProvider === "mercadopago" && (
-                          <>
-                            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                              <li>Ve a <strong>Mercado Pago Developers</strong></li>
-                              <li>Haz clic en <strong>Tus integraciones</strong></li>
-                              <li>Selecciona tu aplicación o crea una nueva</li>
-                              <li>Ve a <strong>Credenciales de producción</strong></li>
-                              <li>Copia el <strong>Access Token</strong></li>
-                            </ol>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="gap-2 w-full"
-                              onClick={() => window.open("https://www.mercadopago.com/developers/panel", "_blank")}
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Ir a Mercado Pago Developers
-                            </Button>
-                          </>
-                        )}
-                        {selectedProvider === "clip" && (
-                          <>
-                            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                              <li>Ve al <strong>Portal de Desarrolladores de Clip</strong></li>
-                              <li>Inicia sesión con tu cuenta de Clip</li>
-                              <li>Crea una nueva aplicación</li>
-                              <li>Copia el <strong>API Key</strong> o <strong>Access Token</strong></li>
-                            </ol>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="gap-2 w-full"
-                              onClick={() => window.open("https://developer.clip.mx/", "_blank")}
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Ir a Clip Developers
-                            </Button>
-                          </>
-                        )}
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                  <div>
+                    <h2 className="text-xl font-semibold">Conecta tu Terminal</h2>
+                    <p className="text-muted-foreground mt-1">
+                      Vincula tu terminal de Mercado Pago Point para cobrar con tarjeta directamente desde el punto de venta
+                    </p>
+                  </div>
 
                   <Button 
-                    onClick={handleFetchDevices}
-                    disabled={!formData.accessToken || loadingDevices}
-                    className="w-full"
-                    data-testid="button-fetch-devices"
+                    size="lg" 
+                    className="w-full bg-[#009EE3] hover:bg-[#007BB5] text-white"
+                    onClick={handleConnect}
+                    disabled={connecting}
+                    data-testid="button-connect-mercadopago"
                   >
-                    {loadingDevices ? (
+                    {connecting ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Buscando dispositivos...
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Conectando...
                       </>
                     ) : (
                       <>
-                        <Smartphone className="h-4 w-4 mr-2" />
-                        Buscar Dispositivos
+                        <Zap className="mr-2 h-5 w-5" />
+                        Conectar con Mercado Pago
                       </>
                     )}
                   </Button>
+
+                  <p className="text-xs text-muted-foreground">
+                    Serás redirigido a Mercado Pago para autorizar la conexión
+                  </p>
                 </div>
-              )}
+              </CardContent>
+            </Card>
 
-              {step === 2 && (
-                <div className="space-y-4">
-                  {devices.length > 0 ? (
-                    <div className="space-y-2">
-                      <Label>Selecciona tu dispositivo</Label>
-                      <div className="grid gap-2">
-                        {devices.map((device) => (
-                          <Button
-                            key={device.id}
-                            variant="outline"
-                            className="h-auto py-3 px-4 justify-start text-left"
-                            onClick={() => handleSelectDevice(device.id)}
-                            data-testid={`button-select-device-${device.id}`}
-                          >
-                            <div className="flex items-center gap-3 w-full">
-                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <CreditCard className="h-5 w-5 text-primary" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{device.model || "Terminal"}</p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  ID: {device.id}
-                                </p>
-                              </div>
-                              {device.operatingMode === "PDV" && (
-                                <Badge variant="secondary" className="shrink-0">
-                                  <Zap className="h-3 w-3 mr-1" />
-                                  POS
-                                </Badge>
-                              )}
-                            </div>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="text-center py-4">
-                        <p className="text-muted-foreground text-sm mb-4">
-                          Ingresa el Device ID de tu terminal manualmente
-                        </p>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Device ID</Label>
-                        <Input
-                          placeholder="PAX_A910__SMARTPOS123456789"
-                          value={formData.deviceId}
-                          onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
-                          data-testid="input-device-id"
-                        />
-                      </div>
-                      <Button
-                        onClick={() => setStep(3)}
-                        disabled={!formData.deviceId}
-                        className="w-full"
-                      >
-                        Continuar
-                      </Button>
-                    </div>
-                  )}
-                  
-                  <Button
-                    variant="ghost"
-                    onClick={() => setStep(1)}
-                    className="w-full"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Volver
-                  </Button>
+            <div className="space-y-3">
+              <h3 className="font-medium text-sm text-muted-foreground">Cómo funciona</h3>
+              <div className="grid gap-3">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">1</div>
+                  <div>
+                    <p className="font-medium">Haz clic en "Conectar"</p>
+                    <p className="text-sm text-muted-foreground">Inicia sesión con tu cuenta de Mercado Pago</p>
+                  </div>
                 </div>
-              )}
-
-              {step === 3 && (
-                <div className="space-y-4">
-                  <div className="rounded-lg border p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Proveedor</span>
-                      <span className="font-medium">{providerInfo?.name}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Device ID</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm truncate max-w-[200px]">
-                          {formData.deviceId}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(formData.deviceId)}
-                        >
-                          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                        </Button>
-                      </div>
-                    </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">2</div>
+                  <div>
+                    <p className="font-medium">Selecciona tu terminal</p>
+                    <p className="text-sm text-muted-foreground">Elige cuál Point quieres usar</p>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Terminal predeterminada</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Se usará automáticamente para pagos con tarjeta
-                      </p>
-                    </div>
-                    <Switch
-                      checked={formData.isDefault}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked })}
-                      data-testid="switch-default"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Terminal activa</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Desactiva temporalmente sin eliminar
-                      </p>
-                    </div>
-                    <Switch
-                      checked={formData.enabled}
-                      onCheckedChange={(checked) => setFormData({ ...formData, enabled: checked })}
-                      data-testid="switch-enabled"
-                    />
-                  </div>
-
-                  {!editingTerminal && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setStep(devices.length > 0 ? 2 : 1)}
-                      className="w-full"
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Volver
-                    </Button>
-                  )}
                 </div>
-              )}
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">3</div>
+                  <div>
+                    <p className="font-medium">¡Listo para cobrar!</p>
+                    <p className="text-sm text-muted-foreground">Los cobros con tarjeta se enviarán automáticamente a tu terminal</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {step === 3 && (
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={handleSave}
-                  disabled={saving}
-                  style={{ backgroundColor: providerInfo?.color }}
-                  data-testid="button-save-terminal"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      {editingTerminal ? "Guardar Cambios" : "Conectar Terminal"}
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
+            {demoMode && (
+              <div className="p-4 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-800 dark:text-amber-200">Modo Demo</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                      La integración con Mercado Pago no está configurada. Contacta al administrador para habilitarla.
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
-          </DialogContent>
-        </Dialog>
+          </div>
+        ) : (
+          <div className="max-w-lg mx-auto space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <CreditCard className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Mercado Pago</CardTitle>
+                      <CardDescription>Cuenta conectada</CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="gap-1 border-green-500 text-green-600">
+                    <Wifi className="h-3 w-3" />
+                    Conectado
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {connection.selected_device_id ? (
+                  <div className="p-4 rounded-lg bg-muted/50 border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Smartphone className="h-8 w-8 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{connection.selected_device_name}</p>
+                          <p className="text-sm text-muted-foreground">Terminal activa</p>
+                        </div>
+                      </div>
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-blue-800 dark:text-blue-200">Selecciona tu terminal</p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            Tu cuenta está conectada. Ahora selecciona qué terminal quieres usar.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      className="w-full" 
+                      onClick={fetchDevices}
+                      disabled={loadingDevices}
+                      data-testid="button-select-terminal"
+                    >
+                      {loadingDevices ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Buscando terminales...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Buscar mis terminales
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">
+                    {connection.live_mode ? "Modo producción" : "Modo pruebas"}
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-destructive hover:text-destructive"
+                    onClick={handleDisconnect}
+                    disabled={disconnecting}
+                    data-testid="button-disconnect"
+                  >
+                    {disconnecting ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="mr-2 h-4 w-4" />
+                    )}
+                    Desconectar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {connection.selected_device_id && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Cómo cobrar con tarjeta</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">1</div>
+                    <p className="text-sm">Agrega productos al carrito y presiona "Cobrar"</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">2</div>
+                    <p className="text-sm">Selecciona "Tarjeta" como método de pago</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">3</div>
+                    <p className="text-sm">El cobro se enviará automáticamente a tu terminal</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">4</div>
+                    <p className="text-sm">El cliente paga en la terminal y la venta se completa</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
+
+      <Dialog open={showDeviceDialog} onOpenChange={setShowDeviceDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Selecciona tu terminal</DialogTitle>
+            <DialogDescription>
+              Elige la terminal Point que usarás para cobrar
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-2 max-h-[300px] overflow-auto">
+            {devices.length === 0 ? (
+              <div className="text-center py-8">
+                <Smartphone className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No se encontraron terminales</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Asegúrate de que tu terminal esté encendida y conectada a internet
+                </p>
+              </div>
+            ) : (
+              devices.map((device) => (
+                <button
+                  key={device.id}
+                  className="w-full p-4 rounded-lg border hover:bg-muted/50 transition-colors flex items-center justify-between text-left"
+                  onClick={() => handleSelectDevice(device)}
+                  disabled={selectingDevice === device.id}
+                  data-testid={`button-device-${device.id}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Smartphone className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Terminal {device.pos_id || device.id.slice(-6)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {device.operating_mode === "PDV" ? "Modo integrado" : device.operating_mode}
+                      </p>
+                    </div>
+                  </div>
+                  {selectingDevice === device.id ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeviceDialog(false)}>
+              Cancelar
+            </Button>
+            <Button variant="outline" onClick={fetchDevices} disabled={loadingDevices}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${loadingDevices ? "animate-spin" : ""}`} />
+              Actualizar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
