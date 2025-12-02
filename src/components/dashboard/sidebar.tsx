@@ -41,7 +41,7 @@ const navigation = [
     { name: "Devoluciones", href: "/dashboard/returns", icon: PackageX },
     { name: "Clientes", href: "/dashboard/customers", icon: UsersIcon },
     { name: "Solicitudes", href: "/dashboard/requests", icon: Ticket },
-    { name: "Reportes", href: "/dashboard/reports", icon: BarChart3 },
+    { name: "Reportes", href: "/dashboard/reportes", icon: BarChart3 },
     { name: "Configuración", href: "/dashboard/settings", icon: Settings },
 ];
 
