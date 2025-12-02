@@ -27,7 +27,12 @@ import {
     Database,
     Plus,
     Trash2,
+    Globe,
+    Printer,
+    ChevronRight,
+    Truck,
 } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { BrandSettingsForm } from "@/components/brands/brand-settings-form";
 
@@ -158,6 +163,46 @@ export default function SettingsPage() {
                     <p className="text-muted-foreground">
                         Administra la configuración de tu sistema de punto de venta
                     </p>
+                </div>
+
+                {/* Quick Access - Platforms & Printers */}
+                <div className="grid gap-4 md:grid-cols-2">
+                    <Link href="/dashboard/settings/platforms" data-testid="link-platforms-config">
+                        <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
+                            <CardContent className="flex items-center justify-between p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                                        <Truck className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Plataformas</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Uber Eats, Didi Food, Rappi y más
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/dashboard/settings/printers" data-testid="link-printers-config">
+                        <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
+                            <CardContent className="flex items-center justify-between p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
+                                        <Printer className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Impresoras</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Configurar impresoras térmicas 58mm y 80mm
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
 
                 {/* Settings Tabs */}
