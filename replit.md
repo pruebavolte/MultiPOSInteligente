@@ -5,7 +5,7 @@
 SalvadoreX es un enterprise-grade Point of Sale (POS) system con capacidades AI-powered. La aplicación está construida con Next.js 16, React 19, TypeScript, y utiliza Supabase como base de datos principal.
 
 **Status**: ✅ Base de datos configurada y poblada con datos de prueba
-**Last Updated**: 2025-12-02 - Kitchen Display module (/dashboard/cocina) with real-time orders, color-coded status cards, webhook endpoints for Uber Eats/Didi Food/Rappi; redesigned payment modal with numpad validation; complete printer system (58mm/80mm)
+**Last Updated**: 2025-12-02 - Payment terminal integration (Mercado Pago Point, Clip) with automatic payment processing; terminal configuration page at /dashboard/settings/terminals; Kitchen Display module (/dashboard/cocina) with real-time orders; redesigned payment modal with numpad validation and terminal status; complete printer system (58mm/80mm)
 
 ## User Preferences
 
@@ -98,6 +98,28 @@ IMAGE_GENERATION_MODEL=google/gemini-2.5-flash-image-preview
 - ✅ Multiple payment methods: Efectivo, Tarjeta, Transferencia, Crédito
 - ✅ Real-time change/remaining calculation
 - ✅ Customer selection for credit payments
+- ✅ **Terminal integration**: Auto-detects configured terminals when selecting "Tarjeta"
+- ✅ **Terminal status display**: Shows processing, approved, rejected states with visual feedback
+- ✅ **Auto-complete**: Automatically completes sale when terminal payment is approved
+- ✅ **Link terminal prompt**: First-time users see option to connect their terminal
+
+### Payment Terminals (NEW)
+- ✅ Support for **Mercado Pago Point** and **Clip** terminals
+- ✅ Configuration page at `/dashboard/settings/terminals`
+- ✅ Step-by-step accordion instructions for easy setup
+- ✅ Terminal discovery and device listing
+- ✅ Test connection functionality
+- ✅ Default terminal selection
+- ✅ Demo mode for testing without real terminals
+- ✅ Automatic payment flow:
+  1. User selects "Tarjeta" in payment modal
+  2. System sends amount to configured terminal
+  3. Customer pays on physical terminal
+  4. System polls for approval status
+  5. On approval, sale completes automatically
+- ✅ Real-time status indicators (Processing, Approved, Rejected, Error)
+- ✅ Authorization code display on successful payments
+- ✅ Quick access from Settings page with gradient icon
 
 ### Printer System
 - ✅ Multi-printer configuration (58mm & 80mm thermal printers)
