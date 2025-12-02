@@ -1,8 +1,8 @@
 import { CurrencyCode } from "@/contexts/language-context";
 
 // Exchange rates relative to MXN (Mexican Peso)
-// These are standardized rates - in production, you'd fetch these from an API
-export const EXCHANGE_RATES: Record<CurrencyCode, number> = {
+// These are fallback rates - real-time rates are fetched from Banco de México API
+export const FALLBACK_EXCHANGE_RATES: Record<CurrencyCode, number> = {
   MXN: 1,        // Base currency
   USD: 0.053,    // 1 MXN = 0.053 USD (approx 19 MXN per USD)
   BRL: 0.30,     // 1 MXN = 0.30 BRL (approx 3.33 MXN per BRL)
@@ -10,11 +10,61 @@ export const EXCHANGE_RATES: Record<CurrencyCode, number> = {
   JPY: 7.95,     // 1 MXN = 7.95 JPY (approx 0.126 MXN per JPY)
 };
 
+// Current exchange rates (updated from API)
+let EXCHANGE_RATES: Record<CurrencyCode, number> = { ...FALLBACK_EXCHANGE_RATES };
+
+// Last update timestamp
+let lastUpdateTime = 0;
+const UPDATE_INTERVAL = 3600000; // 1 hour in milliseconds
+
 export interface PriceDisplay {
   amount: number;
   currency: CurrencyCode;
   symbol: string;
   formatted: string;
+}
+
+/**
+ * Updates exchange rates from the API
+ * This is called automatically by the currency hook on the client
+ */
+export async function updateExchangeRates(): Promise<boolean> {
+  // Check if we need to update (throttle to 1 hour)
+  const now = Date.now();
+  if (now - lastUpdateTime < UPDATE_INTERVAL) {
+    return false; // No update needed
+  }
+
+  try {
+    const response = await fetch("/api/exchange-rates");
+    const data = await response.json();
+
+    if (data.success && data.rates) {
+      EXCHANGE_RATES = data.rates;
+      lastUpdateTime = now;
+      console.log("Exchange rates updated from Banco de México", data.rates);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Failed to update exchange rates:", error);
+    return false;
+  }
+}
+
+/**
+ * Gets the current exchange rates
+ */
+export function getExchangeRates(): Record<CurrencyCode, number> {
+  return { ...EXCHANGE_RATES };
+}
+
+/**
+ * Gets the last update time
+ */
+export function getLastUpdateTime(): number {
+  return lastUpdateTime;
 }
 
 /**

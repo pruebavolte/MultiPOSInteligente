@@ -11,9 +11,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Check } from "lucide-react";
+import { DollarSign, Check, TrendingUp } from "lucide-react";
 import { CurrencyCode } from "@/contexts/language-context";
-import { getCurrencySymbol } from "@/lib/currency";
+import { getCurrencySymbol, getExchangeRates } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 interface CurrencySelectorProps {
@@ -38,9 +38,16 @@ export function CurrencySelector({
   language = "es",
 }: CurrencySelectorProps) {
   const [open, setOpen] = useState(false);
+  const [exchangeRates, setExchangeRates] = useState<Record<CurrencyCode, number>>({});
 
   const currentCurrencyInfo = CURRENCY_INFO[selectedCurrency];
   const currencySymbol = getCurrencySymbol(selectedCurrency);
+
+  // Cargar tipos de cambio
+  useEffect(() => {
+    const rates = getExchangeRates();
+    setExchangeRates(rates);
+  }, [open]); // Recargar cuando se abre el dropdown
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -58,16 +65,20 @@ export function CurrencySelector({
           </Badge>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4" />
-          {language === "es" ? "Seleccionar Divisa" : "Select Currency"}
+          <TrendingUp className="h-4 w-4" />
+          {language === "es" ? "Tipo de Cambio" : "Exchange Rate"}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableCurrencies.map((currency) => {
           const info = CURRENCY_INFO[currency];
           const symbol = getCurrencySymbol(currency);
           const isSelected = currency === selectedCurrency;
+          const rate = exchangeRates[currency];
+
+          // Calcular cuánto vale 1 unidad de esta divisa en MXN
+          const valueInMXN = rate ? 1 / rate : 0;
 
           return (
             <DropdownMenuItem
@@ -77,7 +88,7 @@ export function CurrencySelector({
                 setOpen(false);
               }}
               className={cn(
-                "cursor-pointer gap-3 py-2.5",
+                "cursor-pointer gap-3 py-3",
                 isSelected && "bg-primary/10 font-semibold"
               )}
             >
@@ -90,6 +101,16 @@ export function CurrencySelector({
                 <p className="text-xs text-muted-foreground">
                   {language === "es" ? info.nameEs : info.name}
                 </p>
+                {rate && currency !== "MXN" && (
+                  <p className="text-xs font-mono text-primary mt-1">
+                    1 {currency} = ${valueInMXN.toFixed(2)} MXN
+                  </p>
+                )}
+                {currency === "MXN" && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {language === "es" ? "Divisa base" : "Base currency"}
+                  </p>
+                )}
               </div>
               {isSelected && (
                 <Check className="h-4 w-4 text-primary" />
@@ -97,6 +118,14 @@ export function CurrencySelector({
             </DropdownMenuItem>
           );
         })}
+        <DropdownMenuSeparator />
+        <div className="px-2 py-2">
+          <p className="text-[10px] text-muted-foreground text-center">
+            {language === "es"
+              ? "Tipos de cambio del Banco de México"
+              : "Exchange rates from Banco de México"}
+          </p>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -113,6 +142,18 @@ export function useSelectedCurrency(defaultCurrency: CurrencyCode = "MXN") {
       if (saved && ["MXN", "USD", "BRL", "EUR", "JPY"].includes(saved)) {
         setSelectedCurrency(saved as CurrencyCode);
       }
+    }
+  }, []);
+
+  // Actualizar tipos de cambio al montar el componente
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Import updateExchangeRates dynamically to avoid issues
+      import("@/lib/currency").then(({ updateExchangeRates }) => {
+        updateExchangeRates().catch((error) => {
+          console.error("Failed to update exchange rates:", error);
+        });
+      });
     }
   }, []);
 
