@@ -557,6 +557,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
 
                         const { error: variantError } = await supabaseAdmin
                           .from("product_variants")
+                          // @ts-expect-error - Supabase types may not include all fields
                           .insert([{
                             product_id: existingProduct.id,
                             variant_type_id: variantTypeId,
@@ -682,6 +683,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
 
                       const { error: variantError } = await supabaseAdmin
                         .from("product_variants")
+                        // @ts-expect-error - Supabase types may not include all fields
                         .insert([{
                           product_id: productId,
                           variant_type_id: variantTypeId,
