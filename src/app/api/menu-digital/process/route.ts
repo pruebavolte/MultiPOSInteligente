@@ -5,6 +5,13 @@ import { auth } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/lib/supabase/users";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
+// Helper to insert product variants without type checking
+async function insertProductVariant(data: Record<string, unknown>) {
+  return await (supabaseAdmin as any)
+    .from("product_variants")
+    .insert([data]);
+}
+
 // OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
@@ -565,9 +572,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                             active: true,
                             sort_order: i,
                           };
-                        const { error: variantError } = await supabaseAdmin
-                          .from("product_variants")
-                          .insert([variantData] as any);
+                        const { error: variantError } = await insertProductVariant(variantData);
 
                         if (variantError) {
                           console.error(`    ✗ Error creating variant "${option.name}":`, variantError.message);
@@ -691,9 +696,7 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                           active: true,
                           sort_order: i,
                         };
-                      const { error: variantError } = await supabaseAdmin
-                        .from("product_variants")
-                        .insert([variantData] as any);
+                      const { error: variantError } = await insertProductVariant(variantData);
 
                       if (variantError) {
                         console.error(`    ✗ Error creating variant "${option.name}":`, variantError.message);
