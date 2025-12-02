@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/login(.*)',
   '/signup(.*)',
+  '/fila/(.*)',
 ]);
 
 // Check if the menu page has a restaurantId param (public sharing)
@@ -15,11 +16,13 @@ function isPublicMenuRoute(request: Request) {
   return url.pathname === '/dashboard-user/menu' && url.searchParams.has('restaurantId');
 }
 
-// Check if the API route is for public menu access
-function isPublicMenuApiRoute(request: Request) {
+// Check if the API route is for public menu access or queue
+function isPublicApiRoute(request: Request) {
   const url = new URL(request.url);
   return (url.pathname === '/api/menu-products' && url.searchParams.has('restaurantId')) ||
-         url.pathname === '/api/orders';
+         url.pathname === '/api/orders' ||
+         url.pathname === '/api/queue' ||
+         url.pathname === '/api/queue/status';
 }
 
 // Check if request is for a PWA asset (should be public)
@@ -90,7 +93,7 @@ export default clerkMiddleware(async (auth, request) => {
   }
 
   // Protect all routes except public ones
-  if (!isPublicRoute(request) && !isPublicMenuRoute(request) && !isPublicMenuApiRoute(request)) {
+  if (!isPublicRoute(request) && !isPublicMenuRoute(request) && !isPublicApiRoute(request)) {
     await auth.protect();
   }
 

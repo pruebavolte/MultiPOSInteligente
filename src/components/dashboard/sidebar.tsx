@@ -7,7 +7,7 @@ import {
     Home,
     BarChart3,
     Package,
-    Users,
+    Users as UsersIcon,
     Settings,
     ShoppingCart,
     ChevronLeft,
@@ -17,6 +17,7 @@ import {
     Soup,
     Ticket,
     UtensilsCrossed,
+    Users,
 } from "lucide-react";
 import {
     Sheet,
@@ -30,12 +31,13 @@ import { OrdersNavItem } from "@/components/dashboard/orders-nav-item";
 const navigation = [
     { name: "POS", href: "/dashboard/pos", icon: ShoppingCart },
     { name: "Cocina", href: "/dashboard/cocina", icon: UtensilsCrossed },
+    { name: "Fila Virtual", href: "/dashboard/fila", icon: Users },
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Inventario", href: "/dashboard/inventory", icon: Package },
     { name: "Ingredientes", href: "/dashboard/ingredients", icon: Soup },
     { name: "Menu Digital", href: "/dashboard/menu-digital", icon: ChefHat },
     { name: "Devoluciones", href: "/dashboard/returns", icon: PackageX },
-    { name: "Clientes", href: "/dashboard/customers", icon: Users },
+    { name: "Clientes", href: "/dashboard/customers", icon: UsersIcon },
     { name: "Solicitudes", href: "/dashboard/requests", icon: Ticket },
     { name: "Reportes", href: "/dashboard/reports", icon: BarChart3 },
     { name: "Configuración", href: "/dashboard/settings", icon: Settings },
