@@ -4,8 +4,25 @@ import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 export const dynamic = "force-dynamic";
 
 const MP_CLIENT_ID = process.env.MERCADOPAGO_CLIENT_ID;
-const MP_REDIRECT_URI = process.env.MERCADOPAGO_REDIRECT_URI || 
-  (process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/api/oauth/mercadopago/callback` : null);
+
+function getPublicUrl(request: NextRequest): string {
+  if (process.env.MERCADOPAGO_REDIRECT_URI) {
+    return process.env.MERCADOPAGO_REDIRECT_URI;
+  }
+  
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/api/oauth/mercadopago/callback`;
+  }
+  
+  const host = request.headers.get("host") || request.headers.get("x-forwarded-host");
+  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  
+  if (host && !host.includes("localhost")) {
+    return `${protocol}://${host}/api/oauth/mercadopago/callback`;
+  }
+  
+  return `${request.nextUrl.origin}/api/oauth/mercadopago/callback`;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +49,7 @@ export async function GET(request: NextRequest) {
       nonce: Math.random().toString(36).substring(7)
     })).toString("base64");
 
-    const redirectUri = MP_REDIRECT_URI || `${request.nextUrl.origin}/api/oauth/mercadopago/callback`;
+    const redirectUri = getPublicUrl(request);
 
     const authUrl = new URL("https://auth.mercadopago.com/authorization");
     authUrl.searchParams.set("client_id", MP_CLIENT_ID);
@@ -43,7 +60,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       authUrl: authUrl.toString(),
-      state
+      state,
+      redirectUri
     });
   } catch (error: any) {
     console.error("[OAuth Connect Error]", error);
