@@ -87,6 +87,7 @@ interface SystemModule {
   name: string;
   name_en?: string;
   description?: string;
+  description_en?: string;
   icon?: string;
   category: string;
   is_premium: boolean;
@@ -621,7 +622,7 @@ function ModuleItem({
 }: {
   config: VerticalModuleConfig;
   type: "required" | "recommended" | "optional";
-  t: Record<string, string | Record<string, string>>;
+  t: { required: string; recommended: string; optional: string; premium: string; ai: string };
   language: string;
 }) {
   const typeColors = {
@@ -630,7 +631,7 @@ function ModuleItem({
     optional: "bg-muted text-muted-foreground",
   };
 
-  const typeLabels = {
+  const typeLabels: Record<string, string> = {
     required: t.required,
     recommended: t.recommended,
     optional: t.optional,
@@ -654,7 +655,7 @@ function ModuleItem({
           <Sparkles className="h-3 w-3 text-purple-500" />
         )}
         <Badge variant="outline" className="text-xs">
-          {typeLabels[type]}
+          {typeLabels[type] || type}
         </Badge>
       </div>
     </div>
