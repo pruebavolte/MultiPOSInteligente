@@ -18,16 +18,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Settings,
     Store,
-    User,
     Receipt,
     Bell,
-    Shield,
     Save,
     Building2,
     Database,
-    Plus,
-    Trash2,
-    Globe,
     Printer,
     ChevronRight,
     Truck,
@@ -65,41 +60,6 @@ export default function SettingsPage() {
     const [lowStockAlerts, setLowStockAlerts] = useState(true);
     const [dailySalesReport, setDailySalesReport] = useState(false);
 
-    // Database settings state
-    const [databases, setDatabases] = useState([
-        { id: 1, name: "General", type: "general", status: "active" },
-        { id: 2, name: "Restaurantes", type: "restaurant", status: "active" },
-    ]);
-    const [showDbForm, setShowDbForm] = useState(false);
-    const [newDb, setNewDb] = useState({ name: "", type: "general" });
-
-    const handleAddDatabase = () => {
-        if (!newDb.name.trim()) {
-            toast.error("El nombre de la base de datos es requerido");
-            return;
-        }
-        setDatabases([
-            ...databases,
-            {
-                id: Math.max(...databases.map(d => d.id)) + 1,
-                name: newDb.name,
-                type: newDb.type,
-                status: "active",
-            },
-        ]);
-        toast.success(`Base de datos "${newDb.name}" creada`);
-        setNewDb({ name: "", type: "general" });
-        setShowDbForm(false);
-    };
-
-    const handleDeleteDatabase = (id: number) => {
-        if (id <= 2) {
-            toast.error("No puedes eliminar bases de datos del sistema");
-            return;
-        }
-        setDatabases(databases.filter(d => d.id !== id));
-        toast.success("Base de datos eliminada");
-    };
 
     const handleSaveGeneralSettings = async () => {
         setLoading(true);
@@ -166,8 +126,26 @@ export default function SettingsPage() {
                     </p>
                 </div>
 
-                {/* Quick Access - Terminals, Platforms & Printers */}
-                <div className="grid gap-4 md:grid-cols-3">
+                {/* Quick Access - Terminals, Platforms, Printers & Databases */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Link href="/dashboard/settings/databases" data-testid="link-databases-config">
+                        <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
+                            <CardContent className="flex items-center justify-between p-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
+                                        <Database className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-lg">Bases de Datos</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Supabase Primary/Secondary
+                                        </p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </CardContent>
+                        </Card>
+                    </Link>
                     <Link href="/dashboard/settings/terminals" data-testid="link-terminals-config">
                         <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
                             <CardContent className="flex items-center justify-between p-6">
@@ -619,106 +597,32 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Database className="h-5 w-5" />
-                                    Bases de Datos
+                                    Bases de Datos Supabase
                                 </CardTitle>
                                 <CardDescription>
-                                    Gestiona las bases de datos generales y por giro de negocio
+                                    Configura y cambia entre tus bases de datos de Supabase
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {/* Add Database Form */}
-                                {showDbForm && (
-                                    <div className="border rounded-lg p-4 space-y-4 bg-muted/50">
-                                        <div className="space-y-2">
-                                            <Label>Nombre de la Base de Datos</Label>
-                                            <Input
-                                                placeholder="Ej: Cafeterías"
-                                                value={newDb.name}
-                                                onChange={(e) => setNewDb({ ...newDb, name: e.target.value })}
-                                                data-testid="input-db-name"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Tipo / Giro de Negocio</Label>
-                                            <Select
-                                                value={newDb.type}
-                                                onValueChange={(val) => setNewDb({ ...newDb, type: val })}
-                                            >
-                                                <SelectTrigger data-testid="select-db-type">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="general">General</SelectItem>
-                                                    <SelectItem value="restaurant">Restaurante</SelectItem>
-                                                    <SelectItem value="cafe">Cafetería</SelectItem>
-                                                    <SelectItem value="retail">Retail / Tienda</SelectItem>
-                                                    <SelectItem value="pharmacy">Farmacia</SelectItem>
-                                                    <SelectItem value="other">Otro</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button onClick={handleAddDatabase} data-testid="button-create-db">
-                                                Crear Base de Datos
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setShowDbForm(false)}
-                                                data-testid="button-cancel-db"
-                                            >
-                                                Cancelar
-                                            </Button>
-                                        </div>
+                                <div className="flex flex-col items-center justify-center py-8 text-center">
+                                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mb-4">
+                                        <Database className="h-8 w-8 text-white" />
                                     </div>
-                                )}
-
-                                {/* Databases List */}
-                                <div className="space-y-3">
-                                    {databases.map((db) => (
-                                        <div
-                                            key={db.id}
-                                            className="flex items-center justify-between p-4 border rounded-lg"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Database className="h-5 w-5 text-primary" />
-                                                <div>
-                                                    <p className="font-medium">{db.name}</p>
-                                                    <p className="text-sm text-muted-foreground capitalize">
-                                                        {db.type}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1">
-                                                    <div className="h-2 w-2 rounded-full bg-green-500" />
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {db.status}
-                                                    </span>
-                                                </div>
-                                                {db.id > 2 && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handleDeleteDatabase(db.id)}
-                                                        data-testid={`button-delete-db-${db.id}`}
-                                                    >
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                    <h3 className="font-semibold text-lg mb-2">
+                                        Gestion de Bases de Datos
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground max-w-md mb-6">
+                                        Administra tus conexiones a Supabase, cambia entre base de datos 
+                                        principal y secundaria, y prueba las conexiones.
+                                    </p>
+                                    <Link href="/dashboard/settings/databases">
+                                        <Button size="lg" data-testid="button-open-databases">
+                                            <Database className="h-4 w-4 mr-2" />
+                                            Abrir Configuracion de Bases de Datos
+                                            <ChevronRight className="h-4 w-4 ml-2" />
+                                        </Button>
+                                    </Link>
                                 </div>
-
-                                <Separator />
-
-                                {/* Add Button */}
-                                {!showDbForm && (
-                                    <Button onClick={() => setShowDbForm(true)} data-testid="button-add-db">
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Agregar Base de Datos
-                                    </Button>
-                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>

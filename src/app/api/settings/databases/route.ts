@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 import { 
   getActiveDatabase, 
   isSecondaryDatabaseConfigured,
@@ -22,8 +22,8 @@ function maskUrl(url: string): string {
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -55,8 +55,13 @@ export async function GET(request: NextRequest) {
       if (db.configured) {
         try {
           const client = getSupabaseClient(db.target);
-          const { error } = await client.from("users").select("id").limit(1);
-          db.connected = !error;
+          const { error } = await client.rpc('version').maybeSingle();
+          if (error) {
+            const { error: tableError } = await client.from("users").select("id").limit(1);
+            db.connected = !tableError;
+          } else {
+            db.connected = true;
+          }
         } catch (e) {
           db.connected = false;
         }
@@ -78,8 +83,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
