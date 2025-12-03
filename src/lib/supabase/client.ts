@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient, getActiveDatabase, type DatabaseTarget } from './factory';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -7,13 +8,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-// Cliente de Supabase para uso en cliente (browser)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+export const supabase = getSupabaseClient();
+
+export function getSupabaseForDatabase(target: DatabaseTarget) {
+  return getSupabaseClient(target);
+}
+
+export { getActiveDatabase, type DatabaseTarget };
 
 // Tipos para TypeScript (autocompletado)
 export type Database = {

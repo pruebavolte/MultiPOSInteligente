@@ -1,10 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './client';
+import { 
+  getSupabaseAdmin as getSupabaseAdminFromFactory, 
+  getActiveDatabase, 
+  getSupabaseUrl,
+  getSupabaseServiceKey,
+  type DatabaseTarget 
+} from './factory';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Función para verificar variables de entorno
 function checkEnvVars() {
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     const missingVars = [];
@@ -18,26 +24,27 @@ function checkEnvVars() {
   }
 }
 
-// Solo verificar variables de entorno cuando se intente usar el cliente
 let _supabaseAdmin: ReturnType<typeof createClient<Database>> | null = null;
 
-// Cliente de Supabase para uso en servidor (con Service Role Key)
-// ADVERTENCIA: Este cliente tiene permisos completos, úsalo solo en código del servidor
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(target, prop) {
     if (!_supabaseAdmin) {
       checkEnvVars();
-      _supabaseAdmin = createClient<Database>(
-        supabaseUrl,
-        supabaseServiceRoleKey,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-          },
-        }
-      );
+      _supabaseAdmin = getSupabaseAdminFromFactory();
     }
     return (_supabaseAdmin as any)[prop];
   }
 });
+
+export function getSupabaseAdminForDatabase(target: DatabaseTarget) {
+  return getSupabaseAdminFromFactory(target);
+}
+
+export function getSupabaseCredentials(target: DatabaseTarget = getActiveDatabase()) {
+  return {
+    url: getSupabaseUrl(target),
+    serviceKey: getSupabaseServiceKey(target),
+  };
+}
+
+export { getActiveDatabase, type DatabaseTarget };

@@ -20,16 +20,16 @@ localPort = 32977
 externalPort = 5000
 
 [[ports]]
-localPort = 34359
-externalPort = 8080
-
-[[ports]]
 localPort = 35371
 externalPort = 6000
 
 [[ports]]
 localPort = 35575
 externalPort = 6800
+
+[[ports]]
+localPort = 37297
+externalPort = 8080
 
 [[ports]]
 localPort = 37775
@@ -107,3 +107,5 @@ OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet"
 IMAGE_GENERATION_MODEL = "google/gemini-2.5-flash-image-preview"
 MERCADOPAGO_REDIRECT_URI = "https://www.systeminternational.app/api/oauth/mercadopago/callback"
 NEXT_PUBLIC_APP_URL = "https://www.systeminternational.app"
+SUPABASE_URL_2 = "https://zhvwmzkcqngcaqpdxtwr.supabase.co"
+SUPABASE_ANON_KEY_2 = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpodndtemtjcW5nY2FxcGR4dHdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxNjcwMTgsImV4cCI6MjA3OTc0MzAxOH0.ygTc754INgqYJEMD0wc_CzRCzRxUfp4hq3rYvJRpjkk"
