@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Pool } from "pg";
 
 export const dynamic = "force-dynamic";
 
@@ -7,12 +6,9 @@ const MP_CLIENT_ID = process.env.MERCADOPAGO_CLIENT_ID;
 const MP_CLIENT_SECRET = process.env.MERCADOPAGO_CLIENT_SECRET;
 const MP_REDIRECT_URI = process.env.MERCADOPAGO_REDIRECT_URI;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
-const DATABASE_URL = process.env.DATABASE_URL;
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 function getBaseUrl(request: NextRequest): string {
   if (APP_URL) {
@@ -27,6 +23,79 @@ function getBaseUrl(request: NextRequest): string {
   }
   
   return request.nextUrl.origin;
+}
+
+async function saveConnectionToSupabase(data: {
+  user_id: string;
+  provider: string;
+  mp_user_id: string | null;
+  access_token: string;
+  refresh_token: string;
+  public_key: string | null;
+  token_expires_at: string;
+  live_mode: boolean;
+  status: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const restUrl = `${SUPABASE_URL}/rest/v1/terminal_connections`;
+  
+  const payload = {
+    ...data,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const response = await fetch(restUrl, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates,return=representation"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error("[Supabase REST Error]", JSON.stringify(errorData));
+      
+      if (errorData.code === "PGRST205" || errorData.code === "PGRST202") {
+        const rpcResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/upsert_terminal_connection`, {
+          method: "POST",
+          headers: {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            p_user_id: data.user_id,
+            p_provider: data.provider,
+            p_mp_user_id: data.mp_user_id,
+            p_access_token: data.access_token,
+            p_refresh_token: data.refresh_token,
+            p_public_key: data.public_key,
+            p_token_expires_at: data.token_expires_at,
+            p_live_mode: data.live_mode,
+            p_status: data.status
+          })
+        });
+
+        if (!rpcResponse.ok) {
+          const rpcError = await rpcResponse.json().catch(() => ({}));
+          return { success: false, error: rpcError.message || "RPC failed" };
+        }
+        
+        return { success: true };
+      }
+      
+      return { success: false, error: errorData.message || "API error" };
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("[Save Connection Error]", error);
+    return { success: false, error: error.message };
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -94,7 +163,6 @@ export async function GET(request: NextRequest) {
     }
 
     console.log("[OAuth Callback] Exchanging code for token...");
-    console.log("[OAuth Callback] Redirect URI:", redirectUri);
 
     const tokenResponse = await fetch("https://api.mercadopago.com/oauth/token", {
       method: "POST",
@@ -113,41 +181,26 @@ export async function GET(request: NextRequest) {
     const tokens = await tokenResponse.json();
     console.log("[OAuth Callback] Token exchange successful, saving to database...");
 
-    const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+    const saveResult = await saveConnectionToSupabase({
+      user_id: stateData.userId,
+      provider: 'mercadopago',
+      mp_user_id: tokens.user_id?.toString() || null,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      public_key: tokens.public_key || null,
+      token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+      live_mode: tokens.live_mode || false,
+      status: 'connected'
+    });
 
-    const query = `
-      INSERT INTO terminal_connections (
-        user_id, provider, mp_user_id, access_token, refresh_token, 
-        public_key, token_expires_at, live_mode, status, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-      ON CONFLICT (user_id, provider) 
-      DO UPDATE SET
-        mp_user_id = EXCLUDED.mp_user_id,
-        access_token = EXCLUDED.access_token,
-        refresh_token = EXCLUDED.refresh_token,
-        public_key = EXCLUDED.public_key,
-        token_expires_at = EXCLUDED.token_expires_at,
-        live_mode = EXCLUDED.live_mode,
-        status = EXCLUDED.status,
-        updated_at = NOW()
-      RETURNING id
-    `;
+    if (!saveResult.success) {
+      console.error("[DB Save Error]", saveResult.error);
+      return NextResponse.redirect(
+        new URL(`/dashboard/settings/terminals?error=save_failed&details=${encodeURIComponent(saveResult.error || '')}`, baseUrl)
+      );
+    }
 
-    const values = [
-      stateData.userId,
-      'mercadopago',
-      tokens.user_id?.toString() || null,
-      tokens.access_token,
-      tokens.refresh_token,
-      tokens.public_key || null,
-      tokenExpiresAt,
-      tokens.live_mode || false,
-      'connected'
-    ];
-
-    const result = await pool.query(query, values);
-    console.log("[OAuth Callback] Connection saved successfully!", result.rows[0]);
-
+    console.log("[OAuth Callback] Connection saved successfully!");
     return NextResponse.redirect(
       new URL("/dashboard/settings/terminals?connected=mercadopago", baseUrl)
     );
