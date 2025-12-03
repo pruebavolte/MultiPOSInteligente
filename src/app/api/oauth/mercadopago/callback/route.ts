@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { Pool } from "pg";
 
 export const dynamic = "force-dynamic";
 
@@ -7,9 +7,12 @@ const MP_CLIENT_ID = process.env.MERCADOPAGO_CLIENT_ID;
 const MP_CLIENT_SECRET = process.env.MERCADOPAGO_CLIENT_SECRET;
 const MP_REDIRECT_URI = process.env.MERCADOPAGO_REDIRECT_URI;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
+const DATABASE_URL = process.env.DATABASE_URL;
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 function getBaseUrl(request: NextRequest): string {
   if (APP_URL) {
@@ -110,35 +113,41 @@ export async function GET(request: NextRequest) {
     const tokens = await tokenResponse.json();
     console.log("[OAuth Callback] Token exchange successful, saving to database...");
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
 
-    const { error: dbError } = await supabase
-      .from("terminal_connections")
-      .upsert({
-        user_id: stateData.userId,
-        provider: "mercadopago",
-        mp_user_id: tokens.user_id?.toString(),
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        public_key: tokens.public_key,
-        token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        live_mode: tokens.live_mode,
-        status: "connected",
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: "user_id,provider"
-      });
+    const query = `
+      INSERT INTO terminal_connections (
+        user_id, provider, mp_user_id, access_token, refresh_token, 
+        public_key, token_expires_at, live_mode, status, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+      ON CONFLICT (user_id, provider) 
+      DO UPDATE SET
+        mp_user_id = EXCLUDED.mp_user_id,
+        access_token = EXCLUDED.access_token,
+        refresh_token = EXCLUDED.refresh_token,
+        public_key = EXCLUDED.public_key,
+        token_expires_at = EXCLUDED.token_expires_at,
+        live_mode = EXCLUDED.live_mode,
+        status = EXCLUDED.status,
+        updated_at = NOW()
+      RETURNING id
+    `;
 
-    if (dbError) {
-      console.error("[DB Save Error]", JSON.stringify(dbError));
-      return NextResponse.redirect(
-        new URL(`/dashboard/settings/terminals?error=save_failed&details=${encodeURIComponent(dbError.message || '')}`, baseUrl)
-      );
-    }
+    const values = [
+      stateData.userId,
+      'mercadopago',
+      tokens.user_id?.toString() || null,
+      tokens.access_token,
+      tokens.refresh_token,
+      tokens.public_key || null,
+      tokenExpiresAt,
+      tokens.live_mode || false,
+      'connected'
+    ];
 
-    console.log("[OAuth Callback] Connection saved successfully!");
+    const result = await pool.query(query, values);
+    console.log("[OAuth Callback] Connection saved successfully!", result.rows[0]);
+
     return NextResponse.redirect(
       new URL("/dashboard/settings/terminals?connected=mercadopago", baseUrl)
     );
