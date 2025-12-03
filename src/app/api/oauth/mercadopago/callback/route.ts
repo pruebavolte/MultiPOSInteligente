@@ -62,60 +62,89 @@ async function saveConnectionToSupabase(data: {
 }): Promise<{ success: boolean; error?: string }> {
   const restUrl = `${SUPABASE_URL}/rest/v1/terminal_connections`;
   
-  const payload = {
-    ...data,
-    updated_at: new Date().toISOString()
-  };
-
   try {
-    const response = await fetch(restUrl, {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_SERVICE_KEY,
-        "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": "resolution=merge-duplicates,return=representation"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("[Supabase REST Error]", JSON.stringify(errorData));
-      
-      if (errorData.code === "PGRST205" || errorData.code === "PGRST202") {
-        const rpcResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/upsert_terminal_connection`, {
-          method: "POST",
-          headers: {
-            "apikey": SUPABASE_SERVICE_KEY,
-            "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            p_user_id: data.user_id,
-            p_provider: data.provider,
-            p_mp_user_id: data.mp_user_id,
-            p_access_token: data.access_token,
-            p_refresh_token: data.refresh_token,
-            p_public_key: data.public_key,
-            p_token_expires_at: data.token_expires_at,
-            p_live_mode: data.live_mode,
-            p_status: data.status
-          })
-        });
-
-        if (!rpcResponse.ok) {
-          const rpcError = await rpcResponse.json().catch(() => ({}));
-          return { success: false, error: rpcError.message || "RPC failed" };
+    // First, check if connection already exists for this user+provider
+    const checkResponse = await fetch(
+      `${restUrl}?user_id=eq.${encodeURIComponent(data.user_id)}&provider=eq.${encodeURIComponent(data.provider)}&select=id`,
+      {
+        method: "GET",
+        headers: {
+          "apikey": SUPABASE_SERVICE_KEY,
+          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
         }
-        
-        return { success: true };
       }
-      
-      return { success: false, error: errorData.message || "API error" };
+    );
+
+    if (!checkResponse.ok) {
+      const checkError = await checkResponse.json().catch(() => ({}));
+      console.error("[Supabase Check Error]", JSON.stringify(checkError));
+      return { success: false, error: checkError.message || "Failed to check existing connection" };
     }
 
-    return { success: true };
+    const existingConnections = await checkResponse.json();
+    const now = new Date().toISOString();
+    
+    if (existingConnections && existingConnections.length > 0) {
+      // Update existing connection
+      console.log("[Save Connection] Updating existing connection for user:", data.user_id);
+      const updateUrl = `${restUrl}?user_id=eq.${encodeURIComponent(data.user_id)}&provider=eq.${encodeURIComponent(data.provider)}`;
+      
+      const updateResponse = await fetch(updateUrl, {
+        method: "PATCH",
+        headers: {
+          "apikey": SUPABASE_SERVICE_KEY,
+          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify({
+          mp_user_id: data.mp_user_id,
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+          public_key: data.public_key,
+          token_expires_at: data.token_expires_at,
+          live_mode: data.live_mode,
+          status: data.status,
+          updated_at: now
+        })
+      });
+
+      if (!updateResponse.ok) {
+        const updateError = await updateResponse.json().catch(() => ({}));
+        console.error("[Supabase Update Error]", JSON.stringify(updateError));
+        return { success: false, error: updateError.message || "Failed to update connection" };
+      }
+      
+      console.log("[Save Connection] Update successful");
+      return { success: true };
+    } else {
+      // Insert new connection
+      console.log("[Save Connection] Inserting new connection for user:", data.user_id);
+      
+      const insertResponse = await fetch(restUrl, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_SERVICE_KEY,
+          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify({
+          ...data,
+          created_at: now,
+          updated_at: now
+        })
+      });
+
+      if (!insertResponse.ok) {
+        const insertError = await insertResponse.json().catch(() => ({}));
+        console.error("[Supabase Insert Error]", JSON.stringify(insertError));
+        return { success: false, error: insertError.message || "Failed to insert connection" };
+      }
+      
+      console.log("[Save Connection] Insert successful");
+      return { success: true };
+    }
   } catch (error: any) {
     console.error("[Save Connection Error]", error);
     return { success: false, error: error.message };
