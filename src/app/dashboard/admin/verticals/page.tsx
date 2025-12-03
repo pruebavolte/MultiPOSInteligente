@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Store,
@@ -8,18 +8,17 @@ import {
   ChevronDown,
   ChevronRight,
   Check,
-  X,
   Star,
   Crown,
   Sparkles,
-  Settings2,
-  Layers,
   Package,
   Users,
   Calendar,
   CreditCard,
   BarChart3,
   FolderTree,
+  Settings2,
+  Layers,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,15 +31,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLanguage } from "@/contexts/language-context";
 
 interface VerticalCategory {
   id: string;
@@ -134,7 +125,7 @@ const DynamicIcon = ({ name, className }: { name?: string; className?: string })
 };
 
 export default function VerticalsAdminPage() {
-  const { language } = useLanguage();
+  const [language] = useState<"es" | "en">("es");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVertical, setSelectedVertical] = useState<VerticalDetail | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
