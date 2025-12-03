@@ -5,24 +5,35 @@ import crypto from "crypto";
 export const dynamic = "force-dynamic";
 
 const MP_CLIENT_ID = process.env.MERCADOPAGO_CLIENT_ID;
+const PRODUCTION_URL = "https://www.systeminternational.app";
 
 function getPublicUrl(request: NextRequest): string {
-  if (process.env.MERCADOPAGO_REDIRECT_URI) {
+  console.log("[getPublicUrl] MERCADOPAGO_REDIRECT_URI:", process.env.MERCADOPAGO_REDIRECT_URI);
+  console.log("[getPublicUrl] NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
+  
+  if (process.env.MERCADOPAGO_REDIRECT_URI && !process.env.MERCADOPAGO_REDIRECT_URI.includes("localhost")) {
+    console.log("[getPublicUrl] Using MERCADOPAGO_REDIRECT_URI");
     return process.env.MERCADOPAGO_REDIRECT_URI;
   }
   
-  if (process.env.NEXT_PUBLIC_APP_URL) {
+  if (process.env.NEXT_PUBLIC_APP_URL && !process.env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+    console.log("[getPublicUrl] Using NEXT_PUBLIC_APP_URL");
     return `${process.env.NEXT_PUBLIC_APP_URL}/api/oauth/mercadopago/callback`;
   }
   
   const host = request.headers.get("host") || request.headers.get("x-forwarded-host");
   const protocol = request.headers.get("x-forwarded-proto") || "https";
   
+  console.log("[getPublicUrl] Headers - host:", host, "protocol:", protocol);
+  
   if (host && !host.includes("localhost")) {
-    return `${protocol}://${host}/api/oauth/mercadopago/callback`;
+    const url = `${protocol}://${host}/api/oauth/mercadopago/callback`;
+    console.log("[getPublicUrl] Using headers:", url);
+    return url;
   }
   
-  return `${request.nextUrl.origin}/api/oauth/mercadopago/callback`;
+  console.log("[getPublicUrl] Falling back to PRODUCTION_URL");
+  return `${PRODUCTION_URL}/api/oauth/mercadopago/callback`;
 }
 
 function generateCodeVerifier(): string {

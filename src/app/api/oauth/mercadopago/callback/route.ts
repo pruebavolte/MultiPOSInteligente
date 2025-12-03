@@ -10,19 +10,43 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+const PRODUCTION_URL = "https://www.systeminternational.app";
+
 function getBaseUrl(request: NextRequest): string {
-  if (APP_URL) {
+  console.log("[getBaseUrl] APP_URL:", APP_URL);
+  console.log("[getBaseUrl] MP_REDIRECT_URI:", MP_REDIRECT_URI);
+  
+  if (APP_URL && !APP_URL.includes("localhost")) {
+    console.log("[getBaseUrl] Using APP_URL:", APP_URL);
     return APP_URL;
+  }
+  
+  if (MP_REDIRECT_URI) {
+    try {
+      const redirectUrl = new URL(MP_REDIRECT_URI);
+      const baseFromRedirect = redirectUrl.origin;
+      if (!baseFromRedirect.includes("localhost")) {
+        console.log("[getBaseUrl] Using MP_REDIRECT_URI origin:", baseFromRedirect);
+        return baseFromRedirect;
+      }
+    } catch (e) {
+      console.error("[getBaseUrl] Error parsing MP_REDIRECT_URI:", e);
+    }
   }
   
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
   const protocol = request.headers.get("x-forwarded-proto") || "https";
   
+  console.log("[getBaseUrl] Headers - host:", host, "protocol:", protocol);
+  
   if (host && !host.includes("localhost")) {
-    return `${protocol}://${host}`;
+    const headerUrl = `${protocol}://${host}`;
+    console.log("[getBaseUrl] Using headers:", headerUrl);
+    return headerUrl;
   }
   
-  return request.nextUrl.origin;
+  console.log("[getBaseUrl] Falling back to PRODUCTION_URL:", PRODUCTION_URL);
+  return PRODUCTION_URL;
 }
 
 async function saveConnectionToSupabase(data: {
@@ -134,8 +158,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (Date.now() - stateData.timestamp > 10 * 60 * 1000) {
-      console.error("[OAuth Callback] State expired");
+    const stateAgeMs = Date.now() - stateData.timestamp;
+    const maxAgeMs = 30 * 60 * 1000;
+    console.log("[OAuth Callback] State age:", Math.round(stateAgeMs / 1000), "seconds, max:", Math.round(maxAgeMs / 1000), "seconds");
+    
+    if (stateAgeMs > maxAgeMs) {
+      console.error("[OAuth Callback] State expired - age:", stateAgeMs, "ms");
       return NextResponse.redirect(
         new URL("/dashboard/settings/terminals?error=expired", baseUrl)
       );
