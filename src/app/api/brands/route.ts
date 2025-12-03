@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 import { supabase } from "@/lib/supabase/client";
 import type { Brand, CreateBrandRequest } from "@/types/brand";
 
 // GET /api/brands - List all brands (for super admin) or user's brand
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await currentUser();
     const searchParams = req.nextUrl.searchParams;
     const brandId = searchParams.get("id");
 
@@ -34,8 +33,8 @@ export async function GET(req: NextRequest) {
       .select("*, vertical:verticals(*)", { count: "exact" });
 
     // If not super admin, only show user's brand
-    if (user?.publicMetadata?.role !== "SUPER_ADMIN") {
-      query = query.eq("owner_email", user?.emailAddresses[0]?.emailAddress);
+    if (user?.role !== "ADMIN" && user?.role !== "SUPER_ADMIN") {
+      query = query.eq("owner_email", user?.email);
     }
 
     const { data, error, count } = await query.order("created_at", {
@@ -61,8 +60,8 @@ export async function GET(req: NextRequest) {
 // POST /api/brands - Create new brand
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -157,8 +156,8 @@ export async function POST(req: NextRequest) {
 // PATCH /api/brands - Update brand
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -200,12 +199,11 @@ export async function PATCH(req: NextRequest) {
 // DELETE /api/brands - Delete brand
 export async function DELETE(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await currentUser();
     const searchParams = req.nextUrl.searchParams;
     const id = searchParams.get("id");
 
@@ -230,8 +228,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const isOwner = brand.owner_email === user?.emailAddresses[0]?.emailAddress;
-    const isSuperAdmin = user?.publicMetadata?.role === "SUPER_ADMIN";
+    const isOwner = brand.owner_email === user?.email;
+    const isSuperAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
     if (!isOwner && !isSuperAdmin) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 import { getSupabaseAdmin } from "@/lib/supabase/factory";
 
 export interface VerticalCategory {
@@ -186,7 +186,6 @@ export async function GET(req: NextRequest) {
         *,
         category:vertical_categories(*)
       ` : "*")
-      .order("popularity_score", { ascending: false })
       .order("sort_order")
       .order("display_name");
 
@@ -226,8 +225,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -349,8 +348,8 @@ export async function POST(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -445,8 +444,8 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

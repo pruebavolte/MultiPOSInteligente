@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId, getAllUsers } from "@/lib/supabase/users";
+import { getAuthenticatedUser } from "@/lib/auth-wrapper";
+import { getAllUsers } from "@/lib/supabase/users";
 
 export async function GET() {
   try {
-    const { userId } = await auth();
+    const currentUser = await getAuthenticatedUser();
 
-    if (!userId) {
+    if (!currentUser) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
-
-    const currentUser = await getUserByClerkId(userId);
 
     if (currentUser?.role !== "ADMIN") {
       return NextResponse.json(
