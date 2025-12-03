@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Update product type to 'recipe'
-    const { error: productError } = await supabase
-      .from("products")
+    const { error: productError } = await (supabase
+      .from("products") as any)
       .update({ product_type: "recipe" })
       .eq("id", product_id);
 
@@ -85,8 +85,8 @@ export async function POST(req: NextRequest) {
         unit_name: ingredient.unit_name,
       }));
 
-      const { error: insertError } = await supabase
-        .from("recipes")
+      const { error: insertError } = await (supabase
+        .from("recipes") as any)
         .insert(recipeData);
 
       if (insertError) throw insertError;
@@ -155,8 +155,8 @@ export async function DELETE(req: NextRequest) {
     if (deleteError) throw deleteError;
 
     // Update product type back to 'simple'
-    const { error: productError } = await supabase
-      .from("products")
+    const { error: productError } = await (supabase
+      .from("products") as any)
       .update({ product_type: "simple", calculated_cost: 0 })
       .eq("id", productId);
 

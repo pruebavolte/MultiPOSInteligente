@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './client';
+import type { Database } from './database.types';
 
 export type DatabaseTarget = 'primary' | 'secondary';
 

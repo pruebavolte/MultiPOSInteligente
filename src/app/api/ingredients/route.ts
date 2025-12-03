@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
     const lowStock = searchParams.get("lowStock") === "true";
     const offset = (page - 1) * limit;
 
-    let query = (supabase
-      .from("ingredients") as any)
+    let query = supabase
+      .from("ingredients")
       .select("*", { count: "exact" });
 
     // Filters
@@ -181,8 +181,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const { error } = await (supabase
-      .from("ingredients") as any)
+    const { error } = await supabase
+      .from("ingredients")
       .delete()
       .eq("id", id);
 

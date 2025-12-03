@@ -70,8 +70,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Start a transaction by creating the return first
-    const { data: returnData, error: returnError } = await supabase
-      .from("returns")
+    const { data: returnData, error: returnError } = await (supabase
+      .from("returns") as any)
       .insert({
         sale_id,
         customer_id,
@@ -96,8 +96,8 @@ export async function POST(req: NextRequest) {
       subtotal: item.quantity * item.unit_price,
     }));
 
-    const { error: itemsError } = await supabase
-      .from("return_items")
+    const { error: itemsError } = await (supabase
+      .from("return_items") as any)
       .insert(returnItems);
 
     if (itemsError) throw itemsError;
@@ -116,8 +116,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch the complete return data with relations
-    const { data: completeReturn, error: fetchError } = await supabase
-      .from("returns")
+    const { data: completeReturn, error: fetchError } = await (supabase
+      .from("returns") as any)
       .select(`
         *,
         sale:sales(sale_number),

@@ -305,8 +305,8 @@ export function EditProductModal({ open, onOpenChange, product, onSuccess }: Edi
         image_url: finalImageUrl || null,
       };
 
-      const { error } = await supabase
-        .from("products")
+      const { error } = await (supabase
+        .from("products") as any)
         .update(productData)
         .eq("id", product.id);
 
