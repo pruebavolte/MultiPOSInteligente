@@ -156,7 +156,7 @@ If the customer doesn't mention specific products or it's unclear, respond with:
         headers: {
           Authorization: `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+          "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://www.systeminternational.app",
           "X-Title": "SalvadoreX Voice Orders",
         },
         body: JSON.stringify({

@@ -289,7 +289,7 @@ pnpm dev
 ### Available Scripts
 
 ```bash
-pnpm dev          # Start development server (http://localhost:3000)
+pnpm dev          # Start development server (https://www.systeminternational.app)
 pnpm build        # Production build
 pnpm start        # Start production server
 pnpm lint         # Run ESLint
@@ -1151,7 +1151,7 @@ OPENROUTER_API_KEY=sk-...
 ELEVENLABS_API_KEY=...
 
 # App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=https://www.systeminternational.app
 ```
 
 **Never commit `.env` files**!
@@ -1267,7 +1267,7 @@ const products = await supabase
 **Test API routes**:
 ```bash
 # Use curl or Postman
-curl http://localhost:3000/api/products?restaurantId=test-123
+curl https://www.systeminternational.app/api/products?restaurantId=test-123
 ```
 
 **Test authentication**:

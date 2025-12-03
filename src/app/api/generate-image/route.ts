@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+        "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://www.systeminternational.app",
         "X-Title": "MultiPOS - Menu Digital",
         "Content-Type": "application/json",
       },

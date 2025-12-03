@@ -239,6 +239,6 @@ Cuando termines de ejecutar los SQL anteriores, tu aplicación mostrará:
 - ✅ 3 clientes registrados
 - ✅ Menú digital con productos disponibles
 
-La aplicación está en: http://localhost:5000
+La aplicación está en: https://www.systeminternational.app
 
 ¡Disfruta tu SalvadoreX POS completamente funcional! 🎉
