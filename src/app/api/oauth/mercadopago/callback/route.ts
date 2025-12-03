@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSupabaseUrl, getSupabaseServiceKey, getActiveDatabase } from "@/lib/supabase/factory";
 
 export const dynamic = "force-dynamic";
 
@@ -7,8 +8,13 @@ const MP_CLIENT_SECRET = process.env.MERCADOPAGO_CLIENT_SECRET;
 const MP_REDIRECT_URI = process.env.MERCADOPAGO_REDIRECT_URI;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+function getSupabaseCredentials() {
+  const activeDb = getActiveDatabase();
+  return {
+    url: getSupabaseUrl(activeDb),
+    serviceKey: getSupabaseServiceKey(activeDb),
+  };
+}
 
 const PRODUCTION_URL = "https://www.systeminternational.app";
 
@@ -60,10 +66,12 @@ async function saveConnectionToSupabase(data: {
   live_mode: boolean;
   status: string;
 }): Promise<{ success: boolean; error?: string }> {
+  const { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY } = getSupabaseCredentials();
   const restUrl = `${SUPABASE_URL}/rest/v1/terminal_connections`;
   
+  console.log("[Save Connection] Using database:", getActiveDatabase());
+  
   try {
-    // First, check if connection already exists for this user+provider
     const checkResponse = await fetch(
       `${restUrl}?user_id=eq.${encodeURIComponent(data.user_id)}&provider=eq.${encodeURIComponent(data.provider)}&select=id`,
       {
