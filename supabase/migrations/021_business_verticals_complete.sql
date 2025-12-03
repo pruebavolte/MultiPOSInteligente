@@ -317,6 +317,14 @@ ALTER TABLE vertical_module_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vertical_features ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for categories and modules (needed for onboarding)
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Anyone can view categories" ON vertical_categories;
+DROP POLICY IF EXISTS "Anyone can view modules" ON system_modules;
+DROP POLICY IF EXISTS "Anyone can view terminology" ON vertical_terminology;
+DROP POLICY IF EXISTS "Anyone can view module configs" ON vertical_module_configs;
+DROP POLICY IF EXISTS "Anyone can view features" ON vertical_features;
+DROP POLICY IF EXISTS "Cualquiera puede ver categorías" ON vertical_categories;
+
 CREATE POLICY "Anyone can view categories" ON vertical_categories FOR SELECT USING (active = true);
 CREATE POLICY "Anyone can view modules" ON system_modules FOR SELECT USING (active = true);
 CREATE POLICY "Anyone can view terminology" ON vertical_terminology FOR SELECT USING (true);

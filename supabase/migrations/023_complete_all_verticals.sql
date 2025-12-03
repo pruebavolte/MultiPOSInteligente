@@ -430,7 +430,7 @@ SELECT temp_insert_vertical('fashion', 'gorras_sombreros', 'gorras-sombreros',
   'Cliente', 'Clientes', 'Prenda', 'Prendas', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['product_variants'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('fashion', 'lentes_sol', 'lentes-sol', 
   'Lentes de Sol', 'Sunglasses Shop', 
@@ -523,7 +523,7 @@ SELECT temp_insert_vertical('technology', 'realidad_virtual', 'realidad-virtual'
   'VRPos', 'vr', 55, 9,
   'Cliente', 'Clientes', 'Equipo', 'Equipos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports', 'serial_numbers'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('technology', 'drones', 'drones', 
@@ -618,7 +618,7 @@ SELECT temp_insert_vertical('home', 'cocinas_integrales', 'cocinas-integrales',
   'Cliente', 'Clientes', 'Cocina', 'Cocinas', 'Proyecto', 'Proyectos',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['quotes', 'delivery'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('home', 'utensilios_cocina', 'utensilios-cocina', 
   'Utensilios de Cocina', 'Kitchenware', 
@@ -635,7 +635,7 @@ SELECT temp_insert_vertical('home', 'decoracion_vintage', 'decoracion-vintage',
   'VintageDecoPos', 'decovintagee', 50, 7,
   'Cliente', 'Clientes', 'Artículo', 'Artículos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('home', 'cuadros_arte', 'cuadros-arte', 
@@ -663,7 +663,7 @@ SELECT temp_insert_vertical('home', 'persianas_cortinas', 'persianas-cortinas',
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Pedido', 'Pedidos',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['quotes', 'delivery'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('home', 'iluminacion_decorativa', 'iluminacion-decorativa', 
   'Iluminación Decorativa', 'Decorative Lighting', 
@@ -712,7 +712,7 @@ SELECT temp_insert_vertical('hardware', 'cemento_agregados', 'cemento-agregados'
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['delivery', 'quotes'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('hardware', 'pinturas', 'pinturas', 
   'Pinturas y Recubrimientos', 'Paint Store', 
@@ -730,7 +730,7 @@ SELECT temp_insert_vertical('hardware', 'carpinteria_retail', 'carpinteria-retai
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['quotes', 'delivery'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('hardware', 'herramientas_electricas', 'herramientas-electricas', 
   'Herramientas Eléctricas', 'Power Tools', 
@@ -765,7 +765,7 @@ SELECT temp_insert_vertical('hardware', 'cerrajeria_retail', 'cerrajeria-retail'
   'CerrajeriaRetailPos', 'cerrajeriaretail', 55, 10,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['quotes']);
 
 SELECT temp_insert_vertical('hardware', 'pisos_azulejos', 'pisos-azulejos', 
@@ -775,7 +775,7 @@ SELECT temp_insert_vertical('hardware', 'pisos_azulejos', 'pisos-azulejos',
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['quotes', 'delivery'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('hardware', 'vidrieria', 'vidrieria', 
   'Vidriería', 'Glass Shop', 
@@ -784,7 +784,7 @@ SELECT temp_insert_vertical('hardware', 'vidrieria', 'vidrieria',
   'Cliente', 'Clientes', 'Vidrio', 'Vidrios', 'Pedido', 'Pedidos',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['quotes', 'delivery'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 -- ============================================
 -- PETS
@@ -823,7 +823,7 @@ SELECT temp_insert_vertical('pets', 'acuario', 'acuario',
   'AcuarioPos', 'acuario', 60, 4,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('pets', 'reptiles_exoticos', 'reptiles-exoticos', 
@@ -832,8 +832,8 @@ SELECT temp_insert_vertical('pets', 'reptiles_exoticos', 'reptiles-exoticos',
   'ExoticosPos', 'exoticos', 45, 5,
   'Cliente', 'Clientes', 'Mascota', 'Mascotas', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
-  ARRAY[]);
+  ARRAY[]::TEXT[],
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('pets', 'boutique_mascotas', 'boutique-mascotas', 
   'Boutique de Mascotas', 'Pet Boutique', 
@@ -900,7 +900,7 @@ SELECT temp_insert_vertical('automotive', 'car_audio', 'car-audio',
   'Cliente', 'Clientes', 'Equipo', 'Equipos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports', 'serial_numbers'], 
   ARRAY['quotes'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('automotive', 'detailing', 'detailing', 
   'Detailing Profesional', 'Auto Detailing', 
@@ -993,7 +993,7 @@ SELECT temp_insert_vertical('office', 'material_didactico', 'material-didactico'
   'DidacticoPos', 'didactico', 60, 6,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('office', 'jugueteria_educativa', 'jugueteria-educativa', 
@@ -1020,7 +1020,7 @@ SELECT temp_insert_vertical('office', 'souvenirs', 'souvenirs',
   'SouvenirsPos', 'souvenirs', 60, 9,
   'Cliente', 'Clientes', 'Artículo', 'Artículos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('office', 'calendarios_agendas', 'calendarios-agendas', 
@@ -1029,7 +1029,7 @@ SELECT temp_insert_vertical('office', 'calendarios_agendas', 'calendarios-agenda
   'CalendariosPos', 'calendarios', 50, 10,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 -- ============================================
@@ -1123,7 +1123,7 @@ SELECT temp_insert_vertical('beauty', 'aceites_esenciales', 'aceites-esenciales'
   'AceitesPos', 'aceites', 50, 10,
   'Cliente', 'Clientes', 'Aceite', 'Aceites', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 -- ============================================
@@ -1248,7 +1248,7 @@ SELECT temp_insert_vertical('kids', 'montessori', 'montessori',
   'MontessoriPos', 'montessori', 50, 5,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('kids', 'aprendizaje', 'aprendizaje', 
@@ -1257,7 +1257,7 @@ SELECT temp_insert_vertical('kids', 'aprendizaje', 'aprendizaje',
   'AprendizajePos', 'aprendizaje', 45, 6,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 -- ============================================
@@ -1306,7 +1306,7 @@ SELECT temp_insert_vertical('specialty', 'aromaterapia', 'aromaterapia',
   'AromaPos', 'aromaterapia', 50, 5,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('specialty', 'articulos_religiosos', 'articulos-religiosos', 
@@ -1315,7 +1315,7 @@ SELECT temp_insert_vertical('specialty', 'articulos_religiosos', 'articulos-reli
   'ReligiososPos', 'religiosos', 55, 6,
   'Cliente', 'Clientes', 'Artículo', 'Artículos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('specialty', 'antiguedades', 'antiguedades', 
@@ -1361,7 +1361,7 @@ SELECT temp_insert_vertical('specialty', 'casa_empeno', 'casa-empeno',
   'Cliente', 'Clientes', 'Artículo', 'Artículos', 'Empeño', 'Empeños',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
   ARRAY['serial_numbers', 'quotes'], 
-  ARRAY[]);
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('specialty', 'instrumentos_musicales', 'instrumentos-musicales', 
   'Instrumentos Musicales', 'Music Store', 
@@ -1477,7 +1477,7 @@ SELECT temp_insert_vertical('specialty', 'herbalismo', 'herbalismo',
   'HerbalismoPos', 'herbalismo', 50, 24,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('specialty', 'recargas', 'recargas', 
@@ -1486,8 +1486,8 @@ SELECT temp_insert_vertical('specialty', 'recargas', 'recargas',
   'RecargasPos', 'recargas', 70, 25,
   'Cliente', 'Clientes', 'Recarga', 'Recargas', 'Venta', 'Ventas',
   ARRAY['pos', 'customers', 'reports'], 
-  ARRAY[], 
-  ARRAY[]);
+  ARRAY[]::TEXT[],
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('specialty', 'limpieza', 'limpieza', 
   'Productos de Limpieza', 'Cleaning Products', 
@@ -1531,8 +1531,8 @@ SELECT temp_insert_vertical('specialty', 'bazar_segunda_mano', 'bazar-segunda-ma
   'BazarPos', 'bazar', 55, 30,
   'Cliente', 'Clientes', 'Artículo', 'Artículos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
-  ARRAY[]);
+  ARRAY[]::TEXT[],
+  ARRAY[]::TEXT[]);
 
 SELECT temp_insert_vertical('specialty', 'tienda_japonesa', 'tienda-japonesa', 
   'Tienda Japonesa', 'Japanese Store', 
@@ -1576,7 +1576,7 @@ SELECT temp_insert_vertical('specialty', 'bonsais', 'bonsais',
   'BonsaiPos', 'bonsai', 40, 35,
   'Cliente', 'Clientes', 'Bonsái', 'Bonsáis', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['delivery']);
 
 SELECT temp_insert_vertical('specialty', 'suculentas', 'suculentas', 
@@ -1594,7 +1594,7 @@ SELECT temp_insert_vertical('specialty', 'hidroponia', 'hidroponia',
   'HidroponiaPos', 'hidroponia', 40, 37,
   'Cliente', 'Clientes', 'Producto', 'Productos', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('specialty', 'souvenirs_turisticos', 'souvenirs-turisticos', 
@@ -1612,7 +1612,7 @@ SELECT temp_insert_vertical('specialty', 'artesanias', 'artesanias',
   'ArtesaniasPos', 'artesanias', 60, 39,
   'Cliente', 'Clientes', 'Artesanía', 'Artesanías', 'Venta', 'Ventas',
   ARRAY['pos', 'inventory', 'customers', 'reports'], 
-  ARRAY[], 
+  ARRAY[]::TEXT[],
   ARRAY['online_ordering']);
 
 SELECT temp_insert_vertical('specialty', 'alimentos_llevar', 'alimentos-llevar', 
