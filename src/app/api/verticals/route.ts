@@ -111,6 +111,17 @@ export interface Vertical {
   updated_at: string;
 }
 
+function isMissingTableOrColumnError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const code = (error as { code?: string })?.code;
+  return code === "42P01" || 
+         code === "42703" ||
+         code?.startsWith("PGRST") ||
+         message.includes("does not exist") || 
+         message.includes("PGRST") ||
+         message.includes("schema cache");
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = getSupabaseAdmin();
@@ -216,6 +227,16 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching verticals:", error);
+    
+    if (isMissingTableOrColumnError(error)) {
+      return NextResponse.json({
+        data: [],
+        success: true,
+        migrationPending: true,
+        message: "Verticals tables not found. Please run migrations 021, 022, 023 in Supabase SQL Editor.",
+      });
+    }
+    
     return NextResponse.json(
       { error: "Failed to fetch verticals", success: false },
       { status: 500 }

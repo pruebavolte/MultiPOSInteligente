@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/factory";
 import type { VerticalCategory } from "../route";
 
+function isMissingTableOrColumnError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  const code = (error as { code?: string })?.code;
+  return code === "42P01" || 
+         code === "42703" ||
+         code?.startsWith("PGRST") ||
+         message.includes("does not exist") || 
+         message.includes("PGRST") ||
+         message.includes("schema cache");
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = getSupabaseAdmin();
@@ -24,11 +35,12 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      if (error.code === "42P01") {
+      if (isMissingTableOrColumnError(error)) {
         return NextResponse.json({
           data: [],
           success: true,
-          message: "Categories table not yet created. Run migrations first.",
+          migrationPending: true,
+          message: "Categories table not yet created. Run migrations 021, 022, 023 first.",
         });
       }
       throw error;
