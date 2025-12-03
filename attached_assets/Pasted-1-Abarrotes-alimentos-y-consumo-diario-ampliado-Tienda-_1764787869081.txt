@@ -1,0 +1,539 @@
+1. Abarrotes, alimentos y consumo diario (ampliado)
+
+Tienda de abarrotes
+
+Mini super
+
+Supermercado
+
+Hipermercado
+
+Tienda de conveniencia
+
+Frutería
+
+Verdulería
+
+Mercado de barrio
+
+Bodega de alimentos
+
+Viveres y ultramarinos
+
+Carnicería
+
+Pollería
+
+Pescadería
+
+Cremería
+
+Salchichonería
+
+Tortillería
+
+Panadería
+
+Pastelería
+
+Repostería
+
+Dulcería
+
+Distribuidor de dulces a granel
+
+Tienda naturista
+
+Tienda vegana
+
+Productos sin gluten
+
+Productos orgánicos
+
+Tienda de semillas y granos
+
+Tienda de especias
+
+Tienda gourmet
+
+Tienda de café en grano
+
+Tienda de tés e infusiones
+
+Bodega de productos importados
+
+Tienda de congelados
+
+Venta de huevos y lácteos
+
+Tienda de miel y derivados
+
+Abarrotes mayoristas
+
+Tienda de snacks saludables
+
+Productos para diabéticos
+
+2. Bebidas, vinos, tabaco
+
+Vinatería
+
+Licorería
+
+Cerveza artesanal
+
+Distribuidor de vinos
+
+Mezcalería retail
+
+Boutique de vinos premium
+
+Tienda de whisky especializado
+
+Cigarrería
+
+Tienda de puros
+
+Vape shop
+
+Tienda de hookah / shisha
+
+3. Restaurantes y alimentos preparados (más variedad)
+
+Restaurante
+
+Taquería
+
+Tortería
+
+Lonchería
+
+Comida rápida
+
+Cafetería
+
+Heladería
+
+Paletería
+
+Smoothie bar
+
+Juguería
+
+Bar de ensaladas
+
+Restaurante buffet
+
+Cocina económica
+
+Marisquería
+
+Pizzería
+
+Hamburguesería
+
+Alitas y boneless
+
+Sushibar
+
+Comida china
+
+Comida italiana
+
+Food truck
+
+Restaurante fusión
+
+Gelatería
+
+Chocolatería gourmet
+
+Crepería
+
+Waffles shop
+
+Tienda de rotisserie
+
+Pupusería
+
+Arepería
+
+Tamalería
+
+Gorditas shop
+
+Antojitos mexicanos retail
+
+Bar de tapas
+
+Panadería-cafetería
+
+4. Moda, ropa y accesorios (muy ampliado)
+
+Boutique de mujer
+
+Boutique de hombre
+
+Tienda de ropa para bebés
+
+Ropa infantil
+
+Ropa juvenil
+
+Ropa urbana
+
+Ropa deportiva
+
+Tienda de trajes
+
+Tienda de vestidos de noche
+
+Boutique de novias
+
+Boutique de XV años
+
+Tienda de trajes típicos
+
+Tienda de ropa interior
+
+Lencería
+
+Tienda de calcetas y medias
+
+Boutique de ropa usada (second hand)
+
+Vintage store
+
+Zapatería
+
+Bolsos y carteras
+
+Accesorios de moda
+
+Bufandas, gorras, sombreros
+
+Tienda de lentes de sol
+
+5. Tecnología, electrónica y celulares
+
+Tienda de celulares
+
+Accesorios para celular
+
+Reparación de celulares
+
+Tienda de electrónica
+
+Tienda de electrodomésticos
+
+Computadoras y laptops
+
+Accesorios gamer
+
+Tienda de videojuegos
+
+Consolas y controles
+
+Realidad virtual retail
+
+Drones
+
+Cámaras fotográficas
+
+Estudio y venta de iluminación
+
+Audio profesional
+
+Seguridad y cámaras CCTV
+
+6. Hogar, muebles y decoración
+
+Mueblería
+
+Decoración
+
+Blancos (sábanas, toallas)
+
+Colchonería
+
+Tienda de cocinas integrales
+
+Tienda de utensilios de cocina
+
+Decoración vintage
+
+Tienda de cuadros y arte
+
+Espejos y cristales
+
+Persianas y cortinas
+
+Tienda de iluminación decorativa
+
+7. Construcción, ferretería y herramientas
+
+Ferretería
+
+Tlapalería
+
+Materiales de construcción
+
+Cemento y agregados
+
+Pinturas y recubrimientos
+
+Carpintería retail
+
+Herramientas eléctricas
+
+Plomería retail
+
+Electricidad retail
+
+Cerrajería retail
+
+Tienda de pisos y azulejos
+
+Vidriería
+
+8. Mascotas
+
+Pet shop
+
+Alimento para mascotas
+
+Accesorios de mascotas
+
+Acuario
+
+Reptiles y exóticos
+
+Boutique de mascotas
+
+Peluquería para mascotas (con retail)
+
+9. Automotriz
+
+Refaccionaria
+
+Autopartes
+
+Tienda de llantas
+
+Accesorios automotrices
+
+Car audio
+
+Detailing profesional retail
+
+Venta de productos de limpieza automotriz
+
+Boutique 4x4
+
+Venta de lubricantes
+
+10. Papelería, oficina y educación
+
+Papelería
+
+Librería
+
+Copias e impresiones
+
+Tienda de útiles escolares
+
+Arte y dibujo
+
+Material didáctico
+
+Juguetería educativa
+
+Regalos y detalles
+
+Souvenirs
+
+Calendarios y agendas
+
+11. Belleza, estética y grooming
+
+Tienda de cosméticos
+
+Perfumería
+
+Barbería con productos
+
+Estética con productos
+
+Venta de esmaltes
+
+Tienda de maquillaje profesional
+
+Extensiones y pelucas
+
+Suministros para uñas
+
+Spa retail
+
+Tienda de aceites esenciales
+
+12. Deportes y aire libre
+
+Tienda de deportes
+
+Bicicletería
+
+Pesca deportiva
+
+Tienda de campismo
+
+Airsoft y paintball
+
+Deportes extremos (skate, snowboard)
+
+Artes marciales retail
+
+Tienda de yoga
+
+13. Niños y bebés
+
+Juguetería
+
+Tienda de bebés
+
+Ropa de bebé
+
+Carriolas y accesorios
+
+Tienda Montessori
+
+Tienda de aprendizaje
+
+14. Otros giros especializados (muy amplios)
+
+Florería
+
+Florería premium
+
+Tienda de regalos
+
+Tienda de velas
+
+Tienda de aromaterapia
+
+Tienda de artículos religiosos
+
+Tienda de antigüedades
+
+Coleccionables
+
+Comics shop
+
+Sex shop
+
+Vape shop
+
+Casa de empeño
+
+Tienda de instrumentos musicales
+
+Tienda de audio profesional
+
+Tienda de uniformes
+
+Mercería
+
+Piñatería
+
+Fantasías Miguel style (manualidades)
+
+Tienda de globos
+
+Paquetería de fiestas
+
+Tienda de drones
+
+Tienda de energías solares
+
+Tienda de baterías y energía
+
+Tienda de regalos personalizados
+
+Tienda de impresión 3D
+
+Tienda de scooters eléctricos
+
+Herbalismo / remedios tradicionales
+
+Vape lounge retail
+
+Tienda de recargas telefónicas
+
+Tienda de productos de limpieza
+
+Tienda de aromatizantes
+
+Tienda de plásticos
+
+Outlet de productos
+
+Bazar de segunda mano
+
+Tianguis boutique
+
+Tienda japonesa (tipo Miniso)
+
+Tienda coreana (K-pop / K-beauty)
+
+Tienda de posters
+
+Tienda de plantas
+
+Vivero
+
+Bonsáis
+
+Suculentas y macetas
+
+Tienda de hidroponía
+
+Tienda de souvenirs turísticos
+
+Artesanías regionales
+
+Alimentos preparados para llevar
+
+Dulces típicos
+
+Boutique de lujo
+
+Paragüería
+
+Tienda de paraguas y maletas
+
+Maletería retail
+
+Tienda de tapicería
+
+Tienda de lonas e impresión
+
+Tienda de empaques
+
+Tienda de cajas y bolsas
+
+Tienda de artículos para barberías
+
+Tienda de productos para spas
+
+Cristalería retail
+
+Tienda de artículos para fiestas
+
+Tienda de material eléctrico industrial
+
+Venta de extintores y seguridad
+
+Tienda de señalización
+
+Tienda de impermeabilizantes
+
+Tienda de pinturas automotrices
