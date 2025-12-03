@@ -17,7 +17,7 @@ export async function GET(
     const { id: brandId } = await params;
 
     // Call the database function to get merged configuration
-    const { data, error } = await supabase.rpc("get_brand_config", {
+    const { data, error } = await (supabase.rpc as any)("get_brand_config", {
       p_brand_id: brandId,
     });
 

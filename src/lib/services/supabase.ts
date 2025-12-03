@@ -579,7 +579,7 @@ export async function createSaleWithItems(
 
     // Update product stock
     for (const item of items) {
-      const { error: stockError } = await supabase.rpc("decrement_stock", {
+      const { error: stockError } = await (supabase.rpc as any)("decrement_stock", {
         product_id: item.product_id,
         quantity: item.quantity,
       });
@@ -603,7 +603,7 @@ export async function createSaleWithItems(
     }
 
     // Process recipe deductions (automatic ingredient stock deduction for recipe products)
-    const { error: recipeError } = await supabase.rpc("process_recipe_deductions", {
+    const { error: recipeError } = await (supabase.rpc as any)("process_recipe_deductions", {
       p_sale_id: saleData.id,
       p_user_id: sale.user_id,
     });

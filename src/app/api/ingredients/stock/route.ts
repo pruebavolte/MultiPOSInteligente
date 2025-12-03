@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Call the update_ingredient_stock function
-    const { error } = await supabase.rpc("update_ingredient_stock", {
+    const { error } = await (supabase.rpc as any)("update_ingredient_stock", {
       p_ingredient_id: ingredient_id,
       p_quantity: quantity,
       p_transaction_type: transaction_type,

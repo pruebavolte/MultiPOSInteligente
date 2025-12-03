@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
     // Update product stock (add back returned items)
     for (const item of items) {
-      const { error: stockError } = await supabase.rpc("increment_product_stock", {
+      const { error: stockError } = await (supabase.rpc as any)("increment_product_stock", {
         product_id: item.product_id,
         quantity_change: item.quantity,
       });

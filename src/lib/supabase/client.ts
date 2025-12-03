@@ -234,5 +234,31 @@ export type Database = {
         };
       };
     };
+    Functions: {
+      get_brand_config: {
+        Args: { p_brand_id: string };
+        Returns: Record<string, unknown>;
+      };
+      decrement_stock: {
+        Args: { p_product_id: string; p_quantity: number };
+        Returns: void;
+      };
+      increment_product_stock: {
+        Args: { p_product_id: string; p_quantity: number };
+        Returns: void;
+      };
+      process_recipe_deductions: {
+        Args: { p_product_id: string; p_quantity: number };
+        Returns: void;
+      };
+      update_ingredient_stock: {
+        Args: { p_ingredient_id: string; p_quantity: number; p_operation: string };
+        Returns: void;
+      };
+      exec_sql: {
+        Args: { sql: string } | { sql_query: string };
+        Returns: unknown;
+      };
+    };
   };
 };
