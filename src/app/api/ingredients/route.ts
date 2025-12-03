@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
     const lowStock = searchParams.get("lowStock") === "true";
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from("ingredients")
+    let query = (supabase
+      .from("ingredients") as any)
       .select("*", { count: "exact" });
 
     // Filters
@@ -85,8 +85,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
-      .from("ingredients")
+    const { data, error } = await (supabase
+      .from("ingredients") as any)
       .insert({
         name,
         description,
@@ -144,8 +144,8 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
-      .from("ingredients")
+    const { data, error } = await (supabase
+      .from("ingredients") as any)
       .update(updates)
       .eq("id", id)
       .select()
@@ -181,8 +181,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const { error } = await supabase
-      .from("ingredients")
+    const { error } = await (supabase
+      .from("ingredients") as any)
       .delete()
       .eq("id", id);
 
