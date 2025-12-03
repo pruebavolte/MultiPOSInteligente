@@ -8,17 +8,24 @@ import {
   type DatabaseTarget 
 } from './factory';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-function checkEnvVars() {
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
+function checkEnvVarsForActiveDb() {
+  const activeDb = getActiveDatabase();
+  const url = getSupabaseUrl(activeDb);
+  const serviceKey = getSupabaseServiceKey(activeDb);
+  
+  if (!url || !serviceKey) {
+    const dbLabel = activeDb === 'primary' ? 'primary' : 'secondary';
     const missingVars = [];
-    if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
-    if (!supabaseServiceRoleKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!url) {
+      missingVars.push(activeDb === 'primary' ? 'NEXT_PUBLIC_SUPABASE_URL' : 'SUPABASE_URL_2');
+    }
+    if (!serviceKey) {
+      missingVars.push(activeDb === 'primary' ? 'SUPABASE_SERVICE_ROLE_KEY' : 'SUPABASE_SERVICE_ROLE_KEY_2');
+    }
 
     throw new Error(
-      `Missing Supabase environment variables: ${missingVars.join(', ')}\n` +
+      `Missing Supabase environment variables for ${dbLabel} database: ${missingVars.join(', ')}\n` +
       'Please check your .env file and restart the development server.'
     );
   }
@@ -29,7 +36,7 @@ let _supabaseAdmin: ReturnType<typeof createClient<Database>> | null = null;
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(target, prop) {
     if (!_supabaseAdmin) {
-      checkEnvVars();
+      checkEnvVarsForActiveDb();
       _supabaseAdmin = getSupabaseAdminFromFactory();
     }
     return (_supabaseAdmin as any)[prop];
