@@ -95,8 +95,8 @@ export async function POST(req: NextRequest) {
     let defaultSettings = {};
 
     if (vertical_id) {
-      const { data: vertical } = await supabase
-        .from("verticals")
+      const { data: vertical } = await (supabase
+        .from("verticals") as any)
         .select("default_modules, default_settings")
         .eq("id", vertical_id)
         .single();
@@ -108,8 +108,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Create brand
-    const { data, error } = await supabase
-      .from("brands")
+    const { data, error } = await (supabase
+      .from("brands") as any)
       .insert({
         name,
         slug,
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     if (error) throw error;
 
     // Create onboarding record
-    await supabase.from("brand_onboarding").insert({
+    await (supabase.from("brand_onboarding") as any).insert({
       brand_id: data.id,
       steps_completed: [],
       current_step: "brand_info",
@@ -177,8 +177,8 @@ export async function PATCH(req: NextRequest) {
     delete updates.total_sales;
     delete updates.total_transactions;
 
-    const { data, error } = await supabase
-      .from("brands")
+    const { data, error } = await (supabase
+      .from("brands") as any)
       .update(updates)
       .eq("id", id)
       .select("*, vertical:verticals(*)")
@@ -215,8 +215,8 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Only super admin or brand owner can delete
-    const { data: brand } = await supabase
-      .from("brands")
+    const { data: brand } = await (supabase
+      .from("brands") as any)
       .select("owner_email")
       .eq("id", id)
       .single();
@@ -238,7 +238,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const { error } = await supabase.from("brands").delete().eq("id", id);
+    const { error } = await (supabase.from("brands") as any).delete().eq("id", id);
 
     if (error) throw error;
 

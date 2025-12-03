@@ -28,7 +28,7 @@ export type Database = {
           first_name: string;
           last_name: string;
           image: string | null;
-          role: 'ADMIN' | 'USER' | 'CUSTOMER';
+          role: 'ADMIN' | 'USER' | 'CUSTOMER' | 'SUPER_ADMIN';
           restaurant_id: string | null;
           age: number | null;
           height: number | null;
