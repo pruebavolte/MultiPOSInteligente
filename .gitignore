@@ -40,3 +40,4 @@ next-env.d.ts
 dummy.txt
 # clerk configuration (can include secrets)
 /.clerk/
+*.md
