@@ -113,6 +113,14 @@ Preferred communication style: Simple, everyday language.
   - Invoice management via `stripe_invoice_id`
   - Configuration via Stripe API keys
 
+- **Mercado Pago Point:** Terminal integration for in-person payments
+  - OAuth 2.0 authentication flow
+  - Terminal device discovery and selection
+  - Payment intent creation via API
+  - Connection data stored in Replit PostgreSQL (not Supabase) to avoid PostgREST cache issues
+  - Multi-tenant isolation enforced via user_id queries
+  - Configuration via `MERCADOPAGO_CLIENT_ID` and `MERCADOPAGO_CLIENT_SECRET`
+
 **Image Services:**
 - **Pexels API:** Product image search
   - Free stock photos for products

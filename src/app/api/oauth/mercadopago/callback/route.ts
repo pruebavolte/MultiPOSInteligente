@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseUrl, getSupabaseServiceKey, getActiveDatabase } from "@/lib/supabase/factory";
+import { Pool } from "pg";
 
 export const dynamic = "force-dynamic";
 
@@ -7,14 +7,7 @@ const MP_CLIENT_ID = process.env.MERCADOPAGO_CLIENT_ID;
 const MP_CLIENT_SECRET = process.env.MERCADOPAGO_CLIENT_SECRET;
 const MP_REDIRECT_URI = process.env.MERCADOPAGO_REDIRECT_URI;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL;
-
-function getSupabaseCredentials() {
-  const activeDb = getActiveDatabase();
-  return {
-    url: getSupabaseUrl(activeDb),
-    serviceKey: getSupabaseServiceKey(activeDb),
-  };
-}
+const DATABASE_URL = process.env.DATABASE_URL;
 
 const PRODUCTION_URL = "https://www.systeminternational.app";
 
@@ -55,7 +48,7 @@ function getBaseUrl(request: NextRequest): string {
   return PRODUCTION_URL;
 }
 
-async function saveConnectionToSupabase(data: {
+async function saveConnectionToPg(data: {
   user_id: string;
   provider: string;
   mp_user_id: string | null;
@@ -66,96 +59,74 @@ async function saveConnectionToSupabase(data: {
   live_mode: boolean;
   status: string;
 }): Promise<{ success: boolean; error?: string }> {
-  const { url: SUPABASE_URL, serviceKey: SUPABASE_SERVICE_KEY } = getSupabaseCredentials();
-  const restUrl = `${SUPABASE_URL}/rest/v1/terminal_connections`;
+  if (!DATABASE_URL) {
+    console.error("[Save Connection] DATABASE_URL not configured");
+    return { success: false, error: "Database not configured" };
+  }
+
+  const pool = new Pool({ connectionString: DATABASE_URL });
   
-  console.log("[Save Connection] Using database:", getActiveDatabase());
+  console.log("[Save Connection] Using Replit PostgreSQL");
   
   try {
-    const checkResponse = await fetch(
-      `${restUrl}?user_id=eq.${encodeURIComponent(data.user_id)}&provider=eq.${encodeURIComponent(data.provider)}&select=id`,
-      {
-        method: "GET",
-        headers: {
-          "apikey": SUPABASE_SERVICE_KEY,
-          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
-        }
-      }
+    const checkResult = await pool.query(
+      `SELECT id FROM terminal_connections WHERE user_id = $1 AND provider = $2`,
+      [data.user_id, data.provider]
     );
 
-    if (!checkResponse.ok) {
-      const checkError = await checkResponse.json().catch(() => ({}));
-      console.error("[Supabase Check Error]", JSON.stringify(checkError));
-      return { success: false, error: checkError.message || "Failed to check existing connection" };
-    }
-
-    const existingConnections = await checkResponse.json();
-    const now = new Date().toISOString();
-    
-    if (existingConnections && existingConnections.length > 0) {
-      // Update existing connection
+    if (checkResult.rows.length > 0) {
       console.log("[Save Connection] Updating existing connection for user:", data.user_id);
-      const updateUrl = `${restUrl}?user_id=eq.${encodeURIComponent(data.user_id)}&provider=eq.${encodeURIComponent(data.provider)}`;
-      
-      const updateResponse = await fetch(updateUrl, {
-        method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_SERVICE_KEY,
-          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify({
-          mp_user_id: data.mp_user_id,
-          access_token: data.access_token,
-          refresh_token: data.refresh_token,
-          public_key: data.public_key,
-          token_expires_at: data.token_expires_at,
-          live_mode: data.live_mode,
-          status: data.status,
-          updated_at: now
-        })
-      });
-
-      if (!updateResponse.ok) {
-        const updateError = await updateResponse.json().catch(() => ({}));
-        console.error("[Supabase Update Error]", JSON.stringify(updateError));
-        return { success: false, error: updateError.message || "Failed to update connection" };
-      }
-      
+      await pool.query(
+        `UPDATE terminal_connections SET 
+          mp_user_id = $1,
+          access_token = $2,
+          refresh_token = $3,
+          public_key = $4,
+          token_expires_at = $5,
+          live_mode = $6,
+          status = $7,
+          updated_at = NOW()
+        WHERE user_id = $8 AND provider = $9`,
+        [
+          data.mp_user_id,
+          data.access_token,
+          data.refresh_token,
+          data.public_key,
+          data.token_expires_at,
+          data.live_mode,
+          data.status,
+          data.user_id,
+          data.provider
+        ]
+      );
       console.log("[Save Connection] Update successful");
-      return { success: true };
     } else {
-      // Insert new connection
       console.log("[Save Connection] Inserting new connection for user:", data.user_id);
-      
-      const insertResponse = await fetch(restUrl, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_SERVICE_KEY,
-          "Authorization": `Bearer ${SUPABASE_SERVICE_KEY}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify({
-          ...data,
-          created_at: now,
-          updated_at: now
-        })
-      });
-
-      if (!insertResponse.ok) {
-        const insertError = await insertResponse.json().catch(() => ({}));
-        console.error("[Supabase Insert Error]", JSON.stringify(insertError));
-        return { success: false, error: insertError.message || "Failed to insert connection" };
-      }
-      
+      await pool.query(
+        `INSERT INTO terminal_connections 
+          (user_id, provider, mp_user_id, access_token, refresh_token, public_key, token_expires_at, live_mode, status, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())`,
+        [
+          data.user_id,
+          data.provider,
+          data.mp_user_id,
+          data.access_token,
+          data.refresh_token,
+          data.public_key,
+          data.token_expires_at,
+          data.live_mode,
+          data.status
+        ]
+      );
       console.log("[Save Connection] Insert successful");
-      return { success: true };
     }
+    
+    return { success: true };
   } catch (error: any) {
     console.error("[Save Connection Error]", error);
     return { success: false, error: error.message };
+  } finally {
+    await pool.end();
   }
 }
 
@@ -246,7 +217,7 @@ export async function GET(request: NextRequest) {
     const tokens = await tokenResponse.json();
     console.log("[OAuth Callback] Token exchange successful, saving to database...");
 
-    const saveResult = await saveConnectionToSupabase({
+    const saveResult = await saveConnectionToPg({
       user_id: stateData.userId,
       provider: 'mercadopago',
       mp_user_id: tokens.user_id?.toString() || null,

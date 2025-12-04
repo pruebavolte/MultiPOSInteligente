@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { Pool } from "pg";
 import { getAuthenticatedUser } from "@/lib/auth-wrapper";
 
 export const dynamic = "force-dynamic";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const databaseUrl = process.env.DATABASE_URL;
+
+async function findTerminalConnectionPg(pool: Pool, userId: string) {
+  const result = await pool.query(
+    `SELECT * FROM terminal_connections 
+     WHERE user_id = $1 AND provider = 'mercadopago' 
+     LIMIT 1`,
+    [userId]
+  );
+
+  if (result.rows.length > 0) {
+    return result.rows[0];
+  }
+
+  return null;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,68 +29,51 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
+    if (!databaseUrl) {
+      console.error("[Get Connection] DATABASE_URL not configured");
+      return NextResponse.json({ error: "Configuración de base de datos incompleta" }, { status: 500 });
+    }
 
-    let connection = null;
-    let fetchError = null;
+    const pool = new Pool({ connectionString: databaseUrl });
 
     try {
-      const { data, error } = await supabase
-        .from("terminal_connections")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("provider", "mercadopago")
-        .single();
-      
-      connection = data;
-      fetchError = error;
-    } catch (e: any) {
-      fetchError = e;
-    }
+      const connection = await findTerminalConnectionPg(pool, user.id);
 
-    if (fetchError && fetchError.code !== "PGRST116") {
-      if (fetchError.code === "PGRST205" || fetchError.code === "PGRST202") {
+      if (!connection) {
         return NextResponse.json({ connected: false });
       }
-      console.error("[Get Connection Error]", fetchError);
-      return NextResponse.json({ error: "Error al obtener conexión" }, { status: 500 });
-    }
 
-    if (!connection) {
-      return NextResponse.json({ connected: false });
-    }
+      const isExpired = connection.token_expires_at && 
+        new Date(connection.token_expires_at) < new Date();
 
-    const isExpired = connection.token_expires_at && 
-      new Date(connection.token_expires_at) < new Date();
-
-    if (isExpired) {
-      const refreshed = await refreshToken(supabase, connection);
-      if (!refreshed) {
-        return NextResponse.json({ 
-          connected: false,
-          expired: true,
-          message: "Tu conexión ha expirado. Por favor reconecta."
+      if (isExpired) {
+        const refreshed = await refreshToken(pool, connection);
+        if (!refreshed) {
+          return NextResponse.json({ 
+            connected: false,
+            expired: true,
+            message: "Tu conexión ha expirado. Por favor reconecta."
+          });
+        }
+        
+        const updatedResult = await pool.query(
+          `SELECT * FROM terminal_connections WHERE id = $1`,
+          [connection.id]
+        );
+        
+        return NextResponse.json({
+          connected: true,
+          connection: sanitizeConnection(updatedResult.rows[0])
         });
       }
-      const { data: updatedConnection } = await supabase
-        .from("terminal_connections")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("provider", "mercadopago")
-        .single();
-      
+
       return NextResponse.json({
         connected: true,
-        connection: sanitizeConnection(updatedConnection)
+        connection: sanitizeConnection(connection)
       });
+    } finally {
+      await pool.end();
     }
-
-    return NextResponse.json({
-      connected: true,
-      connection: sanitizeConnection(connection)
-    });
   } catch (error: any) {
     console.error("[Get Connection Error]", error);
     return NextResponse.json(
@@ -94,22 +91,26 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-
-    const { error } = await supabase
-      .from("terminal_connections")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("provider", "mercadopago");
-
-    if (error) {
-      console.error("[Delete Connection Error]", error);
-      return NextResponse.json({ error: "Error al desconectar" }, { status: 500 });
+    if (!databaseUrl) {
+      return NextResponse.json({ error: "Configuración de base de datos incompleta" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    const pool = new Pool({ connectionString: databaseUrl });
+
+    try {
+      const connection = await findTerminalConnectionPg(pool, user.id);
+      
+      if (connection) {
+        await pool.query(
+          `DELETE FROM terminal_connections WHERE id = $1`,
+          [connection.id]
+        );
+      }
+
+      return NextResponse.json({ success: true });
+    } finally {
+      await pool.end();
+    }
   } catch (error: any) {
     console.error("[Delete Connection Error]", error);
     return NextResponse.json(
@@ -119,7 +120,7 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-async function refreshToken(supabase: any, connection: any): Promise<boolean> {
+async function refreshToken(pool: Pool, connection: any): Promise<boolean> {
   const MP_CLIENT_ID = process.env.MERCADOPAGO_CLIENT_ID;
   const MP_CLIENT_SECRET = process.env.MERCADOPAGO_CLIENT_SECRET;
 
@@ -143,15 +144,20 @@ async function refreshToken(supabase: any, connection: any): Promise<boolean> {
 
     const tokens = await response.json();
 
-    await supabase
-      .from("terminal_connections")
-      .update({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", connection.id);
+    await pool.query(
+      `UPDATE terminal_connections SET
+        access_token = $1,
+        refresh_token = $2,
+        token_expires_at = $3,
+        updated_at = NOW()
+      WHERE id = $4`,
+      [
+        tokens.access_token,
+        tokens.refresh_token,
+        new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        connection.id
+      ]
+    );
 
     return true;
   } catch {
