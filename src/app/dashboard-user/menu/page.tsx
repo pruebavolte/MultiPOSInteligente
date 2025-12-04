@@ -61,6 +61,10 @@ import { ElevenLabsVoiceAgent } from "@/components/menu-digital/elevenlabs-voice
 import { QRModal } from "@/components/menu-digital/qr-modal";
 import { VariantSelectionModal } from "@/components/pos/variant-selection-modal";
 import { getProductWithVariants } from "@/lib/services/supabase";
+import { CurrencySelector, useSelectedCurrency } from "@/components/menu-digital/currency-selector";
+import { CurrencyPreferenceDialog, useCurrencyPreferenceDialog } from "@/components/menu-digital/currency-preference-dialog";
+import { convertCurrency, getCurrencySymbol, formatPrice } from "@/lib/currency";
+import { CurrencyCode } from "@/contexts/language-context";
 
 interface Product {
   id: string;
@@ -97,7 +101,11 @@ export default function MenuPage() {
   const { language } = useLanguage();
   const t = useCustomerMenuTranslations(language);
 
-  // Get local currency based on selected language
+  // Currency selector with persistence
+  const { selectedCurrency, setSelectedCurrency } = useSelectedCurrency("MXN");
+  const { showDialog: showCurrencyDialog, setShowDialog: setShowCurrencyDialog } = useCurrencyPreferenceDialog();
+
+  // Get local currency based on selected language (fallback)
   const localCurrency = useMemo(() => {
     const currentLanguageData = LANGUAGES.find((l) => l.code === language);
     return (currentLanguageData?.currency || "MXN") as Currency;
@@ -288,15 +296,20 @@ export default function MenuPage() {
     setCart(cart.filter((item) => item.id !== productId));
   };
 
+  // Calculate cart total in selected currency
   const cartTotal = cart.reduce(
     (sum, item) => {
       const unitPrice = item.unitPriceWithVariants || item.price;
-      return sum + unitPrice * item.quantity;
+      const itemCurrency = (item.currency || "MXN") as CurrencyCode;
+      const convertedPrice = convertCurrency(unitPrice, itemCurrency, selectedCurrency);
+      return sum + convertedPrice * item.quantity;
     },
     0
   );
 
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCurrencySymbol = getCurrencySymbol(selectedCurrency);
+  const cartDecimals = selectedCurrency === "JPY" ? 0 : 2;
 
   // Image size configurations - optimized for mobile
   const imageSizeConfig = {
@@ -432,18 +445,25 @@ export default function MenuPage() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* QR Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 sm:gap-2 flex-shrink-0"
-                onClick={() => setIsQRModalOpen(true)}
-              >
-                <QrCode className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm">
-                  {language === "es" ? "QR" : "QR"}
-                </span>
-              </Button>
+              {/* Currency Selector and QR Button */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <CurrencySelector
+                  selectedCurrency={selectedCurrency}
+                  onCurrencyChange={setSelectedCurrency}
+                  language={language}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 sm:gap-2 flex-shrink-0"
+                  onClick={() => setIsQRModalOpen(true)}
+                >
+                  <QrCode className="h-4 w-4" />
+                  <span className="hidden sm:inline text-sm">
+                    {language === "es" ? "QR" : "QR"}
+                  </span>
+                </Button>
+              </div>
             </div>
 
             <TabsContent value="menu" className="px-3 py-4 sm:px-6 sm:py-8 lg:px-8 mt-0">
@@ -458,11 +478,9 @@ export default function MenuPage() {
               >
                 {top3BestSellers.map((product, index) => {
                   const productCurrency = (product.currency || "MXN") as Currency;
-                  const priceDisplays = getProductPriceDisplays(
-                    product.price,
-                    productCurrency,
-                    localCurrency
-                  );
+                  const convertedPrice = convertCurrency(product.price, productCurrency as CurrencyCode, selectedCurrency);
+                  const currencySymbol = getCurrencySymbol(selectedCurrency);
+                  const decimals = selectedCurrency === "JPY" ? 0 : 2;
 
                   return (
                     <div
@@ -486,10 +504,10 @@ export default function MenuPage() {
                         )}
                         <div className="flex items-baseline gap-1 sm:gap-2">
                           <span className="text-xl sm:text-2xl font-black text-primary">
-                            {priceDisplays.primary.symbol}{priceDisplays.primary.amount.toFixed(productCurrency === "JPY" ? 0 : 2)}
+                            {currencySymbol}{convertedPrice.toFixed(decimals)}
                           </span>
                           <span className="text-xs sm:text-sm font-semibold text-primary/70">
-                            {priceDisplays.primary.currency}
+                            {selectedCurrency}
                           </span>
                         </div>
                         <Button
@@ -651,11 +669,9 @@ export default function MenuPage() {
           <div className={cn("grid gap-2 sm:gap-4 lg:gap-6 pb-20 lg:pb-0", imageSizeConfig[imageSize].gridCols)}>
             {filteredProducts.map((product) => {
               const productCurrency = (product.currency || "MXN") as Currency;
-              const priceDisplays = getProductPriceDisplays(
-                product.price,
-                productCurrency,
-                localCurrency
-              );
+              const convertedPrice = convertCurrency(product.price, productCurrency as CurrencyCode, selectedCurrency);
+              const currencySymbol = getCurrencySymbol(selectedCurrency);
+              const decimals = selectedCurrency === "JPY" ? 0 : 2;
               const isInCart = cart.some((item) => item.id === product.id);
 
               return (
@@ -691,39 +707,16 @@ export default function MenuPage() {
                   {/* Content */}
                   <CardContent className="p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3">
 
-                    {/* Price Section - Simplified for mobile */}
+                    {/* Price Section - Simplified with single currency */}
                     <div className="space-y-1.5 sm:space-y-2">
-                      {/* Primary Price */}
+                      {/* Price in Selected Currency */}
                       <div className="flex items-baseline gap-1">
                         <span className="text-base sm:text-xl lg:text-2xl font-black text-primary">
-                          {priceDisplays.primary.symbol}{priceDisplays.primary.amount.toFixed(productCurrency === "JPY" ? 0 : 2)}
+                          {currencySymbol}{convertedPrice.toFixed(decimals)}
                         </span>
                         <span className="text-[10px] sm:text-xs lg:text-sm font-semibold text-primary/70">
-                          {priceDisplays.primary.currency}
+                          {selectedCurrency}
                         </span>
-                      </div>
-
-                      {/* Secondary Prices - Hidden on smallest screens */}
-                      <div className="hidden sm:grid grid-cols-2 gap-1 sm:gap-2">
-                        <div className="flex flex-col bg-muted/50 rounded-md px-1.5 py-1 sm:px-2 sm:py-1.5">
-                          <span className="text-[9px] sm:text-xs text-muted-foreground font-medium">
-                            {priceDisplays.secondary.currency}
-                          </span>
-                          <span className="text-xs sm:text-sm font-bold text-foreground">
-                            {priceDisplays.secondary.symbol}{priceDisplays.secondary.amount.toFixed(priceDisplays.secondary.currency === "JPY" ? 0 : 2)}
-                          </span>
-                        </div>
-
-                        {priceDisplays.local && (
-                          <div className="flex flex-col bg-accent/50 rounded-md px-1.5 py-1 sm:px-2 sm:py-1.5 border border-accent sm:border-2">
-                            <span className="text-[9px] sm:text-xs text-muted-foreground font-medium">
-                              {priceDisplays.local.currency}
-                            </span>
-                            <span className="text-xs sm:text-sm font-bold text-foreground">
-                              {priceDisplays.local.symbol}{priceDisplays.local.amount.toFixed(priceDisplays.local.currency === "JPY" ? 0 : 2)}
-                            </span>
-                          </div>
-                        )}
                       </div>
 
                       {/* Add to Cart Button */}
@@ -790,11 +783,9 @@ export default function MenuPage() {
                   <div className={cn("grid gap-2 sm:gap-4 lg:gap-6 pb-20 lg:pb-0", imageSizeConfig[imageSize].gridCols)}>
                     {bestSellers.map((product, index) => {
                       const productCurrency = (product.currency || "MXN") as Currency;
-                      const priceDisplays = getProductPriceDisplays(
-                        product.price,
-                        productCurrency,
-                        localCurrency
-                      );
+                      const convertedPrice = convertCurrency(product.price, productCurrency as CurrencyCode, selectedCurrency);
+                      const currencySymbol = getCurrencySymbol(selectedCurrency);
+                      const decimals = selectedCurrency === "JPY" ? 0 : 2;
                       const isInCart = cart.some((item) => item.id === product.id);
 
                       return (
@@ -837,38 +828,15 @@ export default function MenuPage() {
 
                           {/* Content */}
                           <CardContent className="p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3">
-                            {/* Price Section */}
+                            {/* Price Section - Simplified with single currency */}
                             <div className="space-y-1.5 sm:space-y-2">
                               <div className="flex items-baseline gap-1">
                                 <span className="text-base sm:text-xl lg:text-2xl font-black text-primary">
-                                  {priceDisplays.primary.symbol}{priceDisplays.primary.amount.toFixed(productCurrency === "JPY" ? 0 : 2)}
+                                  {currencySymbol}{convertedPrice.toFixed(decimals)}
                                 </span>
                                 <span className="text-[10px] sm:text-xs lg:text-sm font-semibold text-primary/70">
-                                  {priceDisplays.primary.currency}
+                                  {selectedCurrency}
                                 </span>
-                              </div>
-
-                              {/* Secondary and Local Prices - Hidden on mobile */}
-                              <div className="hidden sm:grid grid-cols-2 gap-1 sm:gap-2">
-                                <div className="flex flex-col bg-muted/50 rounded-md px-1.5 py-1 sm:px-2 sm:py-1.5">
-                                  <span className="text-[9px] sm:text-xs text-muted-foreground font-medium">
-                                    {priceDisplays.secondary.currency}
-                                  </span>
-                                  <span className="text-xs sm:text-sm font-bold text-foreground">
-                                    {priceDisplays.secondary.symbol}{priceDisplays.secondary.amount.toFixed(priceDisplays.secondary.currency === "JPY" ? 0 : 2)}
-                                  </span>
-                                </div>
-
-                                {priceDisplays.local && (
-                                  <div className="flex flex-col bg-accent/50 rounded-md px-1.5 py-1 sm:px-2 sm:py-1.5 border border-accent sm:border-2">
-                                    <span className="text-[9px] sm:text-xs text-muted-foreground font-medium">
-                                      {priceDisplays.local.currency}
-                                    </span>
-                                    <span className="text-xs sm:text-sm font-bold text-foreground">
-                                      {priceDisplays.local.symbol}{priceDisplays.local.amount.toFixed(priceDisplays.local.currency === "JPY" ? 0 : 2)}
-                                    </span>
-                                  </div>
-                                )}
                               </div>
 
                               {/* Add to Cart Button */}
@@ -945,7 +913,13 @@ export default function MenuPage() {
                   </div>
                 </div>
               ) : (
-                cart.map((item) => (
+                cart.map((item) => {
+                  const unitPrice = item.unitPriceWithVariants || item.price;
+                  const itemCurrency = (item.currency || "MXN") as CurrencyCode;
+                  const convertedPrice = convertCurrency(unitPrice, itemCurrency, selectedCurrency);
+                  const itemTotal = convertedPrice * item.quantity;
+
+                  return (
                   <div
                     key={item.id}
                     className="group relative p-2 border rounded-lg bg-card hover:bg-accent/5 transition-colors"
@@ -973,7 +947,7 @@ export default function MenuPage() {
                         <div className="pr-6">
                           <h4 className="font-semibold text-xs line-clamp-2 leading-tight">{item.name}</h4>
                           <p className="text-xs text-muted-foreground">
-                            ${item.price.toFixed(2)}
+                            {cartCurrencySymbol}{convertedPrice.toFixed(cartDecimals)}
                           </p>
                         </div>
 
@@ -1004,7 +978,7 @@ export default function MenuPage() {
                           {/* Item Total */}
                           <div className="ml-auto">
                             <p className="text-xs font-bold text-primary">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              {cartCurrencySymbol}{itemTotal.toFixed(cartDecimals)}
                             </p>
                           </div>
                         </div>
@@ -1021,7 +995,7 @@ export default function MenuPage() {
                       </Button>
                     </div>
                   </div>
-                ))
+                )})
               )}
               </div>
             </div>
@@ -1032,21 +1006,21 @@ export default function MenuPage() {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">{t.subtotal}</span>
-                    <span className="font-medium">${cartTotal.toFixed(2)}</span>
+                    <span className="font-medium">{cartCurrencySymbol}{cartTotal.toFixed(cartDecimals)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">{t.taxes}</span>
-                    <span className="font-medium">$0.00</span>
+                    <span className="font-medium">{cartCurrencySymbol}0{cartDecimals > 0 ? '.00' : ''}</span>
                   </div>
                   <div className="h-px bg-border my-1.5" />
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold">{t.total}</span>
                     <div className="text-right">
                       <span className="text-lg font-bold text-primary">
-                        ${cartTotal.toFixed(2)}
+                        {cartCurrencySymbol}{cartTotal.toFixed(cartDecimals)}
                       </span>
                       <span className="text-xs text-muted-foreground ml-1">
-                        {cart[0]?.currency || "MXN"}
+                        {selectedCurrency}
                       </span>
                     </div>
                   </div>
@@ -1093,7 +1067,13 @@ export default function MenuPage() {
                 </div>
               </div>
             ) : (
-              cart.map((item) => (
+              cart.map((item) => {
+                const unitPrice = item.unitPriceWithVariants || item.price;
+                const itemCurrency = (item.currency || "MXN") as CurrencyCode;
+                const convertedPrice = convertCurrency(unitPrice, itemCurrency, selectedCurrency);
+                const itemTotal = convertedPrice * item.quantity;
+
+                return (
                 <div
                   key={item.id}
                   className="group relative p-3 border rounded-xl bg-card hover:shadow-md transition-all duration-200"
@@ -1121,7 +1101,7 @@ export default function MenuPage() {
                       <div className="pr-8">
                         <h4 className="font-bold text-base line-clamp-2 leading-tight">{item.name}</h4>
                         <p className="text-sm text-muted-foreground mt-0.5">
-                          ${item.price.toFixed(2)} {item.currency}
+                          {cartCurrencySymbol}{convertedPrice.toFixed(cartDecimals)} {selectedCurrency}
                         </p>
                       </div>
 
@@ -1152,7 +1132,7 @@ export default function MenuPage() {
                         {/* Item Total */}
                         <div className="ml-auto">
                           <p className="text-base font-bold text-primary">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            {cartCurrencySymbol}{itemTotal.toFixed(cartDecimals)}
                           </p>
                         </div>
                       </div>
@@ -1169,7 +1149,7 @@ export default function MenuPage() {
                     </Button>
                   </div>
                 </div>
-              ))
+              )})
             )}
           </div>
 
@@ -1178,21 +1158,21 @@ export default function MenuPage() {
               <div className="space-y-2.5 p-4 rounded-lg bg-muted/30">
                 <div className="flex items-center justify-between text-base">
                   <span className="text-muted-foreground">{t.subtotal}</span>
-                  <span className="font-semibold">${cartTotal.toFixed(2)}</span>
+                  <span className="font-semibold">{cartCurrencySymbol}{cartTotal.toFixed(cartDecimals)}</span>
                 </div>
                 <div className="flex items-center justify-between text-base">
                   <span className="text-muted-foreground">{t.taxes}</span>
-                  <span className="font-semibold">$0.00</span>
+                  <span className="font-semibold">{cartCurrencySymbol}0{cartDecimals > 0 ? '.00' : ''}</span>
                 </div>
                 <div className="h-px bg-border my-2" />
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold">{t.total}</span>
                   <span className="text-2xl font-bold text-primary">
-                    ${cartTotal.toFixed(2)}
+                    {cartCurrencySymbol}{cartTotal.toFixed(cartDecimals)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground text-right">
-                  {cart[0]?.currency || "MXN"}
+                  {selectedCurrency}
                 </p>
               </div>
 
@@ -1250,7 +1230,13 @@ export default function MenuPage() {
 
               <div className="space-y-4">
                 <div className="border rounded-lg p-4 space-y-2 max-h-[200px] overflow-y-auto">
-                  {cart.map((item) => (
+                  {cart.map((item) => {
+                    const unitPrice = item.unitPriceWithVariants || item.price;
+                    const itemCurrency = (item.currency || "MXN") as CurrencyCode;
+                    const convertedPrice = convertCurrency(unitPrice, itemCurrency, selectedCurrency);
+                    const itemTotal = convertedPrice * item.quantity;
+
+                    return (
                     <div
                       key={item.id}
                       className="flex items-center justify-between text-sm"
@@ -1259,10 +1245,10 @@ export default function MenuPage() {
                         {item.quantity}x {item.name}
                       </span>
                       <span className="font-semibold">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        {cartCurrencySymbol}{itemTotal.toFixed(cartDecimals)}
                       </span>
                     </div>
-                  ))}
+                  )})}
                 </div>
 
                 <div>
@@ -1280,7 +1266,7 @@ export default function MenuPage() {
                 <div className="border-t pt-4 flex items-center justify-between text-lg font-bold">
                   <span>{t.total}</span>
                   <span className="text-primary text-2xl">
-                    ${cartTotal.toFixed(2)} {cart[0]?.currency || "MXN"}
+                    {cartCurrencySymbol}{cartTotal.toFixed(cartDecimals)} {selectedCurrency}
                   </span>
                 </div>
               </div>
@@ -1317,7 +1303,7 @@ export default function MenuPage() {
                     {language === "es" ? "Total a pagar" : "Total to pay"}
                   </p>
                   <p className="text-2xl sm:text-3xl font-bold text-primary">
-                    ${cartTotal.toFixed(2)} {cart[0]?.currency || "MXN"}
+                    {cartCurrencySymbol}{cartTotal.toFixed(cartDecimals)} {selectedCurrency}
                   </p>
                 </div>
 
@@ -1393,6 +1379,14 @@ export default function MenuPage() {
         onOpenChange={setVariantModalOpen}
         product={selectedProductForVariants}
         onConfirm={handleVariantConfirm}
+      />
+
+      {/* Currency Preference Dialog */}
+      <CurrencyPreferenceDialog
+        open={showCurrencyDialog}
+        onOpenChange={setShowCurrencyDialog}
+        onCurrencySelect={setSelectedCurrency}
+        language={language}
       />
     </>
   );

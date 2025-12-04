@@ -562,7 +562,14 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                       for (let i = 0; i < variantGroup.options.length; i++) {
                         const option = variantGroup.options[i];
 
+<<<<<<< HEAD
                         const variantData = {
+=======
+                        const { error: variantError } = await supabaseAdmin
+                          .from("product_variants")
+                          // @ts-expect-error - Type mismatch with Supabase generated types
+                          .insert([{
+>>>>>>> origin/main
                             product_id: existingProduct.id,
                             variant_type_id: variantTypeId,
                             name: option.name,
@@ -686,7 +693,14 @@ Responde ÚNICAMENTE con un array JSON válido, sin markdown, sin explicaciones 
                     for (let i = 0; i < variantGroup.options.length; i++) {
                       const option = variantGroup.options[i];
 
+<<<<<<< HEAD
                       const variantData = {
+=======
+                      const { error: variantError } = await supabaseAdmin
+                        .from("product_variants")
+                        // @ts-expect-error - Type mismatch with Supabase generated types
+                        .insert([{
+>>>>>>> origin/main
                           product_id: productId,
                           variant_type_id: variantTypeId,
                           name: option.name,
