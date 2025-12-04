@@ -211,15 +211,15 @@ export default function TerminalsSettingsPage() {
   if (loading) {
     return (
       <div className="flex flex-col h-full">
-        <div className="p-4 border-b flex items-center gap-3">
+        <div className="p-3 sm:p-4 border-b flex items-center gap-2 sm:gap-3">
           <Link href="/dashboard/settings">
-            <Button variant="ghost" size="icon" data-testid="button-back">
+            <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" data-testid="button-back">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-xl font-semibold">Terminales de Pago</h1>
-            <p className="text-sm text-muted-foreground">Conecta tu terminal para cobrar con tarjeta</p>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-semibold truncate">Terminales de Pago</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Conecta tu terminal para cobrar con tarjeta</p>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -231,38 +231,38 @@ export default function TerminalsSettingsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-b flex items-center gap-2 sm:gap-3">
         <Link href="/dashboard/settings">
-          <Button variant="ghost" size="icon" data-testid="button-back">
+          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-xl font-semibold">Terminales de Pago</h1>
-          <p className="text-sm text-muted-foreground">Conecta tu terminal para cobrar con tarjeta</p>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-semibold truncate">Terminales de Pago</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Conecta tu terminal para cobrar con tarjeta</p>
         </div>
       </div>
 
-      <div className="flex-1 p-4 overflow-auto">
+      <div className="flex-1 p-3 sm:p-4 overflow-auto">
         {!connection ? (
-          <div className="max-w-lg mx-auto space-y-6">
+          <div className="max-w-lg mx-auto space-y-4 sm:space-y-6">
             <Card className="border-2 border-dashed">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                    <CreditCard className="h-8 w-8 text-white" />
+              <CardContent className="p-4 sm:pt-6 sm:p-6">
+                <div className="text-center space-y-3 sm:space-y-4">
+                  <div className="mx-auto w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <CreditCard className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
                   
                   <div>
-                    <h2 className="text-xl font-semibold">Conecta tu Terminal</h2>
-                    <p className="text-muted-foreground mt-1">
+                    <h2 className="text-lg sm:text-xl font-semibold">Conecta tu Terminal</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
                       Vincula tu terminal de Mercado Pago Point para cobrar con tarjeta directamente desde el punto de venta
                     </p>
                   </div>
 
                   <Button 
                     size="lg" 
-                    className="w-full bg-[#009EE3] hover:bg-[#007BB5] text-white"
+                    className="w-full min-h-[48px] bg-[#009EE3] hover:bg-[#007BB5] text-white"
                     onClick={handleConnect}
                     disabled={connecting}
                     data-testid="button-connect-mercadopago"
@@ -287,40 +287,40 @@ export default function TerminalsSettingsPage() {
               </CardContent>
             </Card>
 
-            <div className="space-y-3">
-              <h3 className="font-medium text-sm text-muted-foreground">Cómo funciona</h3>
-              <div className="grid gap-3">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">1</div>
-                  <div>
-                    <p className="font-medium">Haz clic en "Conectar"</p>
-                    <p className="text-sm text-muted-foreground">Inicia sesión con tu cuenta de Mercado Pago</p>
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-medium text-xs sm:text-sm text-muted-foreground">Cómo funciona</h3>
+              <div className="grid gap-2 sm:gap-3">
+                <div className="flex items-start gap-2 sm:gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">1</div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">Haz clic en "Conectar"</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Inicia sesión con tu cuenta de Mercado Pago</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">2</div>
-                  <div>
-                    <p className="font-medium">Selecciona tu terminal</p>
-                    <p className="text-sm text-muted-foreground">Elige cuál Point quieres usar</p>
+                <div className="flex items-start gap-2 sm:gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">2</div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">Selecciona tu terminal</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Elige cuál Point quieres usar</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">3</div>
-                  <div>
-                    <p className="font-medium">¡Listo para cobrar!</p>
-                    <p className="text-sm text-muted-foreground">Los cobros con tarjeta se enviarán automáticamente a tu terminal</p>
+                <div className="flex items-start gap-2 sm:gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">3</div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm">¡Listo para cobrar!</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Los cobros con tarjeta se enviarán automáticamente a tu terminal</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {demoMode && (
-              <div className="p-4 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-amber-800 dark:text-amber-200">Modo Demo</p>
-                    <p className="text-sm text-amber-700 dark:text-amber-300">
+              <div className="p-3 sm:p-4 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-amber-800 dark:text-amber-200">Modo Demo</p>
+                    <p className="text-xs sm:text-sm text-amber-700 dark:text-amber-300">
                       La integración con Mercado Pago no está configurada. Contacta al administrador para habilitarla.
                     </p>
                   </div>
@@ -329,54 +329,54 @@ export default function TerminalsSettingsPage() {
             )}
           </div>
         ) : (
-          <div className="max-w-lg mx-auto space-y-6">
+          <div className="max-w-lg mx-auto space-y-4 sm:space-y-6">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                      <CreditCard className="h-6 w-6 text-white" />
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                      <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">Mercado Pago</CardTitle>
-                      <CardDescription>Cuenta conectada</CardDescription>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base sm:text-lg">Mercado Pago</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm">Cuenta conectada</CardDescription>
                     </div>
                   </div>
-                  <Badge variant="outline" className="gap-1 border-green-500 text-green-600">
+                  <Badge variant="outline" className="gap-1 border-green-500 text-green-600 self-start sm:self-auto flex-shrink-0">
                     <Wifi className="h-3 w-3" />
                     Conectado
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
                 {connection.selected_device_id ? (
-                  <div className="p-4 rounded-lg bg-muted/50 border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Smartphone className="h-8 w-8 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{connection.selected_device_name}</p>
-                          <p className="text-sm text-muted-foreground">Terminal activa</p>
+                  <div className="p-3 sm:p-4 rounded-lg bg-muted/50 border">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <Smartphone className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{connection.selected_device_name}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Terminal activa</p>
                         </div>
                       </div>
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                        <div>
-                          <p className="font-medium text-blue-800 dark:text-blue-200">Selecciona tu terminal</p>
-                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <div className="p-3 sm:p-4 rounded-lg border bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm text-blue-800 dark:text-blue-200">Selecciona tu terminal</p>
+                          <p className="text-xs sm:text-sm text-blue-700 dark:text-blue-300">
                             Tu cuenta está conectada. Ahora selecciona qué terminal quieres usar.
                           </p>
                         </div>
                       </div>
                     </div>
                     <Button 
-                      className="w-full" 
+                      className="w-full min-h-[44px]" 
                       onClick={fetchDevices}
                       disabled={loadingDevices}
                       data-testid="button-select-terminal"
@@ -396,14 +396,14 @@ export default function TerminalsSettingsPage() {
                   </div>
                 )}
 
-                <div className="pt-4 border-t flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">
+                <div className="pt-3 sm:pt-4 border-t flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     {connection.live_mode ? "Modo producción" : "Modo pruebas"}
                   </span>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive min-h-[44px]"
                     onClick={handleDisconnect}
                     disabled={disconnecting}
                     data-testid="button-disconnect"
@@ -421,25 +421,25 @@ export default function TerminalsSettingsPage() {
 
             {connection.selected_device_id && (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Cómo cobrar con tarjeta</CardTitle>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-sm sm:text-base">Cómo cobrar con tarjeta</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">1</div>
-                    <p className="text-sm">Agrega productos al carrito y presiona "Cobrar"</p>
+                <CardContent className="space-y-2 sm:space-y-3 p-4 sm:p-6 pt-0 sm:pt-0">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs sm:text-sm font-semibold flex-shrink-0">1</div>
+                    <p className="text-xs sm:text-sm">Agrega productos al carrito y presiona "Cobrar"</p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">2</div>
-                    <p className="text-sm">Selecciona "Tarjeta" como método de pago</p>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs sm:text-sm font-semibold flex-shrink-0">2</div>
+                    <p className="text-xs sm:text-sm">Selecciona "Tarjeta" como método de pago</p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">3</div>
-                    <p className="text-sm">El cobro se enviará automáticamente a tu terminal</p>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs sm:text-sm font-semibold flex-shrink-0">3</div>
+                    <p className="text-xs sm:text-sm">El cobro se enviará automáticamente a tu terminal</p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">4</div>
-                    <p className="text-sm">El cliente paga en la terminal y la venta se completa</p>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs sm:text-sm font-semibold flex-shrink-0">4</div>
+                    <p className="text-xs sm:text-sm">El cliente paga en la terminal y la venta se completa</p>
                   </div>
                 </CardContent>
               </Card>
@@ -449,20 +449,20 @@ export default function TerminalsSettingsPage() {
       </div>
 
       <Dialog open={showDeviceDialog} onOpenChange={setShowDeviceDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Selecciona tu terminal</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Selecciona tu terminal</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Elige la terminal Point que usarás para cobrar
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-2 max-h-[300px] overflow-auto">
+          <div className="space-y-2 max-h-[250px] sm:max-h-[300px] overflow-auto">
             {devices.length === 0 ? (
-              <div className="text-center py-8">
-                <Smartphone className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">No se encontraron terminales</p>
-                <p className="text-sm text-muted-foreground mt-1">
+              <div className="text-center py-6 sm:py-8 px-2">
+                <Smartphone className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground">No se encontraron terminales</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                   Asegúrate de que tu terminal esté encendida y conectada a internet
                 </p>
               </div>
@@ -470,35 +470,35 @@ export default function TerminalsSettingsPage() {
               devices.map((device) => (
                 <button
                   key={device.id}
-                  className="w-full p-4 rounded-lg border hover:bg-muted/50 transition-colors flex items-center justify-between text-left"
+                  className="w-full p-3 sm:p-4 rounded-lg border hover:bg-muted/50 transition-colors flex items-center justify-between text-left min-h-[60px]"
                   onClick={() => handleSelectDevice(device)}
                   disabled={selectingDevice === device.id}
                   data-testid={`button-device-${device.id}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <Smartphone className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">Terminal {device.pos_id || device.id.slice(-6)}</p>
-                      <p className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <Smartphone className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">Terminal {device.pos_id || device.id.slice(-6)}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {device.operating_mode === "PDV" ? "Modo integrado" : device.operating_mode}
                       </p>
                     </div>
                   </div>
                   {selectingDevice === device.id ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" />
                   ) : (
-                    <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
+                    <CheckCircle2 className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   )}
                 </button>
               ))
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeviceDialog(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button variant="outline" className="min-h-[44px] w-full sm:w-auto" onClick={() => setShowDeviceDialog(false)}>
               Cancelar
             </Button>
-            <Button variant="outline" onClick={fetchDevices} disabled={loadingDevices}>
+            <Button variant="outline" className="min-h-[44px] w-full sm:w-auto" onClick={fetchDevices} disabled={loadingDevices}>
               <RefreshCw className={`mr-2 h-4 w-4 ${loadingDevices ? "animate-spin" : ""}`} />
               Actualizar
             </Button>

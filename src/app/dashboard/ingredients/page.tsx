@@ -303,17 +303,18 @@ export default function IngredientsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight flex items-center gap-2">
-              <Soup className="h-8 w-8" />
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight flex items-center gap-2">
+              <Soup className="h-6 w-6 sm:h-8 sm:w-8" />
               Ingredientes
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
               Gestiona tu inventario de ingredientes base
             </p>
           </div>
-          <Button onClick={() => setCreateModalOpen(true)} size="lg">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Ingrediente
+          <Button onClick={() => setCreateModalOpen(true)} size="lg" className="w-full sm:w-auto min-h-[48px]">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Nuevo Ingrediente</span>
+            <span className="sm:hidden">Nuevo</span>
           </Button>
         </div>
 
@@ -365,7 +366,7 @@ export default function IngredientsPage() {
         {/* Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -373,30 +374,33 @@ export default function IngredientsPage() {
                     placeholder="Buscar por nombre o SKU..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 min-h-[44px]"
                   />
                 </div>
               </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant={showLowStock ? "default" : "outline"}
-                onClick={() => setShowLowStock(!showLowStock)}
-              >
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Stock Bajo
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-[200px] min-h-[44px]">
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant={showLowStock ? "default" : "outline"}
+                  onClick={() => setShowLowStock(!showLowStock)}
+                  className="w-full sm:w-auto min-h-[44px]"
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Stock Bajo
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -404,13 +408,14 @@ export default function IngredientsPage() {
         {/* Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Lista de Ingredientes</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Lista de Ingredientes</CardTitle>
+            <CardDescription className="text-sm">
               {filteredIngredients.length} ingrediente(s) encontrado(s)
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
+            {/* Desktop Table View */}
+            <div className="hidden md:block rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -518,6 +523,96 @@ export default function IngredientsPage() {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+              {loading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Cargando ingredientes...
+                </div>
+              ) : filteredIngredients.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No se encontraron ingredientes
+                </div>
+              ) : (
+                filteredIngredients.map((ingredient) => {
+                  const isLowStock = ingredient.current_stock <= ingredient.min_stock;
+                  const totalValue = ingredient.current_stock * ingredient.cost_per_unit;
+
+                  return (
+                    <Card key={ingredient.id} className="p-4" data-testid={`card-ingredient-${ingredient.id}`}>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{ingredient.name}</p>
+                          <code className="text-xs bg-muted px-2 py-0.5 rounded">
+                            {ingredient.sku}
+                          </code>
+                        </div>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {CATEGORIES.find((c) => c.value === ingredient.category)?.label || ingredient.category}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                        <div>
+                          <span className="text-muted-foreground text-xs">Stock:</span>
+                          <p className={`font-medium ${isLowStock ? "text-orange-600" : ""}`}>
+                            {ingredient.current_stock} {ingredient.unit_name}
+                            {isLowStock && (
+                              <Badge variant="destructive" className="text-xs ml-2">
+                                Bajo
+                              </Badge>
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-muted-foreground text-xs">Costo/U:</span>
+                          <p className="font-medium">${ingredient.cost_per_unit.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t">
+                        <div>
+                          <span className="text-muted-foreground text-xs">Valor Total:</span>
+                          <p className="font-semibold">${totalValue.toFixed(2)}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openStockModal(ingredient)}
+                            title="Ajustar Stock"
+                            className="min-h-[44px] min-w-[44px]"
+                          >
+                            {ingredient.current_stock <= ingredient.min_stock ? (
+                              <TrendingDown className="h-4 w-4 text-orange-500" />
+                            ) : (
+                              <TrendingUp className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditModal(ingredient)}
+                            className="min-h-[44px] min-w-[44px]"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(ingredient.id)}
+                            className="min-h-[44px] min-w-[44px]"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -542,7 +637,7 @@ export default function IngredientsPage() {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre *</Label>
                 <Input
@@ -550,6 +645,7 @@ export default function IngredientsPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ej: Carne molida de res"
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
@@ -560,6 +656,7 @@ export default function IngredientsPage() {
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                   placeholder="Ej: ING-CARNE-001"
                   disabled={editModalOpen}
+                  className="min-h-[44px]"
                 />
               </div>
             </div>
@@ -571,17 +668,18 @@ export default function IngredientsPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Descripción opcional"
+                className="min-h-[44px]"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">Categoría</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -599,7 +697,7 @@ export default function IngredientsPage() {
                   value={formData.unit_type}
                   onValueChange={(value) => setFormData({ ...formData, unit_type: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="min-h-[44px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -613,7 +711,7 @@ export default function IngredientsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="unit_name">Unidad de Medida</Label>
                 <Input
@@ -621,6 +719,7 @@ export default function IngredientsPage() {
                   value={formData.unit_name}
                   onChange={(e) => setFormData({ ...formData, unit_name: e.target.value })}
                   placeholder="kg, g, L, ml, pza"
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
@@ -630,6 +729,7 @@ export default function IngredientsPage() {
                   type="number"
                   value={formData.min_stock}
                   onChange={(e) => setFormData({ ...formData, min_stock: parseFloat(e.target.value) || 0 })}
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
@@ -639,11 +739,12 @@ export default function IngredientsPage() {
                   type="number"
                   value={formData.max_stock}
                   onChange={(e) => setFormData({ ...formData, max_stock: parseFloat(e.target.value) || 1000 })}
+                  className="min-h-[44px]"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="current_stock">Stock Inicial</Label>
                 <Input
@@ -653,6 +754,7 @@ export default function IngredientsPage() {
                   value={formData.current_stock}
                   onChange={(e) => setFormData({ ...formData, current_stock: parseFloat(e.target.value) || 0 })}
                   disabled={editModalOpen}
+                  className="min-h-[44px]"
                 />
               </div>
               <div className="space-y-2">
@@ -663,20 +765,21 @@ export default function IngredientsPage() {
                   step="0.01"
                   value={formData.cost_per_unit}
                   onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
+                  className="min-h-[44px]"
                 />
               </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => {
               setCreateModalOpen(false);
               setEditModalOpen(false);
               resetForm();
-            }}>
+            }} className="w-full sm:w-auto min-h-[44px]">
               Cancelar
             </Button>
-            <Button onClick={editModalOpen ? handleUpdate : handleCreate}>
+            <Button onClick={editModalOpen ? handleUpdate : handleCreate} className="w-full sm:w-auto min-h-[44px]">
               {editModalOpen ? "Guardar Cambios" : "Crear Ingrediente"}
             </Button>
           </DialogFooter>
@@ -737,11 +840,11 @@ export default function IngredientsPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStockModalOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setStockModalOpen(false)} className="w-full sm:w-auto min-h-[44px]">
               Cancelar
             </Button>
-            <Button onClick={handleStockAdjustment}>
+            <Button onClick={handleStockAdjustment} className="w-full sm:w-auto min-h-[44px]">
               Aplicar Ajuste
             </Button>
           </DialogFooter>

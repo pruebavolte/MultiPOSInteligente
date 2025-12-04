@@ -318,12 +318,12 @@ export default function POSPage() {
   });
 
   const CategoryButtons = () => (
-    <div className="flex flex-wrap gap-2 p-2">
+    <div className="flex gap-2 p-2 sm:p-3 overflow-x-auto scrollbar-hide sm:flex-wrap">
       <Button
         variant={selectedCategory === null ? "default" : "outline"}
         size="lg"
         onClick={() => handleCategoryClick(null)}
-        className="min-h-[48px] text-base"
+        className="min-h-[44px] min-w-[44px] text-sm sm:text-base flex-shrink-0 px-3 sm:px-4"
         data-testid="button-category-all"
       >
         Todos ({allProducts.length})
@@ -332,7 +332,7 @@ export default function POSPage() {
         variant={selectedCategory === "best-sellers" ? "default" : "outline"}
         size="lg"
         onClick={() => handleCategoryClick("best-sellers")}
-        className="min-h-[48px] text-base"
+        className="min-h-[44px] min-w-[44px] text-sm sm:text-base flex-shrink-0 px-3 sm:px-4"
         data-testid="button-category-best-sellers"
       >
         Más vendidos
@@ -343,7 +343,7 @@ export default function POSPage() {
           variant={selectedCategory === category.id ? "default" : "outline"}
           size="lg"
           onClick={() => handleCategoryClick(category.id)}
-          className="min-h-[48px] text-base"
+          className="min-h-[44px] min-w-[44px] text-sm sm:text-base flex-shrink-0 px-3 sm:px-4"
           data-testid={`button-category-${category.id}`}
         >
           {category.name} ({categoryCounts[category.id] || 0})
@@ -355,22 +355,22 @@ export default function POSPage() {
   return (
     <div className="w-full h-[calc(100vh-4rem)] flex flex-col">
       {categoryPosition === "top" && (
-        <div className="flex-shrink-0 border-b bg-background overflow-x-auto">
-          <ScrollArea className="w-full">
+        <div className="flex-shrink-0 border-b bg-background">
+          <div className="w-full overflow-x-auto scrollbar-hide">
             <CategoryButtons />
-          </ScrollArea>
+          </div>
         </div>
       )}
 
       <div className="flex-1 flex min-h-0">
         {categoryPosition === "left" && (
-          <div className="w-48 flex-shrink-0 border-r bg-background overflow-y-auto">
+          <div className="hidden md:block w-40 lg:w-48 flex-shrink-0 border-r bg-background overflow-y-auto">
             <div className="flex flex-col gap-2 p-2">
               <Button
                 variant={selectedCategory === null ? "default" : "outline"}
                 size="lg"
                 onClick={() => handleCategoryClick(null)}
-                className="w-full min-h-[48px] text-sm justify-start"
+                className="w-full min-h-[44px] text-sm justify-start"
                 data-testid="button-category-all-left"
               >
                 Todos ({allProducts.length})
@@ -379,7 +379,7 @@ export default function POSPage() {
                 variant={selectedCategory === "best-sellers" ? "default" : "outline"}
                 size="lg"
                 onClick={() => handleCategoryClick("best-sellers")}
-                className="w-full min-h-[48px] text-sm justify-start"
+                className="w-full min-h-[44px] text-sm justify-start"
                 data-testid="button-category-best-sellers-left"
               >
                 Más vendidos
@@ -390,7 +390,7 @@ export default function POSPage() {
                   variant={selectedCategory === category.id ? "default" : "outline"}
                   size="lg"
                   onClick={() => handleCategoryClick(category.id)}
-                  className="w-full min-h-[48px] text-sm justify-start"
+                  className="w-full min-h-[44px] text-sm justify-start"
                   data-testid={`button-category-left-${category.id}`}
                 >
                   {category.name} ({categoryCounts[category.id] || 0})
@@ -438,38 +438,38 @@ export default function POSPage() {
       </div>
 
       {categoryPosition === "bottom" && (
-        <div className="flex-shrink-0 border-t bg-background overflow-x-auto">
-          <ScrollArea className="w-full">
+        <div className="flex-shrink-0 border-t bg-background">
+          <div className="w-full overflow-x-auto scrollbar-hide">
             <CategoryButtons />
-          </ScrollArea>
+          </div>
         </div>
       )}
 
-      <div className="fixed bottom-6 right-6 flex flex-col gap-2 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex flex-col gap-2 z-50">
         <Button
           onClick={() => setActiveView(activeView === "voice" ? "products" : "voice")}
           className={cn(
-            "h-14 w-14 rounded-full shadow-2xl",
+            "h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl",
             activeView === "voice" ? "bg-primary" : "bg-secondary"
           )}
           size="icon"
           data-testid="button-toggle-voice"
         >
-          <Mic className="h-6 w-6" />
+          <Mic className="h-5 w-5 sm:h-6 sm:w-6" />
         </Button>
         <Button
           onClick={() => setCartSheetOpen(true)}
           className={cn(
-            "h-14 w-14 rounded-full shadow-2xl lg:hidden",
+            "h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-2xl lg:hidden",
             "bg-primary hover:bg-primary/90 text-primary-foreground",
             cartBounce && "animate-bounce"
           )}
           size="icon"
           data-testid="button-open-cart-mobile"
         >
-          <ShoppingCart className="h-6 w-6" />
+          <ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7" />
           {cartItemCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-red-500 text-white text-xs sm:text-sm font-bold flex items-center justify-center">
               {cartItemCount > 99 ? "99+" : cartItemCount}
             </span>
           )}
@@ -478,11 +478,11 @@ export default function POSPage() {
 
       <Sheet open={cartSheetOpen} onOpenChange={setCartSheetOpen}>
         <SheetContent side="right" className="w-full sm:w-[400px] p-0 [&>button]:hidden">
-          <SheetHeader className="p-3 border-b">
+          <SheetHeader className="p-3 sm:p-4 border-b">
             <SheetTitle className="flex items-center justify-between">
-              <span>Carrito</span>
-              <Button variant="ghost" size="icon" onClick={() => setCartSheetOpen(false)}>
-                <X className="h-4 w-4" />
+              <span className="text-base sm:text-lg">Carrito</span>
+              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setCartSheetOpen(false)}>
+                <X className="h-5 w-5" />
               </Button>
             </SheetTitle>
           </SheetHeader>

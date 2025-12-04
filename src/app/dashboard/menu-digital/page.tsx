@@ -253,55 +253,57 @@ export default function MenuDigitalPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
               {t.pageTitle}
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">
               {t.pageDescription}
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap w-full sm:w-auto">
             <LanguageSelector />
             {!isSelectionMode && (
               <>
-
                 {/* Botón para copiar link del menú */}
                 <Button
                   variant="outline"
                   onClick={handleCopyMenuLink}
-                  className="gap-2"
+                  className="gap-2 min-h-[44px]"
                   disabled={!user?.id}
                 >
                   <Share2 className="h-5 w-5" />
                   <span className="hidden sm:inline">Compartir Menú</span>
                 </Button>
 
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setViewMode("grid")}
-                  className={cn(viewMode === "grid" && "bg-accent")}
-                  title={t.gridView}
-                >
-                  <Grid3x3 className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setViewMode("list")}
-                  className={cn(viewMode === "list" && "bg-accent")}
-                  title={t.listView}
-                >
-                  <List className="h-5 w-5" />
-                </Button>
+                {/* View mode buttons - hidden on smallest screens */}
+                <div className="hidden xs:flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                    className={cn("min-h-[44px] min-w-[44px]", viewMode === "grid" && "bg-accent")}
+                    title={t.gridView}
+                  >
+                    <Grid3x3 className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                    className={cn("min-h-[44px] min-w-[44px]", viewMode === "list" && "bg-accent")}
+                    title={t.listView}
+                  >
+                    <List className="h-5 w-5" />
+                  </Button>
+                </div>
 
-                {/* Image Size Controls - Only show in grid view */}
+                {/* Image Size Controls - Only show in grid view on larger screens */}
                 {viewMode === "grid" && (
-                  <div className="flex gap-1 border rounded-lg p-1 bg-muted/30">
+                  <div className="hidden sm:flex gap-1 border rounded-lg p-1 bg-muted/30">
                     <Button
                       variant={imageSize === "small" ? "default" : "ghost"}
                       size="icon"
-                      className="h-9 w-9"
+                      className="h-9 w-9 min-h-[36px] min-w-[36px]"
                       onClick={() => setImageSize("small")}
                       title="Pequeño"
                     >
@@ -310,7 +312,7 @@ export default function MenuDigitalPage() {
                     <Button
                       variant={imageSize === "medium" ? "default" : "ghost"}
                       size="icon"
-                      className="h-9 w-9"
+                      className="h-9 w-9 min-h-[36px] min-w-[36px]"
                       onClick={() => setImageSize("medium")}
                       title="Mediano"
                     >
@@ -319,7 +321,7 @@ export default function MenuDigitalPage() {
                     <Button
                       variant={imageSize === "large" ? "default" : "ghost"}
                       size="icon"
-                      className="h-9 w-9"
+                      className="h-9 w-9 min-h-[36px] min-w-[36px]"
                       onClick={() => setImageSize("large")}
                       title="Grande"
                     >
@@ -328,9 +330,9 @@ export default function MenuDigitalPage() {
                   </div>
                 )}
 
-                <Button onClick={handleAddNew}>
-                  <Plus className="h-5 w-5 mr-2" />
-                  {t.addProduct}
+                <Button onClick={handleAddNew} className="min-h-[44px]">
+                  <Plus className="h-5 w-5 sm:mr-2" />
+                  <span className="hidden sm:inline">{t.addProduct}</span>
                 </Button>
               </>
             )}
@@ -338,16 +340,17 @@ export default function MenuDigitalPage() {
               <Button
                 variant={isSelectionMode ? "default" : "outline"}
                 onClick={toggleSelectionMode}
+                className="min-h-[44px]"
               >
                 {isSelectionMode ? (
                   <>
-                    <X className="h-5 w-5 mr-2" />
-                    {t.cancel}
+                    <X className="h-5 w-5 sm:mr-2" />
+                    <span className="hidden sm:inline">{t.cancel}</span>
                   </>
                 ) : (
                   <>
-                    <Check className="h-5 w-5 mr-2" />
-                    {t.select}
+                    <Check className="h-5 w-5 sm:mr-2" />
+                    <span className="hidden sm:inline">{t.select}</span>
                   </>
                 )}
               </Button>
@@ -745,53 +748,56 @@ export default function MenuDigitalPage() {
         </Card>
       </div>
 
-      {/* Floating Action Button */}
+      {/* Floating Action Button - Mobile optimized */}
       {!isSelectionMode && (
-        <div className="fixed bottom-8 right-8">
+        <div className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-40">
           <Button
             size="lg"
-            className="rounded-full shadow-lg h-14 px-6"
+            className="rounded-full shadow-lg h-12 sm:h-14 px-4 sm:px-6 min-h-[48px]"
             onClick={() => setDigitalizeDialogOpen(true)}
           >
-            <Sparkles className="h-5 w-5 mr-2" />
-            {t.digitalizeMenu}
+            <Sparkles className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">{t.digitalizeMenu}</span>
           </Button>
         </div>
       )}
 
-      {/* Selection Actions Bar */}
+      {/* Selection Actions Bar - Mobile optimized */}
       {isSelectionMode && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground rounded-full shadow-2xl px-6 py-4 flex items-center gap-4">
-          <span className="font-semibold">
+        <div className="fixed bottom-4 sm:bottom-8 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 bg-primary text-primary-foreground rounded-2xl sm:rounded-full shadow-2xl px-4 sm:px-6 py-3 sm:py-4 flex flex-wrap sm:flex-nowrap items-center justify-center gap-2 sm:gap-4 z-50">
+          <span className="font-semibold text-sm sm:text-base">
             {selectedProducts.size} {t.selected}
           </span>
-          <div className="h-6 w-px bg-primary-foreground/20" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={selectAll}
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-          >
-            {t.selectAll}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={deselectAll}
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-            disabled={selectedProducts.size === 0}
-          >
-            {t.deselectAll}
-          </Button>
-          <div className="h-6 w-px bg-primary-foreground/20" />
+          <div className="hidden sm:block h-6 w-px bg-primary-foreground/20" />
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={selectAll}
+              className="text-primary-foreground hover:bg-primary-foreground/10 min-h-[44px] text-xs sm:text-sm"
+            >
+              {t.selectAll}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={deselectAll}
+              className="text-primary-foreground hover:bg-primary-foreground/10 min-h-[44px] text-xs sm:text-sm"
+              disabled={selectedProducts.size === 0}
+            >
+              {t.deselectAll}
+            </Button>
+          </div>
+          <div className="hidden sm:block h-6 w-px bg-primary-foreground/20" />
           <Button
             variant="destructive"
             size="sm"
             onClick={handleDeleteSelected}
             disabled={selectedProducts.size === 0}
+            className="min-h-[44px] text-xs sm:text-sm"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
-            {t.delete} ({selectedProducts.size})
+            <Trash2 className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{t.delete}</span> ({selectedProducts.size})
           </Button>
         </div>
       )}

@@ -203,12 +203,12 @@ export default function ReportesAvanzadosPage() {
             Análisis detallado de ventas y operaciones
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <Select
             value={rangoFechas}
             onValueChange={(value: RangoFechas) => setRangoFechas(value)}
           >
-            <SelectTrigger className="w-[180px]" data-testid="select-rango-fechas">
+            <SelectTrigger className="w-full sm:w-[180px] min-h-[44px]" data-testid="select-rango-fechas">
               <Calendar className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Seleccionar rango" />
             </SelectTrigger>
@@ -222,14 +222,15 @@ export default function ReportesAvanzadosPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" data-testid="button-exportar">
+              <Button variant="outline" className="min-h-[44px]" data-testid="button-exportar">
                 <Download className="mr-2 h-4 w-4" />
-                Exportar
+                <span className="hidden xs:inline">Exportar</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => handleExport("pdf")}
+                className="min-h-[44px]"
                 data-testid="menuitem-export-pdf"
               >
                 <FileText className="mr-2 h-4 w-4" />
@@ -237,6 +238,7 @@ export default function ReportesAvanzadosPage() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleExport("excel")}
+                className="min-h-[44px]"
                 data-testid="menuitem-export-excel"
               >
                 <FileSpreadsheet className="mr-2 h-4 w-4" />
@@ -247,9 +249,9 @@ export default function ReportesAvanzadosPage() {
         </div>
       </div>
 
-      <div className="flex-1 p-4 overflow-auto">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex-1 p-3 sm:p-4 overflow-auto">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -342,98 +344,112 @@ export default function ReportesAvanzadosPage() {
           </div>
 
           <Tabs defaultValue="ventas" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-              <TabsTrigger value="ventas" data-testid="tab-ventas">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Ventas por Día
-              </TabsTrigger>
-              <TabsTrigger value="productos" data-testid="tab-productos">
-                <Package className="mr-2 h-4 w-4" />
-                Productos Top
-              </TabsTrigger>
-              <TabsTrigger value="pagos" data-testid="tab-pagos">
-                <DollarSign className="mr-2 h-4 w-4" />
-                Métodos de Pago
-              </TabsTrigger>
-              <TabsTrigger value="cortes" data-testid="tab-cortes">
-                <Receipt className="mr-2 h-4 w-4" />
-                Historial Cortes
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+              <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-2 lg:grid-cols-4">
+                <TabsTrigger value="ventas" className="min-h-[44px] text-xs sm:text-sm whitespace-nowrap" data-testid="tab-ventas">
+                  <BarChart3 className="mr-1.5 sm:mr-2 h-4 w-4" />
+                  <span className="hidden xs:inline">Ventas por</span> Día
+                </TabsTrigger>
+                <TabsTrigger value="productos" className="min-h-[44px] text-xs sm:text-sm whitespace-nowrap" data-testid="tab-productos">
+                  <Package className="mr-1.5 sm:mr-2 h-4 w-4" />
+                  <span className="hidden xs:inline">Productos</span> Top
+                </TabsTrigger>
+                <TabsTrigger value="pagos" className="min-h-[44px] text-xs sm:text-sm whitespace-nowrap" data-testid="tab-pagos">
+                  <DollarSign className="mr-1.5 sm:mr-2 h-4 w-4" />
+                  <span className="hidden xs:inline">Métodos</span> Pago
+                </TabsTrigger>
+                <TabsTrigger value="cortes" className="min-h-[44px] text-xs sm:text-sm whitespace-nowrap" data-testid="tab-cortes">
+                  <Receipt className="mr-1.5 sm:mr-2 h-4 w-4" />
+                  <span className="hidden xs:inline">Historial</span> Cortes
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="ventas" className="space-y-4">
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Ventas por Día</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Ventas por Día</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Ingresos diarios en el período seleccionado
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={filteredVentas}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis
-                          dataKey="dia"
-                          className="text-xs fill-muted-foreground"
-                        />
-                        <YAxis className="text-xs fill-muted-foreground" />
-                        <Tooltip
-                          formatter={(value: number) => formatCurrency(value)}
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                          }}
-                        />
-                        <Legend />
-                        <Bar
-                          dataKey="ventas"
-                          fill="hsl(var(--primary))"
-                          name="Ventas"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                    <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+                      <div className="min-w-[300px]">
+                        <ResponsiveContainer width="100%" height={250} minWidth={300}>
+                          <BarChart data={filteredVentas}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <XAxis
+                              dataKey="dia"
+                              className="text-xs fill-muted-foreground"
+                              tick={{ fontSize: 10 }}
+                            />
+                            <YAxis className="text-xs fill-muted-foreground" tick={{ fontSize: 10 }} width={50} />
+                            <Tooltip
+                              formatter={(value: number) => formatCurrency(value)}
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                              }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: "12px" }} />
+                            <Bar
+                              dataKey="ventas"
+                              fill="hsl(var(--primary))"
+                              name="Ventas"
+                              radius={[4, 4, 0, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Tendencia de Ventas</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Tendencia de Ventas</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Evolución de ingresos a lo largo del tiempo
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={filteredVentas}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis
-                          dataKey="dia"
-                          className="text-xs fill-muted-foreground"
-                        />
-                        <YAxis className="text-xs fill-muted-foreground" />
-                        <Tooltip
-                          formatter={(value: number) => formatCurrency(value)}
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                          }}
-                        />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="ventas"
-                          stroke="#22c55e"
-                          strokeWidth={2}
-                          name="Ventas"
-                          dot={{ fill: "#22c55e", strokeWidth: 2 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                  <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                    <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+                      <div className="min-w-[300px]">
+                        <ResponsiveContainer width="100%" height={250} minWidth={300}>
+                          <LineChart data={filteredVentas}>
+                            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                            <XAxis
+                              dataKey="dia"
+                              className="text-xs fill-muted-foreground"
+                              tick={{ fontSize: 10 }}
+                            />
+                            <YAxis className="text-xs fill-muted-foreground" tick={{ fontSize: 10 }} width={50} />
+                            <Tooltip
+                              formatter={(value: number) => formatCurrency(value)}
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                              }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: "12px" }} />
+                            <Line
+                              type="monotone"
+                              dataKey="ventas"
+                              stroke="#22c55e"
+                              strokeWidth={2}
+                              name="Ventas"
+                              dot={{ fill: "#22c55e", strokeWidth: 2 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -441,131 +457,143 @@ export default function ReportesAvanzadosPage() {
 
             <TabsContent value="productos" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Top 10 Productos Más Vendidos</CardTitle>
-                  <CardDescription>
+                <CardHeader className="p-3 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg">Top 10 Productos Más Vendidos</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
                     Productos con mayor volumen de ventas
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">#</TableHead>
-                        <TableHead>Producto</TableHead>
-                        <TableHead>Categoría</TableHead>
-                        <TableHead className="text-right">Precio</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead className="text-right">Ingresos</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {productos.slice(0, 10).map((producto, index) => (
-                        <TableRow key={producto.id} data-testid={`row-producto-${producto.id}`}>
-                          <TableCell className="font-medium">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {producto.nombre}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{producto.categoria}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(producto.precio)}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {producto.cantidadVendida}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold text-green-600">
-                            {formatCurrency(producto.ingresos)}
-                          </TableCell>
+                <CardContent className="p-0 sm:p-6 sm:pt-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-10 sm:w-12 text-xs sm:text-sm">#</TableHead>
+                          <TableHead className="text-xs sm:text-sm min-w-[120px]">Producto</TableHead>
+                          <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Categoría</TableHead>
+                          <TableHead className="text-right text-xs sm:text-sm">Precio</TableHead>
+                          <TableHead className="text-right text-xs sm:text-sm">Cant.</TableHead>
+                          <TableHead className="text-right text-xs sm:text-sm">Ingresos</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {productos.slice(0, 10).map((producto, index) => (
+                          <TableRow key={producto.id} data-testid={`row-producto-${producto.id}`}>
+                            <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                              <div className="max-w-[150px] sm:max-w-none truncate">
+                                {producto.nombre}
+                              </div>
+                              <div className="sm:hidden mt-0.5">
+                                <Badge variant="outline" className="text-xs">{producto.categoria}</Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell py-2 sm:py-4">
+                              <Badge variant="outline">{producto.categoria}</Badge>
+                            </TableCell>
+                            <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4">
+                              {formatCurrency(producto.precio)}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold text-xs sm:text-sm py-2 sm:py-4">
+                              {producto.cantidadVendida}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold text-green-600 text-xs sm:text-sm py-2 sm:py-4">
+                              {formatCurrency(producto.ingresos)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
             <TabsContent value="pagos" className="space-y-4">
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Distribución por Método de Pago</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Distribución por Método de Pago</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Porcentaje de ventas por forma de pago
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={350}>
-                      <PieChart>
-                        <Pie
-                          data={metodosPago}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ metodo, porcentaje }) =>
-                            `${metodo}: ${porcentaje}%`
-                          }
-                          outerRadius={120}
-                          fill="#8884d8"
-                          dataKey="porcentaje"
-                          nameKey="metodo"
-                        >
-                          {metodosPago.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value: number, name: string) => [
-                            `${value}%`,
-                            name,
-                          ]}
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
+                  <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                    <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+                      <div className="min-w-[280px]">
+                        <ResponsiveContainer width="100%" height={280} minWidth={280}>
+                          <PieChart>
+                            <Pie
+                              data={metodosPago}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ metodo, porcentaje }) =>
+                                `${metodo}: ${porcentaje}%`
+                              }
+                              outerRadius={90}
+                              fill="#8884d8"
+                              dataKey="porcentaje"
+                              nameKey="metodo"
+                            >
+                              {metodosPago.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              formatter={(value: number, name: string) => [
+                                `${value}%`,
+                                name,
+                              ]}
+                              contentStyle={{
+                                backgroundColor: "hsl(var(--card))",
+                                border: "1px solid hsl(var(--border))",
+                                borderRadius: "8px",
+                                fontSize: "12px",
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Detalle por Método de Pago</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="p-3 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Detalle por Método de Pago</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">
                       Montos y transacciones por forma de pago
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
+                  <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                    <div className="space-y-2 sm:space-y-4">
                       {metodosPago.map((metodo) => (
                         <div
                           key={metodo.metodo}
-                          className="flex items-center justify-between p-4 rounded-lg border"
+                          className="flex items-center justify-between gap-2 p-3 sm:p-4 rounded-lg border"
                           data-testid={`card-metodo-${metodo.metodo.toLowerCase()}`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <div
-                              className="w-3 h-3 rounded-full"
+                              className="w-3 h-3 rounded-full flex-shrink-0"
                               style={{ backgroundColor: metodo.color }}
                             />
-                            <div>
-                              <p className="font-medium">{metodo.metodo}</p>
-                              <p className="text-sm text-muted-foreground">
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm sm:text-base truncate">{metodo.metodo}</p>
+                              <p className="text-xs sm:text-sm text-muted-foreground">
                                 {metodo.porcentaje}% del total
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-lg">
+                          <div className="text-right flex-shrink-0">
+                            <p className="font-semibold text-sm sm:text-lg">
                               {formatCurrency(metodo.monto)}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {metodo.cantidad} transacciones
+                              {metodo.cantidad} trans.
                             </p>
                           </div>
                         </div>
@@ -578,37 +606,38 @@ export default function ReportesAvanzadosPage() {
 
             <TabsContent value="cortes" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Historial de Cortes de Caja</CardTitle>
-                  <CardDescription>
+                <CardHeader className="p-3 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg">Historial de Cortes de Caja</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
                     Últimos 5 cierres de turno registrados
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                  <div className="space-y-3 sm:space-y-4">
                     {cortes.map((corte) => (
                       <div
                         key={corte.id}
-                        className="p-4 rounded-lg border"
+                        className="p-3 sm:p-4 rounded-lg border"
                         data-testid={`card-corte-${corte.id}`}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                              <Receipt className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                              <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             </div>
-                            <div>
-                              <p className="font-medium capitalize">
+                            <div className="min-w-0">
+                              <p className="font-medium capitalize text-sm sm:text-base truncate">
                                 {corte.fechaFormateada}
                               </p>
-                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
                                 <Clock className="h-3 w-3" />
-                                {corte.horaInicio} - {corte.horaCierre} |{" "}
-                                {corte.usuario}
+                                <span>{corte.horaInicio} - {corte.horaCierre}</span>
+                                <span className="hidden xs:inline">| {corte.usuario}</span>
                               </p>
                             </div>
                           </div>
                           <Badge
+                            className="text-xs self-start sm:self-auto flex-shrink-0"
                             variant={
                               corte.status === "cuadrado"
                                 ? "default"
@@ -634,7 +663,7 @@ export default function ReportesAvanzadosPage() {
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
                           <div>
                             <p className="text-muted-foreground">Total Ventas</p>
                             <p className="font-semibold">
@@ -654,10 +683,9 @@ export default function ReportesAvanzadosPage() {
                             </p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground">Esperado vs Contado</p>
-                            <p className="font-semibold">
-                              {formatCurrency(corte.efectivoEsperado)} /{" "}
-                              {formatCurrency(corte.efectivoContado)}
+                            <p className="text-muted-foreground text-xs">Esperado/Contado</p>
+                            <p className="font-semibold text-xs sm:text-sm">
+                              {formatCurrency(corte.efectivoEsperado)} / {formatCurrency(corte.efectivoContado)}
                             </p>
                           </div>
                         </div>

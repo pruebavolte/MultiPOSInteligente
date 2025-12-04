@@ -590,11 +590,11 @@ export default function DevolucionesPage() {
                     </ScrollArea>
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="motivo">Motivo de Devolución</Label>
                       <Select value={motivo} onValueChange={setMotivo}>
-                        <SelectTrigger id="motivo" data-testid="select-motivo">
+                        <SelectTrigger id="motivo" data-testid="select-motivo" className="min-h-[44px]">
                           <SelectValue placeholder="Seleccionar motivo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -609,7 +609,7 @@ export default function DevolucionesPage() {
                     <div className="space-y-2">
                       <Label htmlFor="tipoReembolso">Tipo de Reembolso</Label>
                       <Select value={tipoReembolso} onValueChange={setTipoReembolso}>
-                        <SelectTrigger id="tipoReembolso" data-testid="select-tipo-reembolso">
+                        <SelectTrigger id="tipoReembolso" data-testid="select-tipo-reembolso" className="min-h-[44px]">
                           <SelectValue placeholder="Seleccionar tipo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -652,14 +652,15 @@ export default function DevolucionesPage() {
             </div>
 
             {selectedVenta && (
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto min-h-[44px]">
                   Cancelar
                 </Button>
                 <Button
                   onClick={handleSubmitDevolucion}
                   disabled={submitting || itemsSeleccionados.length === 0}
                   data-testid="button-confirmar-devolucion"
+                  className="w-full sm:w-auto min-h-[44px]"
                 >
                   {submitting ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -674,23 +675,23 @@ export default function DevolucionesPage() {
         </Dialog>
       </div>
 
-      <div className="flex-1 p-4 overflow-auto">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="grid gap-6 lg:grid-cols-3">
+      <div className="flex-1 p-3 sm:p-4 overflow-auto">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-4">
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 space-y-0 pb-4">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Receipt className="h-5 w-5" />
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Receipt className="h-4 w-4 sm:h-5 sm:w-5" />
                       Historial de Devoluciones
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-sm">
                       {devoluciones.length} devoluciones registradas
                     </CardDescription>
                   </div>
                   <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-                    <SelectTrigger className="w-[150px]" data-testid="select-filtro-estado">
+                    <SelectTrigger className="w-full sm:w-[150px] min-h-[44px]" data-testid="select-filtro-estado">
                       <SelectValue placeholder="Filtrar" />
                     </SelectTrigger>
                     <SelectContent>
@@ -710,57 +711,97 @@ export default function DevolucionesPage() {
                       </p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead># Ticket</TableHead>
-                            <TableHead>Productos</TableHead>
-                            <TableHead>Monto</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Estado</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {devoluciones.map((dev) => (
-                            <TableRow key={dev.id} data-testid={`row-devolucion-${dev.id}`}>
-                              <TableCell className="whitespace-nowrap">
-                                {formatDateTime(dev.fechaDevolucion)}
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                {dev.ticketOriginal}
-                              </TableCell>
-                              <TableCell>
-                                <div className="max-w-[200px]">
-                                  {dev.productos.slice(0, 2).map((p, i) => (
-                                    <p key={i} className="text-sm truncate">
-                                      {p.cantidad}x {p.productoNombre}
-                                    </p>
-                                  ))}
-                                  {dev.productos.length > 2 && (
-                                    <p className="text-xs text-muted-foreground">
-                                      +{dev.productos.length - 2} más
-                                    </p>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-semibold text-destructive">
-                                -{formatCurrency(dev.montoTotal)}
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">
-                                  {tipoReembolsoLabels[dev.tipoReembolso] || dev.tipoReembolso}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {getEstadoBadge(dev.estado)}
-                              </TableCell>
+                    <>
+                      {/* Desktop Table View */}
+                      <div className="hidden sm:block overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Fecha</TableHead>
+                              <TableHead># Ticket</TableHead>
+                              <TableHead>Productos</TableHead>
+                              <TableHead>Monto</TableHead>
+                              <TableHead>Tipo</TableHead>
+                              <TableHead>Estado</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                          </TableHeader>
+                          <TableBody>
+                            {devoluciones.map((dev) => (
+                              <TableRow key={dev.id} data-testid={`row-devolucion-${dev.id}`}>
+                                <TableCell className="whitespace-nowrap">
+                                  {formatDateTime(dev.fechaDevolucion)}
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  {dev.ticketOriginal}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="max-w-[200px]">
+                                    {dev.productos.slice(0, 2).map((p, i) => (
+                                      <p key={i} className="text-sm truncate">
+                                        {p.cantidad}x {p.productoNombre}
+                                      </p>
+                                    ))}
+                                    {dev.productos.length > 2 && (
+                                      <p className="text-xs text-muted-foreground">
+                                        +{dev.productos.length - 2} más
+                                      </p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="font-semibold text-destructive">
+                                  -{formatCurrency(dev.montoTotal)}
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant="outline">
+                                    {tipoReembolsoLabels[dev.tipoReembolso] || dev.tipoReembolso}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {getEstadoBadge(dev.estado)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      {/* Mobile Card View */}
+                      <div className="sm:hidden space-y-3">
+                        {devoluciones.map((dev) => (
+                          <Card key={dev.id} className="p-3" data-testid={`card-devolucion-${dev.id}`}>
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div>
+                                <p className="font-medium text-sm">{dev.ticketOriginal}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDateTime(dev.fechaDevolucion)}
+                                </p>
+                              </div>
+                              {getEstadoBadge(dev.estado)}
+                            </div>
+                            <div className="space-y-1 mb-2">
+                              {dev.productos.slice(0, 2).map((p, i) => (
+                                <p key={i} className="text-xs truncate">
+                                  {p.cantidad}x {p.productoNombre}
+                                </p>
+                              ))}
+                              {dev.productos.length > 2 && (
+                                <p className="text-xs text-muted-foreground">
+                                  +{dev.productos.length - 2} más
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between pt-2 border-t">
+                              <Badge variant="outline" className="text-xs">
+                                {tipoReembolsoLabels[dev.tipoReembolso] || dev.tipoReembolso}
+                              </Badge>
+                              <span className="font-semibold text-destructive text-sm">
+                                -{formatCurrency(dev.montoTotal)}
+                              </span>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -896,14 +937,15 @@ export default function DevolucionesPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUsarNotaDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setUsarNotaDialogOpen(false)} className="w-full sm:w-auto min-h-[44px]">
               Cancelar
             </Button>
             <Button
               onClick={handleAplicarNota}
               disabled={submitting}
               data-testid="button-confirmar-aplicar-nota"
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

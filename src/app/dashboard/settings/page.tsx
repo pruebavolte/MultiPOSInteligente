@@ -114,89 +114,89 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
-            <div className="flex flex-col gap-8">
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 max-w-[1600px] mx-auto">
+            <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
                 {/* Header */}
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+                <div className="flex flex-col gap-1 sm:gap-2">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                         Configuración
                     </h1>
-                    <p className="text-muted-foreground">
+                    <p className="text-sm sm:text-base text-muted-foreground">
                         Administra la configuración de tu sistema de punto de venta
                     </p>
                 </div>
 
                 {/* Quick Access - Terminals, Platforms, Printers & Databases */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     <Link href="/dashboard/settings/databases" data-testid="link-databases-config">
                         <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
-                            <CardContent className="flex items-center justify-between p-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center">
-                                        <Database className="h-6 w-6 text-white" />
+                            <CardContent className="flex items-center justify-between gap-2 p-4 sm:p-6 min-h-[72px]">
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+                                        <Database className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Bases de Datos</h3>
-                                        <p className="text-sm text-muted-foreground">
+                                    <div className="min-w-0">
+                                        <h3 className="font-semibold text-base sm:text-lg truncate">Bases de Datos</h3>
+                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                             Supabase Primary/Secondary
                                         </p>
                                     </div>
                                 </div>
-                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             </CardContent>
                         </Card>
                     </Link>
                     <Link href="/dashboard/settings/terminals" data-testid="link-terminals-config">
                         <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
-                            <CardContent className="flex items-center justify-between p-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                                        <CreditCard className="h-6 w-6 text-white" />
+                            <CardContent className="flex items-center justify-between gap-2 p-4 sm:p-6 min-h-[72px]">
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                                        <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Terminales</h3>
-                                        <p className="text-sm text-muted-foreground">
+                                    <div className="min-w-0">
+                                        <h3 className="font-semibold text-base sm:text-lg truncate">Terminales</h3>
+                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                             Mercado Pago, Clip
                                         </p>
                                     </div>
                                 </div>
-                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             </CardContent>
                         </Card>
                     </Link>
                     <Link href="/dashboard/settings/platforms" data-testid="link-platforms-config">
                         <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
-                            <CardContent className="flex items-center justify-between p-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
-                                        <Truck className="h-6 w-6 text-white" />
+                            <CardContent className="flex items-center justify-between gap-2 p-4 sm:p-6 min-h-[72px]">
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0">
+                                        <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Plataformas</h3>
-                                        <p className="text-sm text-muted-foreground">
+                                    <div className="min-w-0">
+                                        <h3 className="font-semibold text-base sm:text-lg truncate">Plataformas</h3>
+                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                             Uber Eats, Didi Food, Rappi
                                         </p>
                                     </div>
                                 </div>
-                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             </CardContent>
                         </Card>
                     </Link>
                     <Link href="/dashboard/settings/printers" data-testid="link-printers-config">
                         <Card className="hover-elevate cursor-pointer transition-all border-2 border-transparent hover:border-primary/20">
-                            <CardContent className="flex items-center justify-between p-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center">
-                                        <Printer className="h-6 w-6 text-white" />
+                            <CardContent className="flex items-center justify-between gap-2 p-4 sm:p-6 min-h-[72px]">
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                                        <Printer className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-lg">Impresoras</h3>
-                                        <p className="text-sm text-muted-foreground">
+                                    <div className="min-w-0">
+                                        <h3 className="font-semibold text-base sm:text-lg truncate">Impresoras</h3>
+                                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
                                             Térmicas 58mm y 80mm
                                         </p>
                                     </div>
                                 </div>
-                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                             </CardContent>
                         </Card>
                     </Link>
@@ -204,32 +204,36 @@ export default function SettingsPage() {
 
                 {/* Settings Tabs */}
                 <Tabs defaultValue="brand" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-                        <TabsTrigger value="brand" className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4" />
-                            <span className="hidden sm:inline">Marca</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="general" className="flex items-center gap-2">
-                            <Store className="h-4 w-4" />
-                            <span className="hidden sm:inline">General</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="pos" className="flex items-center gap-2">
-                            <Settings className="h-4 w-4" />
-                            <span className="hidden sm:inline">POS</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="receipt" className="flex items-center gap-2">
-                            <Receipt className="h-4 w-4" />
-                            <span className="hidden sm:inline">Recibos</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="notifications" className="flex items-center gap-2">
-                            <Bell className="h-4 w-4" />
-                            <span className="hidden sm:inline">Notificaciones</span>
-                        </TabsTrigger>
-                        <TabsTrigger value="databases" className="flex items-center gap-2">
-                            <Database className="h-4 w-4" />
-                            <span className="hidden sm:inline">Bases de Datos</span>
-                        </TabsTrigger>
-                    </TabsList>
+                    <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 pb-1">
+                        <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-3 lg:grid-cols-6">
+                            <TabsTrigger value="brand" className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] text-xs sm:text-sm whitespace-nowrap">
+                                <Building2 className="h-4 w-4" />
+                                <span>Marca</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="general" className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] text-xs sm:text-sm whitespace-nowrap">
+                                <Store className="h-4 w-4" />
+                                <span>General</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="pos" className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] text-xs sm:text-sm whitespace-nowrap">
+                                <Settings className="h-4 w-4" />
+                                <span>POS</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="receipt" className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] text-xs sm:text-sm whitespace-nowrap">
+                                <Receipt className="h-4 w-4" />
+                                <span>Recibos</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="notifications" className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] text-xs sm:text-sm whitespace-nowrap">
+                                <Bell className="h-4 w-4" />
+                                <span className="hidden xs:inline">Notificaciones</span>
+                                <span className="xs:hidden">Notif.</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="databases" className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] text-xs sm:text-sm whitespace-nowrap">
+                                <Database className="h-4 w-4" />
+                                <span className="hidden xs:inline">Bases de Datos</span>
+                                <span className="xs:hidden">BD</span>
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
 
                     {/* Brand Settings */}
                     <TabsContent value="brand" className="space-y-4">
@@ -239,65 +243,70 @@ export default function SettingsPage() {
                     {/* General Settings */}
                     <TabsContent value="general" className="space-y-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Store className="h-5 w-5" />
+                            <CardHeader className="p-4 sm:p-6">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Store className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Información del Negocio
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">
                                     Configure la información básica de su negocio
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="businessName">Nombre del Negocio</Label>
+                            <CardContent className="space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+                                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <Label htmlFor="businessName" className="text-sm">Nombre del Negocio</Label>
                                         <Input
                                             id="businessName"
                                             value={businessName}
                                             onChange={(e) => setBusinessName(e.target.value)}
                                             placeholder="Ej: Mi Tienda"
+                                            className="min-h-[44px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="taxId">RUT/NIT</Label>
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <Label htmlFor="taxId" className="text-sm">RUT/NIT</Label>
                                         <Input
                                             id="taxId"
                                             value={taxId}
                                             onChange={(e) => setTaxId(e.target.value)}
                                             placeholder="Ej: 12345678-9"
+                                            className="min-h-[44px]"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="businessAddress">Dirección</Label>
+                                <div className="space-y-1.5 sm:space-y-2">
+                                    <Label htmlFor="businessAddress" className="text-sm">Dirección</Label>
                                     <Input
                                         id="businessAddress"
                                         value={businessAddress}
                                         onChange={(e) => setBusinessAddress(e.target.value)}
                                         placeholder="Ej: Calle Principal #123"
+                                        className="min-h-[44px]"
                                     />
                                 </div>
 
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="businessPhone">Teléfono</Label>
+                                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <Label htmlFor="businessPhone" className="text-sm">Teléfono</Label>
                                         <Input
                                             id="businessPhone"
                                             value={businessPhone}
                                             onChange={(e) => setBusinessPhone(e.target.value)}
                                             placeholder="Ej: +503 1234-5678"
+                                            className="min-h-[44px]"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="businessEmail">Email</Label>
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <Label htmlFor="businessEmail" className="text-sm">Email</Label>
                                         <Input
                                             id="businessEmail"
                                             type="email"
                                             value={businessEmail}
                                             onChange={(e) => setBusinessEmail(e.target.value)}
                                             placeholder="Ej: contacto@mitienda.com"
+                                            className="min-h-[44px]"
                                         />
                                     </div>
                                 </div>
@@ -305,7 +314,7 @@ export default function SettingsPage() {
                                 <Separator />
 
                                 <div className="flex justify-end">
-                                    <Button onClick={handleSaveGeneralSettings} disabled={loading}>
+                                    <Button onClick={handleSaveGeneralSettings} disabled={loading} className="min-h-[44px] w-full sm:w-auto">
                                         <Save className="h-4 w-4 mr-2" />
                                         Guardar Cambios
                                     </Button>
@@ -317,22 +326,22 @@ export default function SettingsPage() {
                     {/* POS Settings */}
                     <TabsContent value="pos" className="space-y-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Settings className="h-5 w-5" />
+                            <CardHeader className="p-4 sm:p-6">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Configuración del Punto de Venta
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">
                                     Configure el comportamiento del sistema POS
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="autoOpenCashDrawer">
+                            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0 sm:pt-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="autoOpenCashDrawer" className="text-sm">
                                             Abrir cajón automáticamente
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Abre el cajón de dinero después de cada venta
                                         </p>
                                     </div>
@@ -340,17 +349,18 @@ export default function SettingsPage() {
                                         id="autoOpenCashDrawer"
                                         checked={autoOpenCashDrawer}
                                         onCheckedChange={setAutoOpenCashDrawer}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="printReceiptAutomatically">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="printReceiptAutomatically" className="text-sm">
                                             Imprimir recibo automáticamente
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Imprime el recibo después de cada venta
                                         </p>
                                     </div>
@@ -358,17 +368,18 @@ export default function SettingsPage() {
                                         id="printReceiptAutomatically"
                                         checked={printReceiptAutomatically}
                                         onCheckedChange={setPrintReceiptAutomatically}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="requireCustomerForSale">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="requireCustomerForSale" className="text-sm">
                                             Requerir cliente para venta
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Obliga a seleccionar un cliente antes de completar una venta
                                         </p>
                                     </div>
@@ -376,14 +387,15 @@ export default function SettingsPage() {
                                         id="requireCustomerForSale"
                                         checked={requireCustomerForSale}
                                         onCheckedChange={setRequireCustomerForSale}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="lowStockThreshold">
+                                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <Label htmlFor="lowStockThreshold" className="text-sm">
                                             Umbral de stock bajo
                                         </Label>
                                         <Input
@@ -392,15 +404,16 @@ export default function SettingsPage() {
                                             value={lowStockThreshold}
                                             onChange={(e) => setLowStockThreshold(e.target.value)}
                                             min="1"
+                                            className="min-h-[44px]"
                                         />
                                         <p className="text-xs text-muted-foreground">
                                             Alerta cuando el stock esté por debajo de este número
                                         </p>
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="currency">Moneda</Label>
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <Label htmlFor="currency" className="text-sm">Moneda</Label>
                                         <Select value={currency} onValueChange={setCurrency}>
-                                            <SelectTrigger id="currency">
+                                            <SelectTrigger id="currency" className="min-h-[44px]">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -418,7 +431,7 @@ export default function SettingsPage() {
                                 <Separator />
 
                                 <div className="flex justify-end">
-                                    <Button onClick={handleSavePOSSettings} disabled={loading}>
+                                    <Button onClick={handleSavePOSSettings} disabled={loading} className="min-h-[44px] w-full sm:w-auto">
                                         <Save className="h-4 w-4 mr-2" />
                                         Guardar Cambios
                                     </Button>
@@ -430,36 +443,38 @@ export default function SettingsPage() {
                     {/* Receipt Settings */}
                     <TabsContent value="receipt" className="space-y-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Receipt className="h-5 w-5" />
+                            <CardHeader className="p-4 sm:p-6">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Receipt className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Configuración de Recibos
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">
                                     Personalice el formato de sus recibos
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="receiptHeader">Encabezado del Recibo</Label>
+                            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0 sm:pt-0">
+                                <div className="space-y-1.5 sm:space-y-2">
+                                    <Label htmlFor="receiptHeader" className="text-sm">Encabezado del Recibo</Label>
                                     <Input
                                         id="receiptHeader"
                                         value={receiptHeader}
                                         onChange={(e) => setReceiptHeader(e.target.value)}
                                         placeholder="Ej: ¡Gracias por su compra!"
+                                        className="min-h-[44px]"
                                     />
                                     <p className="text-xs text-muted-foreground">
                                         Texto que aparece en la parte superior del recibo
                                     </p>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="receiptFooter">Pie del Recibo</Label>
+                                <div className="space-y-1.5 sm:space-y-2">
+                                    <Label htmlFor="receiptFooter" className="text-sm">Pie del Recibo</Label>
                                     <Input
                                         id="receiptFooter"
                                         value={receiptFooter}
                                         onChange={(e) => setReceiptFooter(e.target.value)}
                                         placeholder="Ej: Vuelva pronto"
+                                        className="min-h-[44px]"
                                     />
                                     <p className="text-xs text-muted-foreground">
                                         Texto que aparece en la parte inferior del recibo
@@ -468,12 +483,12 @@ export default function SettingsPage() {
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="showTaxOnReceipt">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="showTaxOnReceipt" className="text-sm">
                                             Mostrar impuestos en recibo
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Muestra el desglose de impuestos en el recibo
                                         </p>
                                     </div>
@@ -481,17 +496,18 @@ export default function SettingsPage() {
                                         id="showTaxOnReceipt"
                                         checked={showTaxOnReceipt}
                                         onCheckedChange={setShowTaxOnReceipt}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="showBusinessLogoOnReceipt">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="showBusinessLogoOnReceipt" className="text-sm">
                                             Mostrar logo en recibo
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Incluye el logo del negocio en el recibo impreso
                                         </p>
                                     </div>
@@ -499,13 +515,14 @@ export default function SettingsPage() {
                                         id="showBusinessLogoOnReceipt"
                                         checked={showBusinessLogoOnReceipt}
                                         onCheckedChange={setShowBusinessLogoOnReceipt}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
                                 <div className="flex justify-end">
-                                    <Button onClick={handleSaveReceiptSettings} disabled={loading}>
+                                    <Button onClick={handleSaveReceiptSettings} disabled={loading} className="min-h-[44px] w-full sm:w-auto">
                                         <Save className="h-4 w-4 mr-2" />
                                         Guardar Cambios
                                     </Button>
@@ -517,22 +534,22 @@ export default function SettingsPage() {
                     {/* Notification Settings */}
                     <TabsContent value="notifications" className="space-y-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Bell className="h-5 w-5" />
+                            <CardHeader className="p-4 sm:p-6">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Configuración de Notificaciones
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">
                                     Administre cómo y cuándo recibir notificaciones
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="emailNotifications">
+                            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0 sm:pt-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="emailNotifications" className="text-sm">
                                             Notificaciones por email
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Recibe notificaciones importantes por correo electrónico
                                         </p>
                                     </div>
@@ -540,17 +557,18 @@ export default function SettingsPage() {
                                         id="emailNotifications"
                                         checked={emailNotifications}
                                         onCheckedChange={setEmailNotifications}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="lowStockAlerts">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="lowStockAlerts" className="text-sm">
                                             Alertas de stock bajo
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Notifica cuando los productos alcancen el umbral de stock bajo
                                         </p>
                                     </div>
@@ -558,17 +576,18 @@ export default function SettingsPage() {
                                         id="lowStockAlerts"
                                         checked={lowStockAlerts}
                                         onCheckedChange={setLowStockAlerts}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="dailySalesReport">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="space-y-0.5 min-w-0 flex-1">
+                                        <Label htmlFor="dailySalesReport" className="text-sm">
                                             Reporte diario de ventas
                                         </Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-xs sm:text-sm text-muted-foreground">
                                             Recibe un resumen de ventas al final de cada día
                                         </p>
                                     </div>
@@ -576,13 +595,14 @@ export default function SettingsPage() {
                                         id="dailySalesReport"
                                         checked={dailySalesReport}
                                         onCheckedChange={setDailySalesReport}
+                                        className="flex-shrink-0"
                                     />
                                 </div>
 
                                 <Separator />
 
                                 <div className="flex justify-end">
-                                    <Button onClick={handleSaveNotificationSettings} disabled={loading}>
+                                    <Button onClick={handleSaveNotificationSettings} disabled={loading} className="min-h-[44px] w-full sm:w-auto">
                                         <Save className="h-4 w-4 mr-2" />
                                         Guardar Cambios
                                     </Button>
@@ -594,31 +614,32 @@ export default function SettingsPage() {
                     {/* Database Settings */}
                     <TabsContent value="databases" className="space-y-4">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Database className="h-5 w-5" />
+                            <CardHeader className="p-4 sm:p-6">
+                                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                                    <Database className="h-4 w-4 sm:h-5 sm:w-5" />
                                     Bases de Datos Supabase
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-xs sm:text-sm">
                                     Configura y cambia entre tus bases de datos de Supabase
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mb-4">
-                                        <Database className="h-8 w-8 text-white" />
+                            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-0 sm:pt-0">
+                                <div className="flex flex-col items-center justify-center py-4 sm:py-8 text-center px-2">
+                                    <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mb-3 sm:mb-4">
+                                        <Database className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                                     </div>
-                                    <h3 className="font-semibold text-lg mb-2">
+                                    <h3 className="font-semibold text-base sm:text-lg mb-2">
                                         Gestion de Bases de Datos
                                     </h3>
-                                    <p className="text-sm text-muted-foreground max-w-md mb-6">
+                                    <p className="text-xs sm:text-sm text-muted-foreground max-w-md mb-4 sm:mb-6">
                                         Administra tus conexiones a Supabase, cambia entre base de datos 
                                         principal y secundaria, y prueba las conexiones.
                                     </p>
-                                    <Link href="/dashboard/settings/databases">
-                                        <Button size="lg" data-testid="button-open-databases">
+                                    <Link href="/dashboard/settings/databases" className="w-full sm:w-auto">
+                                        <Button size="lg" className="min-h-[44px] w-full sm:w-auto" data-testid="button-open-databases">
                                             <Database className="h-4 w-4 mr-2" />
-                                            Abrir Configuracion de Bases de Datos
+                                            <span className="hidden sm:inline">Abrir Configuracion de Bases de Datos</span>
+                                            <span className="sm:hidden">Configurar BD</span>
                                             <ChevronRight className="h-4 w-4 ml-2" />
                                         </Button>
                                     </Link>

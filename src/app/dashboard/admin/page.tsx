@@ -119,14 +119,14 @@ export default function AdminManagementPage() {
 
   return (
     <div className="w-full h-full overflow-auto">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold flex items-center gap-2" data-testid="text-admin-title">
-            <Shield className="h-8 w-8 text-primary" />
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2" data-testid="text-admin-title">
+            <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             Administración de Usuarios
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Gestiona los roles y permisos de los usuarios del sistema
           </p>
         </div>
@@ -247,12 +247,13 @@ export default function AdminManagementPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 sm:shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 sm:shrink-0 w-full sm:w-auto justify-between sm:justify-end">
                       <Badge
                         variant={user.role === "ADMIN" ? "default" : user.role === "CUSTOMER" ? "outline" : "secondary"}
                         data-testid={`badge-role-${user.id}`}
+                        className="text-xs sm:text-sm"
                       >
-                        {user.role === "ADMIN" ? "Administrador" : user.role === "CUSTOMER" ? "Cliente" : "Usuario"}
+                        {user.role === "ADMIN" ? "Admin" : user.role === "CUSTOMER" ? "Cliente" : "Usuario"}
                       </Badge>
                       <Dialog open={isDialogOpen && selectedUser?.id === user.id} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
@@ -265,6 +266,7 @@ export default function AdminManagementPage() {
                               setIsDialogOpen(true);
                             }}
                             data-testid={`button-change-role-${user.id}`}
+                            className="min-h-[44px] min-w-[44px]"
                           >
                             <UserCog className="h-4 w-4 sm:mr-2" />
                             <span className="hidden sm:inline">Cambiar Rol</span>
@@ -308,11 +310,12 @@ export default function AdminManagementPage() {
                               </Select>
                             </div>
                           </div>
-                          <DialogFooter className="gap-2">
+                          <DialogFooter className="gap-2 flex-col sm:flex-row">
                             <Button
                               variant="outline"
                               onClick={() => setIsDialogOpen(false)}
                               disabled={updating}
+                              className="w-full sm:w-auto min-h-[44px]"
                             >
                               Cancelar
                             </Button>
@@ -320,6 +323,7 @@ export default function AdminManagementPage() {
                               onClick={() => handleUpdateRole(user.email, selectedRole)}
                               disabled={updating || selectedRole === user.role}
                               data-testid="button-update-role"
+                              className="w-full sm:w-auto min-h-[44px]"
                             >
                               {updating ? (
                                 <>

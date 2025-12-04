@@ -298,45 +298,48 @@ export default function CorteCajaPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b flex items-center justify-between gap-3">
+      <div className="p-3 sm:p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold" data-testid="text-page-title">Corte de Caja</h1>
-          <p className="text-sm text-muted-foreground">Gestiona arqueos y cierres de turno</p>
+          <h1 className="text-lg sm:text-xl font-semibold" data-testid="text-page-title">Corte de Caja</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Gestiona arqueos y cierres de turno</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => { fetchTurno(); fetchMovimientos(); }}
             data-testid="button-refresh"
+            className="min-h-[44px] min-w-[44px]"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
           {activeTurno && (
-            <Badge variant="outline" className="text-green-600 border-green-600">
+            <Badge variant="outline" className="text-green-600 border-green-600 text-xs sm:text-sm">
               <Clock className="mr-1 h-3 w-3" />
-              Turno activo desde {formatTime(activeTurno.startedAt)}
+              <span className="hidden sm:inline">Turno activo desde</span>
+              <span className="sm:hidden">Activo</span> {formatTime(activeTurno.startedAt)}
             </Badge>
           )}
         </div>
       </div>
 
-      <div className="flex-1 p-4 overflow-auto">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex-1 p-3 sm:p-4 overflow-auto">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {!activeTurno ? (
             <Card className="border-2 border-dashed">
-              <CardContent className="py-12 text-center">
-                <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
-                  <Wallet className="h-8 w-8 text-muted-foreground" />
+              <CardContent className="py-8 sm:py-12 text-center">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Wallet className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">No hay turno activo</h3>
-                <p className="text-muted-foreground mb-6">
+                <h3 className="text-base sm:text-lg font-medium mb-2">No hay turno activo</h3>
+                <p className="text-muted-foreground mb-6 text-sm sm:text-base px-4">
                   Inicia un nuevo turno para comenzar a registrar ventas y movimientos
                 </p>
                 <Button
                   size="lg"
                   onClick={() => setShowIniciarDialog(true)}
                   data-testid="button-iniciar-turno"
+                  className="min-h-[48px]"
                 >
                   <Play className="mr-2 h-5 w-5" />
                   Iniciar Turno
@@ -345,7 +348,7 @@ export default function CorteCajaPage() {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -457,29 +460,31 @@ export default function CorteCajaPage() {
                 </Card>
 
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 gap-2">
+                  <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0 pb-4 gap-2">
                     <div>
-                      <CardTitle className="text-lg">Movimientos de Caja</CardTitle>
-                      <CardDescription>Retiros y depósitos del turno</CardDescription>
+                      <CardTitle className="text-base sm:text-lg">Movimientos de Caja</CardTitle>
+                      <CardDescription className="text-sm">Retiros y depósitos del turno</CardDescription>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openMovimientoDialog("deposit")}
                         data-testid="button-add-deposit"
+                        className="flex-1 sm:flex-none min-h-[44px]"
                       >
-                        <Plus className="mr-1 h-4 w-4" />
-                        Depósito
+                        <Plus className="sm:mr-1 h-4 w-4" />
+                        <span className="hidden sm:inline">Depósito</span>
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openMovimientoDialog("withdrawal")}
                         data-testid="button-add-withdrawal"
+                        className="flex-1 sm:flex-none min-h-[44px]"
                       >
-                        <Minus className="mr-1 h-4 w-4" />
-                        Retiro
+                        <Minus className="sm:mr-1 h-4 w-4" />
+                        <span className="hidden sm:inline">Retiro</span>
                       </Button>
                     </div>
                   </CardHeader>
@@ -582,14 +587,15 @@ export default function CorteCajaPage() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowIniciarDialog(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowIniciarDialog(false)} className="w-full sm:w-auto min-h-[44px]">
               Cancelar
             </Button>
             <Button 
               onClick={handleIniciarTurno} 
               disabled={isSubmitting}
               data-testid="button-confirm-iniciar"
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Iniciar Turno
@@ -636,14 +642,15 @@ export default function CorteCajaPage() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowMovimientoDialog(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowMovimientoDialog(false)} className="w-full sm:w-auto min-h-[44px]">
               Cancelar
             </Button>
             <Button 
               onClick={handleAgregarMovimiento} 
               disabled={isSubmitting}
               data-testid="button-confirm-movimiento"
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar
@@ -715,14 +722,15 @@ export default function CorteCajaPage() {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCorteDialog(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowCorteDialog(false)} className="w-full sm:w-auto min-h-[44px]">
               Cancelar
             </Button>
             <Button 
               onClick={handleRealizarCorte} 
               disabled={isSubmitting || !countedCash}
               data-testid="button-confirm-corte"
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirmar Corte
@@ -744,14 +752,14 @@ export default function CorteCajaPage() {
           </DialogHeader>
           {corteReport && (
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Inicio del turno</p>
-                  <p className="font-medium">{formatDateTime(corteReport.startedAt)}</p>
+                  <p className="font-medium text-sm sm:text-base">{formatDateTime(corteReport.startedAt)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Cierre del turno</p>
-                  <p className="font-medium">{formatDateTime(corteReport.closedAt)}</p>
+                  <p className="font-medium text-sm sm:text-base">{formatDateTime(corteReport.closedAt)}</p>
                 </div>
               </div>
               

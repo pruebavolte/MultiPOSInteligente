@@ -208,14 +208,14 @@ function SortableProductCard({ product, onSelectProduct, onEditProduct, config, 
           )}
         </div>
 
-        <div className="p-2 text-center">
+        <div className="p-1.5 sm:p-2 text-center">
           <h3 className={cn(
-            "font-medium text-foreground line-clamp-2 leading-tight mb-1",
+            "font-medium text-foreground line-clamp-2 leading-tight mb-0.5 sm:mb-1",
             config.fontSize
           )}>
             {product.name}
           </h3>
-          <p className="text-primary font-bold text-sm">
+          <p className="text-primary font-bold text-xs sm:text-sm">
             ${product.price.toFixed(2)}
           </p>
         </div>
@@ -291,19 +291,19 @@ export function CategoryBrowser({
 
   const cardSizeConfig = {
     small: {
-      gridCols: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+      gridCols: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
       imageHeight: "aspect-square",
-      fontSize: "text-xs",
+      fontSize: "text-xs sm:text-sm",
     },
     medium: {
-      gridCols: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+      gridCols: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5",
       imageHeight: "aspect-square",
       fontSize: "text-sm",
     },
     large: {
-      gridCols: "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+      gridCols: "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4",
       imageHeight: "aspect-[4/3]",
-      fontSize: "text-base",
+      fontSize: "text-sm sm:text-base",
     },
   };
 
@@ -411,22 +411,22 @@ export function CategoryBrowser({
       {!hideCategories && (
         <div className="flex-shrink-0">
           <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex gap-2 pb-2">
+            <div className="flex gap-2 sm:gap-3 pb-2 px-1 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => setSelectedCategory(null)}
                 data-testid="button-category-all"
                 className={cn(
-                  "px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-200 flex-shrink-0",
+                  "px-3 sm:px-4 py-2 sm:py-2.5 min-h-[44px] rounded-full font-medium text-xs sm:text-sm transition-all duration-200 flex-shrink-0",
                   selectedCategory === null
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted hover:bg-muted/80 text-foreground"
                 )}
               >
-                <div className="flex items-center gap-1.5">
-                  <Grid3x3 className="h-3 w-3" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Grid3x3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   <span>Todos</span>
                   <span className={cn(
-                    "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                    "px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold",
                     selectedCategory === null
                       ? "bg-primary-foreground/20"
                       : "bg-primary/10 text-primary"
@@ -442,16 +442,16 @@ export function CategoryBrowser({
                   onClick={() => setSelectedCategory(category.id)}
                   data-testid={`button-category-${category.id}`}
                   className={cn(
-                    "px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-200 flex-shrink-0",
+                    "px-3 sm:px-4 py-2 sm:py-2.5 min-h-[44px] rounded-full font-medium text-xs sm:text-sm transition-all duration-200 flex-shrink-0",
                     selectedCategory === category.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted hover:bg-muted/80 text-foreground"
                   )}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <span>{category.name}</span>
                     <span className={cn(
-                      "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                      "px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold",
                       selectedCategory === category.id
                         ? "bg-primary-foreground/20"
                         : "bg-primary/10 text-primary"
@@ -470,8 +470,8 @@ export function CategoryBrowser({
         <ScrollArea className="h-full">
           {orderedProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 space-y-2">
-              <Package className="h-12 w-12 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
+              <Package className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground" />
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 No hay productos
               </p>
             </div>
@@ -486,7 +486,7 @@ export function CategoryBrowser({
                 items={orderedProducts.map(p => p.id)}
                 strategy={rectSortingStrategy}
               >
-                <div className={cn("grid gap-3 p-1 transition-all duration-300", config.gridCols)}>
+                <div className={cn("grid gap-2 sm:gap-3 p-1 sm:p-2 transition-all duration-300", config.gridCols)}>
                   {orderedProducts.map((product) => (
                     <SortableProductCard
                       key={product.id}
