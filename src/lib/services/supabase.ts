@@ -34,6 +34,9 @@ export async function getProducts(
 
     // Apply filters
     if (filter) {
+      if (filter.user_id) {
+        query = query.eq("user_id", filter.user_id);
+      }
       if (filter.category_id) {
         query = query.eq("category_id", filter.category_id);
       }

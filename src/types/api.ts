@@ -68,6 +68,7 @@ export interface ProductFilter {
   available_in_pos?: boolean;
   available_in_digital_menu?: boolean;
   track_inventory?: boolean;
+  user_id?: string; // Filter by user/restaurant owner
 }
 
 export interface CustomerFilter {

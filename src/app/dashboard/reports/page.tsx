@@ -30,8 +30,10 @@ import {
 } from "recharts";
 import { getSales } from "@/lib/services/supabase";
 import { supabase } from "@/lib/supabase/client";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function ReportsPage() {
+  const { user, loading: userLoading } = useCurrentUser();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -47,6 +49,11 @@ export default function ReportsPage() {
 
   useEffect(() => {
     const fetchReportsData = async () => {
+      // Wait for user to be loaded
+      if (userLoading || !user) {
+        return;
+      }
+
       try {
         // Get dates for last 7 days and previous 7 days
         const today = new Date();
@@ -55,14 +62,16 @@ export default function ReportsPage() {
         const fourteenDaysAgo = new Date(today);
         fourteenDaysAgo.setDate(today.getDate() - 14);
 
-        // Fetch current period sales
+        // Fetch current period sales (filtered by user_id)
         const currentSalesRes = await getSales({
+          user_id: user.id,
           start_date: sevenDaysAgo.toISOString(),
           end_date: today.toISOString(),
         }, 1, 1000);
 
-        // Fetch previous period sales for comparison
+        // Fetch previous period sales for comparison (filtered by user_id)
         const previousSalesRes = await getSales({
+          user_id: user.id,
           start_date: fourteenDaysAgo.toISOString(),
           end_date: sevenDaysAgo.toISOString(),
         }, 1, 1000);
@@ -143,15 +152,18 @@ export default function ReportsPage() {
 
         setSalesByPaymentMethod(paymentData);
 
-        // Fetch top products from sale_items
+        // Fetch top products from sale_items (filtered by user's sales)
         const { data: saleItemsData } = await supabase
           .from("sale_items")
           .select(`
             quantity,
             subtotal,
-            product:products(name, category:categories(name))
+            sale_id,
+            product:products(name, category:categories(name)),
+            sale:sales!inner(user_id)
           `)
-          .gte("created_at", sevenDaysAgo.toISOString());
+          .eq("sale.user_id", user.id)
+          .gte("sale.created_at", sevenDaysAgo.toISOString());
 
         if (saleItemsData) {
           // Aggregate by product
@@ -195,7 +207,7 @@ export default function ReportsPage() {
     };
 
     fetchReportsData();
-  }, []);
+  }, [user, userLoading]);
 
   // Calculate percentage changes
   const revenueChange = stats.previousRevenue > 0
@@ -209,11 +221,21 @@ export default function ReportsPage() {
     ? ((stats.averageTicket - previousAvgTicket) / previousAvgTicket * 100).toFixed(1)
     : "0";
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1800px] mx-auto">
         <div className="flex items-center justify-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1800px] mx-auto">
+        <div className="flex items-center justify-center h-[400px]">
+          <p className="text-muted-foreground">No hay usuario autenticado</p>
         </div>
       </div>
     );

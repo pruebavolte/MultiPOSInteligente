@@ -17,8 +17,10 @@ import {
 import Link from "next/link";
 import { getProducts, getCustomers, getSales } from "@/lib/services/supabase";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function DashboardPage() {
+    const { user, loading: userLoading } = useCurrentUser();
     const [stats, setStats] = useState({
         totalSales: 0,
         totalRevenue: 0,
@@ -33,13 +35,19 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            // Wait for user to be loaded
+            if (userLoading || !user) {
+                return;
+            }
+
             try {
                 // Fetch all data in parallel (including digital menu orders)
+                // Filter by user_id to only show current user's data
                 const [productsRes, customersRes, salesRes, ordersRes] = await Promise.all([
-                    getProducts({}, 1, 1000),
-                    getCustomers({}, 1, 1000),
-                    getSales({}, 1, 100),
-                    // Fetch orders from digital menu via API
+                    getProducts({ user_id: user.id }, 1, 1000),
+                    getCustomers({}, 1, 1000), // Customers are shared globally
+                    getSales({ user_id: user.id }, 1, 100),
+                    // Fetch orders from digital menu via API (already filtered by user_id)
                     fetch('/api/dashboard/orders').then(res => res.json()),
                 ]);
 
@@ -135,13 +143,23 @@ export default function DashboardPage() {
         };
 
         fetchDashboardData();
-    }, []);
+    }, [user, userLoading]);
 
-    if (loading) {
+    if (loading || userLoading) {
         return (
             <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
                 <div className="flex items-center justify-center h-[400px]">
                     <p className="text-muted-foreground">Cargando dashboard...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-[1600px] mx-auto">
+                <div className="flex items-center justify-center h-[400px]">
+                    <p className="text-muted-foreground">No hay usuario autenticado</p>
                 </div>
             </div>
         );
