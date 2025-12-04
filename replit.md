@@ -32,7 +32,20 @@ Preferred communication style: Simple, everyday language.
 - 48+ pre-built components using Radix UI primitives
 - Tailwind CSS for styling with custom design system
 - Dark mode support via CSS variables
-- Responsive design patterns for mobile/tablet/desktop
+- Fully responsive design for mobile/tablet/desktop
+
+**Mobile Responsiveness Patterns:**
+All dashboard modules follow consistent responsive patterns:
+- **Touch Targets:** Minimum 44px height for all interactive elements (`min-h-[44px]`)
+- **Grid Layouts:** `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` for stat cards
+- **Product Grids:** `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5` for product displays
+- **Table-to-Card:** Desktop tables (`hidden md:block`) convert to card views on mobile (`md:hidden`)
+- **Flex Layouts:** `flex-col sm:flex-row` for controls that should stack on mobile
+- **Button Widths:** `w-full sm:w-auto` for buttons that should be full-width on mobile
+- **Text Scaling:** `text-sm sm:text-base` for responsive typography
+- **Padding:** `p-3 sm:p-4 lg:p-6` for consistent spacing at all breakpoints
+- **Horizontal Scroll:** `overflow-x-auto scrollbar-hide` for categories on mobile
+- **Dialog Footers:** Stack on mobile with `flex-col sm:flex-row gap-2`
 
 **State Management:**
 - React Context API for global state (language, search, cart)
