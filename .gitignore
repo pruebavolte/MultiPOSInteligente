@@ -41,3 +41,4 @@ dummy.txt
 # clerk configuration (can include secrets)
 /.clerk/
 *.md
+*.md
