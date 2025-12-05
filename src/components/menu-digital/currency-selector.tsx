@@ -38,7 +38,11 @@ export function CurrencySelector({
   language = "es",
 }: CurrencySelectorProps) {
   const [open, setOpen] = useState(false);
+<<<<<<< HEAD
   const [exchangeRates, setExchangeRates] = useState<Partial<Record<CurrencyCode, number>>>({});
+=======
+  const [exchangeRates, setExchangeRates] = useState<Record<CurrencyCode, number>>({} as Record<CurrencyCode, number>);
+>>>>>>> origin/main
 
   const currentCurrencyInfo = CURRENCY_INFO[selectedCurrency];
   const currencySymbol = getCurrencySymbol(selectedCurrency);
