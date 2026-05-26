@@ -121,7 +121,7 @@ CREATE INDEX IF NOT EXISTS idx_platform_integrations_user ON platform_integratio
         }, { status: 400 });
       }
 
-      const sampleOrders = [
+      const sampleOrders: any[] = [
         {
           order_number: 'ORD-001',
           source: 'pos',
