@@ -93,7 +93,6 @@ export async function createOrder(orderData: {
   
   const { data: order, error: orderError } = await supabase
     .from("orders")
-    // @ts-expect-error - Type mismatch with Supabase generated types
     .insert({
       user_id: orderData.userId,
       total: orderData.total,
