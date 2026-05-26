@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Building2, Save, Palette, Package, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useBrands, useVerticals } from "@/hooks/use-brands";
+import { useBrands, useVerticals, Brand } from "@/hooks/use-brands";
 import { useUser } from "@clerk/nextjs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,7 +57,7 @@ export function BrandSettingsForm() {
   useEffect(() => {
     if (brands && !Array.isArray(brands)) {
       // Single brand
-      const brand = brands;
+      const brand = brands as Brand;
       setBrandId(brand.id);
       setBrandName(brand.name);
       setBrandSlug(brand.slug);
