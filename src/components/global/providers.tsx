@@ -20,6 +20,7 @@ const client = new QueryClient({
 const Providers = ({ children }: Props) => {
     return (
         <ClerkProvider
+            publishableKey="pk_test_c3VwcmVtZS1wb3NzdW0tNzYuY2xlcmsuYWNjb3VudHMuZGV2JA"
             appearance={{
                 elements: {
                     formButtonPrimary: 'bg-primary hover:bg-primary/90',
