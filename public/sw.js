@@ -1,7 +1,7 @@
 // Service Worker para PWA - System International
-// Version: 3.0.0 - Enhanced Offline Support (MDN Pattern)
+// Version: 4.0.0 - Network-first navigation (flush stale shells from old app)
 
-const CACHE_NAME = 'SystemIntl-v3';
+const CACHE_NAME = 'SystemIntl-v4';
 const OFFLINE_PAGE = '/offline.html';
 
 // App Shell - Core files to cache on install
@@ -96,6 +96,30 @@ self.addEventListener('fetch', (event) => {
   
   event.respondWith(
     (async () => {
+      // Network-first for page navigations: always serve the freshest HTML so
+      // a stale cached shell (e.g. an old app version) can never be served.
+      // Falls back to cache, then offline page, when the network is unavailable.
+      if (request.mode === 'navigate') {
+        try {
+          const networkResponse = await fetch(request);
+          if (networkResponse.ok) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (error) {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          const offlinePage = await caches.match(OFFLINE_PAGE);
+          if (offlinePage) return offlinePage;
+          return new Response('Offline - Resource not available', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' }
+          });
+        }
+      }
+
       // Try to get from cache first
       const cachedResponse = await caches.match(request);
       
