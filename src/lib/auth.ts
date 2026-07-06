@@ -10,15 +10,21 @@ const AUTH_BYPASS = process.env.AUTH_BYPASS === "true" || process.env.NODE_ENV =
 const USER_SELECT = { id: true, email: true, firstName: true, lastName: true, role: true, image: true } as const;
 
 export async function getCurrentUserWithRole() {
-  // Sin Clerk: el "usuario actual" sale de NUESTRA tabla users (control 100% nuestro).
+  // Sin Clerk: el "usuario actual" sale de NUESTRA BD; si la BD no vive (preview), usuario ficticio.
   if (AUTH_BYPASS) {
-    if (process.env.DEV_USER_ID) {
-      const byId = await prisma.user.findUnique({ where: { id: process.env.DEV_USER_ID }, select: USER_SELECT });
-      if (byId) return byId;
+    try {
+      if (process.env.DEV_USER_ID) {
+        const byId = await prisma.user.findUnique({ where: { id: process.env.DEV_USER_ID }, select: USER_SELECT });
+        if (byId) return byId;
+      }
+      const admin = await prisma.user.findFirst({ where: { role: "ADMIN" }, select: USER_SELECT });
+      if (admin) return admin;
+      const any = await prisma.user.findFirst({ select: USER_SELECT });
+      if (any) return any;
+    } catch (e) {
+      console.warn("[auth] BD no disponible, usuario ficticio:", (e as Error)?.message);
     }
-    const admin = await prisma.user.findFirst({ where: { role: "ADMIN" }, select: USER_SELECT });
-    if (admin) return admin;
-    return await prisma.user.findFirst({ select: USER_SELECT });
+    return { id: "00000000-0000-0000-0000-000000000001", email: "preview@local.test", firstName: "Preview", lastName: "Admin", role: "ADMIN", image: null } as any;
   }
 
   const { userId } = await auth();
