@@ -1,7 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse, NextRequest } from 'next/server';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+// AUTH_BYPASS: acceso controlado por NOSOTROS (sin Clerk) para previews. El "login" real
+// pasa a ser el usuario de nuestra tabla `users` en Supabase (ver auth-wrapper / lib/auth).
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.AUTH_BYPASS === 'true';
 
 const isPublicRoute = createRouteMatcher([
   '/',

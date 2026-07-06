@@ -6,7 +6,21 @@ const prisma = new PrismaClient();
 /**
  * Get the current user from the database with their role
  */
+const AUTH_BYPASS = process.env.AUTH_BYPASS === "true" || process.env.NODE_ENV === "development";
+const USER_SELECT = { id: true, email: true, firstName: true, lastName: true, role: true, image: true } as const;
+
 export async function getCurrentUserWithRole() {
+  // Sin Clerk: el "usuario actual" sale de NUESTRA tabla users (control 100% nuestro).
+  if (AUTH_BYPASS) {
+    if (process.env.DEV_USER_ID) {
+      const byId = await prisma.user.findUnique({ where: { id: process.env.DEV_USER_ID }, select: USER_SELECT });
+      if (byId) return byId;
+    }
+    const admin = await prisma.user.findFirst({ where: { role: "ADMIN" }, select: USER_SELECT });
+    if (admin) return admin;
+    return await prisma.user.findFirst({ select: USER_SELECT });
+  }
+
   const { userId } = await auth();
 
   if (!userId) {
@@ -17,14 +31,7 @@ export async function getCurrentUserWithRole() {
     where: {
       clerkId: userId,
     },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      role: true,
-      image: true,
-    },
+    select: USER_SELECT,
   });
 
   return user;

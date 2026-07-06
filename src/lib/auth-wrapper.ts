@@ -68,7 +68,7 @@ async function getDevUser(): Promise<User | null> {
 }
 
 export async function getAuthenticatedUser(): Promise<User | null> {
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = process.env.NODE_ENV === "development" || process.env.AUTH_BYPASS === "true";
 
   if (isDevelopment) {
     console.log("[Auth] Development mode - bypassing Clerk authentication");
@@ -139,7 +139,7 @@ export async function createDevUser(): Promise<User | null> {
 }
 
 export function getSupabaseClient() {
-  const isDevelopment = process.env.NODE_ENV === "development";
+  const isDevelopment = process.env.NODE_ENV === "development" || process.env.AUTH_BYPASS === "true";
   if (isDevelopment) {
     return getDevSupabaseClient();
   }
