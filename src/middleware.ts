@@ -1,9 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse, NextRequest } from 'next/server';
 
-// AUTH_BYPASS: acceso controlado por NOSOTROS (sin Clerk) para previews. El "login" real
-// pasa a ser el usuario de nuestra tabla `users` en Supabase (ver auth-wrapper / lib/auth).
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.AUTH_BYPASS === 'true';
+// PREVIEW: Clerk DESACTIVADO en todo el app (control 100% nuestro). Hardcodeado ON para no
+// depender de env vars (Next inlinea process.env en el middleware en build-time = flaky).
+const isDevelopment = true;
 
 const isPublicRoute = createRouteMatcher([
   '/',

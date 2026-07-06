@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 /**
  * Get the current user from the database with their role
  */
-const AUTH_BYPASS = process.env.AUTH_BYPASS === "true" || process.env.NODE_ENV === "development";
+const AUTH_BYPASS = true; // preview: Clerk off en todo el app
 const USER_SELECT = { id: true, email: true, firstName: true, lastName: true, role: true, image: true } as const;
 
 export async function getCurrentUserWithRole() {
