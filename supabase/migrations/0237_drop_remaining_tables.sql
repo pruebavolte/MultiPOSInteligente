@@ -1,0 +1,23 @@
+-- 0237: drop tablas de 024 (proyecto nuevo sin datos) para recrearlas con estructura correcta
+DROP TABLE IF EXISTS public."brand_modules" CASCADE;
+DROP TABLE IF EXISTS public."brand_onboarding" CASCADE;
+DROP TABLE IF EXISTS public."brands" CASCADE;
+DROP TABLE IF EXISTS public."ingredients" CASCADE;
+DROP TABLE IF EXISTS public."inventory_transactions" CASCADE;
+DROP TABLE IF EXISTS public."order_item_variants" CASCADE;
+DROP TABLE IF EXISTS public."product_variants" CASCADE;
+DROP TABLE IF EXISTS public."recipes" CASCADE;
+DROP TABLE IF EXISTS public."restaurants" CASCADE;
+DROP TABLE IF EXISTS public."return_items" CASCADE;
+DROP TABLE IF EXISTS public."returns" CASCADE;
+DROP TABLE IF EXISTS public."sale_item_variants" CASCADE;
+DROP TABLE IF EXISTS public."sale_items" CASCADE;
+DROP TABLE IF EXISTS public."sales" CASCADE;
+DROP TABLE IF EXISTS public."system_modules" CASCADE;
+DROP TABLE IF EXISTS public."terminal_connections" CASCADE;
+DROP TABLE IF EXISTS public."variant_types" CASCADE;
+DROP TABLE IF EXISTS public."vertical_categories" CASCADE;
+DROP TABLE IF EXISTS public."vertical_features" CASCADE;
+DROP TABLE IF EXISTS public."vertical_module_configs" CASCADE;
+DROP TABLE IF EXISTS public."vertical_terminology" CASCADE;
+DROP TABLE IF EXISTS public."verticals" CASCADE;
