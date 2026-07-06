@@ -1,6 +1,6 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@/lib/clerk-stub";
 import Sidebar from "@/components/dashboard/sidebar";
 import { UserSync } from "@/components/auth/user-sync";
 import { useState, useEffect, useCallback, useRef } from "react";

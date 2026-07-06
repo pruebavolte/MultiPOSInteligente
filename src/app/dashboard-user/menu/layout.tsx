@@ -1,9 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@/lib/clerk-stub";
 import { UserSync } from "@/components/auth/user-sync";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@/lib/clerk-stub";
 import { LanguageSelector } from "@/components/menu-digital/language-selector";
 
 export default function MenuLayout({

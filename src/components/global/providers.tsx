@@ -2,7 +2,7 @@
 
 import React from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider } from "@/lib/clerk-stub";
 
 interface Props {
     children: React.ReactNode;

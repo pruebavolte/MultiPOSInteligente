@@ -17,7 +17,7 @@ import {
 import { Building2, Save, Palette, Package, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useBrands, useVerticals, Brand } from "@/hooks/use-brands";
-import { useUser } from "@clerk/nextjs";
+import { useUser } from "@/lib/clerk-stub";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 

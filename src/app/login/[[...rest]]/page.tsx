@@ -1,4 +1,4 @@
-import { SignIn } from "@clerk/nextjs";
+import { SignIn } from "@/lib/clerk-stub";
 
 export default function LoginPage() {
     return (

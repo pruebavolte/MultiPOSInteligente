@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@/lib/clerk-stub";
 
 /**
  * Component that automatically syncs the logged-in user from Clerk to Supabase
