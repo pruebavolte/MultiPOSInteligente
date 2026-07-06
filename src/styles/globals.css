@@ -194,3 +194,6 @@ image {
     @apply bg-background text-foreground;
   }
 }
+
+/* PREVIEW: revelar contenido server-rendered si la hidratacion RSC no lo revela (Clerk fuera). */
+div[hidden][id^="S:"] { display: contents !important; }
